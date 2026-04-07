@@ -3,9 +3,11 @@ import { useConfigStore } from '@/stores/config-store'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { ThemeEditor } from '@/features/theme/ThemeEditor'
 import { CandidatePreview } from '@/components/shared/CandidatePreview'
+import { SimulatorPanel } from '@/features/simulator/SimulatorPanel'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 export function ThemePage() {
   const style = useConfigStore((s) => s.project.platformConfig.style)
@@ -66,6 +68,12 @@ export function ThemePage() {
             placeholder="输入拼音..."
             className="text-sm"
           />
+        </div>
+
+        <Separator />
+
+        <div className="w-full max-w-md">
+          <SimulatorPanel />
         </div>
       </div>
     </div>
