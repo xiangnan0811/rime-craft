@@ -16,6 +16,9 @@ export function AppLayout() {
             <Link to="/editor">
               <Button variant="ghost">配置编辑器</Button>
             </Link>
+            <Link to="/theme">
+              <Button variant="ghost">主题工作室</Button>
+            </Link>
           </nav>
         </div>
       </header>

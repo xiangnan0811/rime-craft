@@ -4,6 +4,9 @@ import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
 
+const ThemePage = lazy(() =>
+  import('@/app/theme/ThemePage').then((m) => ({ default: m.ThemePage }))
+)
 const DocsLayout = lazy(() =>
   import('@/app/docs/DocsLayout').then((m) => ({ default: m.DocsLayout }))
 )
@@ -18,6 +21,14 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
           <Route path="editor" element={<EditorPage />} />
+          <Route
+            path="theme"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <ThemePage />
+              </Suspense>
+            }
+          />
           <Route
             path="docs"
             element={
