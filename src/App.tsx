@@ -20,6 +20,9 @@ const DocsPage = lazy(() =>
 const GalleryPage = lazy(() =>
   import('@/app/gallery/GalleryPage').then((m) => ({ default: m.GalleryPage }))
 )
+const WizardPage = lazy(() =>
+  import('@/features/wizard/WizardPage').then((m) => ({ default: m.WizardPage }))
+)
 
 export function App() {
   useShareUrl()
@@ -43,6 +46,14 @@ export function App() {
             element={
               <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
                 <ComparePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="wizard"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <WizardPage />
               </Suspense>
             }
           />

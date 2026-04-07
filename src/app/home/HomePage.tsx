@@ -19,9 +19,14 @@ export function HomePage() {
         <div className="mb-12 flex justify-center">
           <CandidatePreview />
         </div>
-        <Link to="/editor">
-          <Button size="lg">开始配置</Button>
-        </Link>
+        <div className="flex justify-center gap-4">
+          <Link to="/editor">
+            <Button size="lg">开始配置</Button>
+          </Link>
+          <Link to="/wizard">
+            <Button size="lg" variant="outline">新手向导</Button>
+          </Link>
+        </div>
       </div>
       <div className="mt-20 grid grid-cols-2 gap-6">
         {FEATURES.map((f) => (
