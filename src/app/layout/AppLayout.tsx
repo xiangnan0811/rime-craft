@@ -19,6 +19,9 @@ export function AppLayout() {
             <Link to="/theme">
               <Button variant="ghost">主题工作室</Button>
             </Link>
+            <Link to="/compare">
+              <Button variant="ghost">方案对比</Button>
+            </Link>
           </nav>
         </div>
       </header>

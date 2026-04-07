@@ -7,6 +7,9 @@ import { EditorPage } from '@/app/editor/EditorPage'
 const ThemePage = lazy(() =>
   import('@/app/theme/ThemePage').then((m) => ({ default: m.ThemePage }))
 )
+const ComparePage = lazy(() =>
+  import('@/app/compare/ComparePage').then((m) => ({ default: m.ComparePage }))
+)
 const DocsLayout = lazy(() =>
   import('@/app/docs/DocsLayout').then((m) => ({ default: m.DocsLayout }))
 )
@@ -26,6 +29,14 @@ export function App() {
             element={
               <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
                 <ThemePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="compare"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <ComparePage />
               </Suspense>
             }
           />
