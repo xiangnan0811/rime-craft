@@ -3,8 +3,10 @@ import { parse } from 'yaml'
 import {
   serializeDefaultConfig,
   serializePlatformConfig,
+  serializeSchemaConfig,
   buildCustomYaml,
 } from './serializer'
+import type { SchemaConfig } from '@/types/config'
 import { expandPatchPaths, mapToDefaultConfig } from './parser'
 import { DEFAULT_CONFIG, DEFAULT_PLATFORM_CONFIG } from '@/lib/config/defaults'
 
@@ -63,6 +65,48 @@ describe('serializePlatformConfig', () => {
     expect(patch.app_options).toEqual({
       'com.apple.Terminal': { ascii_mode: true },
     })
+  })
+})
+
+describe('serializeSchemaConfig', () => {
+  it('serializes switches', () => {
+    const config: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      switches: [
+        { name: 'emoji', reset: 1, states: ['关', '开'] },
+      ],
+    }
+    const patch = serializeSchemaConfig(config)
+    expect(patch.switches).toEqual([{ name: 'emoji', reset: 1, states: ['关', '开'] }])
+  })
+
+  it('serializes punctuator', () => {
+    const config: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      punctuator: { halfShape: { ',': '，' } },
+    }
+    const patch = serializeSchemaConfig(config)
+    expect(patch.punctuator).toEqual({ half_shape: { ',': '，' } })
+  })
+
+  it('returns empty patch when no switches or punctuator', () => {
+    const config: SchemaConfig = { schemaId: 'test', fuzzyRules: [] }
+    const patch = serializeSchemaConfig(config)
+    expect(Object.keys(patch)).toHaveLength(0)
+  })
+
+  it('omits states from switch entry when undefined', () => {
+    const config: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      switches: [{ name: 'ascii_mode', reset: 0 }],
+    }
+    const patch = serializeSchemaConfig(config)
+    const switches = patch.switches as Array<Record<string, unknown>>
+    expect(switches[0]).toEqual({ name: 'ascii_mode', reset: 0 })
+    expect(switches[0]).not.toHaveProperty('states')
   })
 })
 

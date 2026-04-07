@@ -2,6 +2,7 @@ import { parse } from 'yaml'
 import type {
   DefaultConfig,
   PlatformConfig,
+  SchemaConfig,
   SwitchKeyAction,
   AppOption,
 } from '@/types/config'
@@ -180,3 +181,35 @@ export const KNOWN_DEFAULT_KEYS = [
 ]
 
 export const KNOWN_PLATFORM_KEYS = ['style', 'app_options']
+
+// ─── Map to SchemaConfig ────────────────────────────────
+
+export function mapToSchemaConfig(
+  expanded: Record<string, unknown>,
+  schemaId: string,
+): Partial<SchemaConfig> {
+  const result: Partial<SchemaConfig> = { schemaId }
+
+  // Switches
+  const rawSwitches = expanded.switches as Array<Record<string, unknown>> | undefined
+  if (rawSwitches) {
+    result.switches = rawSwitches.map((s) => ({
+      name: (s.name as string) ?? '',
+      reset: (s.reset as number) ?? 0,
+      states: Array.isArray(s.states) ? (s.states as [string, string]) : undefined,
+    }))
+  }
+
+  // Punctuator
+  const rawPunctuator = expanded.punctuator as Record<string, unknown> | undefined
+  if (rawPunctuator) {
+    const halfShape = rawPunctuator.half_shape as Record<string, string | string[]> | undefined
+    if (halfShape) {
+      result.punctuator = { halfShape }
+    }
+  }
+
+  return result
+}
+
+export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine']

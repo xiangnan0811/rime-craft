@@ -1,5 +1,5 @@
 import { stringify } from 'yaml'
-import type { DefaultConfig, PlatformConfig } from '@/types/config'
+import type { DefaultConfig, PlatformConfig, SchemaConfig } from '@/types/config'
 
 export function serializeDefaultConfig(
   config: DefaultConfig,
@@ -48,6 +48,26 @@ export function serializePlatformConfig(
       appOptions[bundleId] = { ascii_mode: opts.asciiMode }
     }
     patch.app_options = appOptions
+  }
+
+  return patch
+}
+
+export function serializeSchemaConfig(config: SchemaConfig): Record<string, unknown> {
+  const patch: Record<string, unknown> = {}
+
+  // Switches
+  if (config.switches && config.switches.length > 0) {
+    patch.switches = config.switches.map((s) => {
+      const entry: Record<string, unknown> = { name: s.name, reset: s.reset }
+      if (s.states) entry.states = s.states
+      return entry
+    })
+  }
+
+  // Punctuator
+  if (config.punctuator) {
+    patch.punctuator = { half_shape: config.punctuator.halfShape }
   }
 
   return patch

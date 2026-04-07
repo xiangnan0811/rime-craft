@@ -4,6 +4,9 @@ import type {
   DefaultConfig,
   SchemaListItem,
   FuzzyRuleState,
+  SwitchItem,
+  PunctuatorConfig,
+  CustomPhrase,
   EditorModule,
 } from '@/types/config'
 import { createEmptyProject } from '@/lib/config/defaults'
@@ -22,6 +25,12 @@ interface ConfigState {
   setAppOption: (bundleId: string, asciiMode: boolean) => void;
   removeAppOption: (bundleId: string) => void;
   setFuzzyRules: (schemaId: string, rules: FuzzyRuleState[]) => void;
+  setSwitches: (schemaId: string, switches: SwitchItem[]) => void;
+  setPunctuator: (schemaId: string, punctuator: PunctuatorConfig) => void;
+  addCustomPhrase: (phrase: CustomPhrase) => void;
+  removeCustomPhrase: (index: number) => void;
+  updateCustomPhrase: (index: number, phrase: CustomPhrase) => void;
+  setCustomPhrases: (phrases: CustomPhrase[]) => void;
 }
 
 export const useConfigStore = create<ConfigState>((set) => ({
@@ -109,6 +118,71 @@ export const useConfigStore = create<ConfigState>((set) => ({
           },
         },
       },
+      isDirty: true,
+    })),
+
+  setSwitches: (schemaId, switches) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        schemaConfigs: {
+          ...s.project.schemaConfigs,
+          [schemaId]: {
+            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+            schemaId,
+            switches,
+          },
+        },
+      },
+      isDirty: true,
+    })),
+
+  setPunctuator: (schemaId, punctuator) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        schemaConfigs: {
+          ...s.project.schemaConfigs,
+          [schemaId]: {
+            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+            schemaId,
+            punctuator,
+          },
+        },
+      },
+      isDirty: true,
+    })),
+
+  addCustomPhrase: (phrase) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        customPhrases: [...s.project.customPhrases, phrase],
+      },
+      isDirty: true,
+    })),
+
+  removeCustomPhrase: (index) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        customPhrases: s.project.customPhrases.filter((_, i) => i !== index),
+      },
+      isDirty: true,
+    })),
+
+  updateCustomPhrase: (index, phrase) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        customPhrases: s.project.customPhrases.map((p, i) => (i === index ? phrase : p)),
+      },
+      isDirty: true,
+    })),
+
+  setCustomPhrases: (phrases) =>
+    set((s) => ({
+      project: { ...s.project, customPhrases: phrases },
       isDirty: true,
     })),
 }))

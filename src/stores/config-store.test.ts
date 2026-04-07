@@ -65,4 +65,47 @@ describe('useConfigStore', () => {
     expect(rules).toHaveLength(2)
     expect(rules?.[0]).toEqual({ ruleId: 'z_zh', enabled: true })
   })
+
+  it('setSwitches sets switches for a schema', () => {
+    useConfigStore.getState().setSwitches('rime_ice', [
+      { name: 'emoji', reset: 1 },
+    ])
+    const switches = useConfigStore.getState().project.schemaConfigs['rime_ice']?.switches
+    expect(switches).toEqual([{ name: 'emoji', reset: 1 }])
+  })
+
+  it('setPunctuator sets punctuator for a schema', () => {
+    useConfigStore.getState().setPunctuator('rime_ice', { halfShape: { ',': '，' } })
+    const p = useConfigStore.getState().project.schemaConfigs['rime_ice']?.punctuator
+    expect(p).toEqual({ halfShape: { ',': '，' } })
+  })
+
+  it('addCustomPhrase adds a phrase', () => {
+    useConfigStore.getState().addCustomPhrase({ text: '你好', code: 'nihao', weight: 1 })
+    expect(useConfigStore.getState().project.customPhrases).toHaveLength(1)
+  })
+
+  it('removeCustomPhrase removes by index', () => {
+    useConfigStore.getState().addCustomPhrase({ text: '你好', code: 'nihao', weight: 1 })
+    useConfigStore.getState().addCustomPhrase({ text: '世界', code: 'shijie', weight: 2 })
+    useConfigStore.getState().removeCustomPhrase(0)
+    const phrases = useConfigStore.getState().project.customPhrases
+    expect(phrases).toHaveLength(1)
+    expect(phrases[0]!.text).toBe('世界')
+  })
+
+  it('updateCustomPhrase updates a phrase at index', () => {
+    useConfigStore.getState().addCustomPhrase({ text: '你好', code: 'nihao', weight: 1 })
+    useConfigStore.getState().updateCustomPhrase(0, { text: '再见', code: 'zaijian', weight: 5 })
+    const phrases = useConfigStore.getState().project.customPhrases
+    expect(phrases[0]).toEqual({ text: '再见', code: 'zaijian', weight: 5 })
+  })
+
+  it('setCustomPhrases replaces all phrases', () => {
+    useConfigStore.getState().setCustomPhrases([
+      { text: 'a', code: 'a', weight: 1 },
+      { text: 'b', code: 'b', weight: 2 },
+    ])
+    expect(useConfigStore.getState().project.customPhrases).toHaveLength(2)
+  })
 })

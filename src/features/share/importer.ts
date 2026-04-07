@@ -2,8 +2,10 @@ import type { RimeProject } from '@/types/config'
 import { createEmptyProject, DEFAULT_CONFIG, DEFAULT_PLATFORM_CONFIG } from '@/lib/config/defaults'
 import {
   parseCustomYaml, expandPatchPaths, mapToDefaultConfig, mapToPlatformConfig,
-  extractPreservedFields, KNOWN_DEFAULT_KEYS, KNOWN_PLATFORM_KEYS,
+  mapToSchemaConfig, extractPreservedFields, KNOWN_DEFAULT_KEYS, KNOWN_PLATFORM_KEYS,
+  KNOWN_SCHEMA_KEYS,
 } from '@/lib/yaml/parser'
+import { parseCustomPhrases } from '@/lib/config/custom-phrase'
 
 export interface ImportResult {
   project: RimeProject;
@@ -14,6 +16,12 @@ export function importFromYamlString(yamlString: string, fileName: string): Impo
   const project = createEmptyProject()
   const errors: string[] = []
   let customSettings = 0
+
+  // Handle custom_phrase.txt (TSV, not YAML)
+  if (fileName.includes('custom_phrase') && !fileName.endsWith('.yaml')) {
+    project.customPhrases = parseCustomPhrases(yamlString)
+    return { project, summary: { filesProcessed: 1, customSettings: project.customPhrases.length, errors } }
+  }
 
   const { patch, error } = parseCustomYaml(yamlString)
   if (error) {
@@ -35,6 +43,16 @@ export function importFromYamlString(yamlString: string, fileName: string): Impo
     project.targetPlatform = 'windows'
     project.platformConfig = mapToPlatformConfig(expanded, { ...DEFAULT_PLATFORM_CONFIG, platform: 'windows' })
     project.preserved['weasel.custom.yaml'] = extractPreservedFields(patch, KNOWN_PLATFORM_KEYS)
+  } else {
+    // Schema-specific custom yaml (e.g. double_pinyin_flypy.custom.yaml)
+    const schemaId = fileName.replace('.custom.yaml', '').replace('.yaml', '')
+    const schemaConfig = mapToSchemaConfig(expanded, schemaId)
+    project.schemaConfigs[schemaId] = {
+      schemaId,
+      fuzzyRules: [],
+      ...schemaConfig,
+    }
+    project.preserved[fileName] = extractPreservedFields(patch, KNOWN_SCHEMA_KEYS)
   }
 
   return { project, summary: { filesProcessed: 1, customSettings, errors } }
@@ -53,6 +71,17 @@ export function importFromFiles(files: { name: string; content: string }[]): Imp
     if (file.name.includes('squirrel') || file.name.includes('weasel')) {
       project.targetPlatform = result.project.targetPlatform
       project.platformConfig = result.project.platformConfig
+    }
+    // Merge schema configs
+    for (const [schemaId, schemaConfig] of Object.entries(result.project.schemaConfigs)) {
+      project.schemaConfigs[schemaId] = {
+        ...(project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+        ...schemaConfig,
+      }
+    }
+    // Merge custom phrases
+    if (result.project.customPhrases.length > 0) {
+      project.customPhrases = [...project.customPhrases, ...result.project.customPhrases]
     }
     Object.assign(project.preserved, result.project.preserved)
   }

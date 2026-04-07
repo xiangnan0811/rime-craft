@@ -4,6 +4,7 @@ import {
   expandPatchPaths,
   mapToDefaultConfig,
   mapToPlatformConfig,
+  mapToSchemaConfig,
   extractPreservedFields,
 } from './parser'
 import { DEFAULT_CONFIG, DEFAULT_PLATFORM_CONFIG } from '@/lib/config/defaults'
@@ -107,6 +108,39 @@ describe('mapToPlatformConfig', () => {
     const config = mapToPlatformConfig(patch, DEFAULT_PLATFORM_CONFIG)
     expect(config.appOptions['com.apple.Terminal']).toEqual({ asciiMode: true })
     expect(config.appOptions['com.microsoft.VSCode']).toEqual({ asciiMode: true })
+  })
+})
+
+describe('mapToSchemaConfig', () => {
+  it('maps switches from expanded patch', () => {
+    const patch = {
+      switches: [
+        { name: 'emoji', reset: 1, states: ['关', '开'] },
+        { name: 'simplification', reset: 1 },
+      ],
+    }
+    const config = mapToSchemaConfig(patch, 'rime_ice')
+    expect(config.switches).toHaveLength(2)
+    expect(config.switches![0]).toEqual({ name: 'emoji', reset: 1, states: ['关', '开'] })
+    expect(config.switches![1]).toEqual({ name: 'simplification', reset: 1, states: undefined })
+  })
+
+  it('maps punctuator half_shape', () => {
+    const patch = {
+      punctuator: {
+        half_shape: { ',': '，', '/': ['/', '÷'] },
+      },
+    }
+    const config = mapToSchemaConfig(patch, 'rime_ice')
+    expect(config.punctuator!.halfShape[',']).toBe('，')
+    expect(config.punctuator!.halfShape['/']).toEqual(['/', '÷'])
+  })
+
+  it('returns only schemaId when no switches or punctuator', () => {
+    const config = mapToSchemaConfig({}, 'test')
+    expect(config.schemaId).toBe('test')
+    expect(config.switches).toBeUndefined()
+    expect(config.punctuator).toBeUndefined()
   })
 })
 
