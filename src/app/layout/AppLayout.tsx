@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { DarkModeToggle } from '@/components/shared/DarkModeToggle'
+import { DocsSearch, SearchTrigger } from '@/app/docs/DocsSearch'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -34,6 +35,7 @@ export function AppLayout() {
                 </Button>
               </Link>
             ))}
+            <SearchTrigger />
             <DarkModeToggle />
           </nav>
         </div>
@@ -41,6 +43,7 @@ export function AppLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <DocsSearch />
     </div>
   )
 }
