@@ -5,6 +5,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
+import { getModifiedFields } from '@/lib/config/diff'
 
 const PAGE_SIZE_OPTIONS = [3, 4, 5, 6, 7, 8, 9]
 const SELECT_KEY_PRESETS: { label: string; value: string }[] = [
@@ -17,6 +19,8 @@ export function CandidateSettings() {
   const pageSize = useConfigStore((s) => s.project.defaultConfig.pageSize)
   const selectKeys = useConfigStore((s) => s.project.defaultConfig.selectKeys)
   const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
+  const defaultConfig = useConfigStore((s) => s.project.defaultConfig)
+  const modified = getModifiedFields(defaultConfig)
 
   return (
     <div className="space-y-6">
@@ -29,7 +33,10 @@ export function CandidateSettings() {
       </div>
       <div className="space-y-4">
         <div>
-          <Label>每页候选词数量</Label>
+          <div className="flex items-center gap-1.5">
+            <Label>每页候选词数量</Label>
+            <ModifiedBadge show={modified.has('pageSize')} />
+          </div>
           <Select value={String(pageSize)} onValueChange={(v) => updateDefaultConfig({ pageSize: Number(v) })}>
             <SelectTrigger className="mt-1 w-32"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -41,7 +48,10 @@ export function CandidateSettings() {
           <p className="mt-1 text-sm text-gray-500">建议 5-9 个，数量越多翻页越少，但候选框越大。</p>
         </div>
         <div>
-          <Label>选词按键</Label>
+          <div className="flex items-center gap-1.5">
+            <Label>选词按键</Label>
+            <ModifiedBadge show={modified.has('selectKeys')} />
+          </div>
           <Select
             value={SELECT_KEY_PRESETS.find((p) => p.value === selectKeys) ? selectKeys : 'custom'}
             onValueChange={(v) => { if (v !== 'custom') updateDefaultConfig({ selectKeys: v }) }}

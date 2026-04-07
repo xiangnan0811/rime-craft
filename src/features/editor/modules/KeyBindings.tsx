@@ -6,6 +6,8 @@ import {
 import { Switch } from '@/components/ui/switch'
 import type { SwitchKeyAction } from '@/types/config'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
+import { getModifiedFields } from '@/lib/config/diff'
 
 const SWITCH_KEY_OPTIONS: { value: SwitchKeyAction; label: string }[] = [
   { value: 'inline_ascii', label: '行内切换英文' },
@@ -28,6 +30,8 @@ const KEY_NAMES: { key: SwitchKeyName; label: string; description: string }[] = 
 export function KeyBindings() {
   const asciiComposer = useConfigStore((s) => s.project.defaultConfig.asciiComposer)
   const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
+  const defaultConfig = useConfigStore((s) => s.project.defaultConfig)
+  const modified = getModifiedFields(defaultConfig)
 
   function handleSwitchKeyChange(key: SwitchKeyName, value: SwitchKeyAction) {
     updateDefaultConfig({
@@ -50,7 +54,10 @@ export function KeyBindings() {
       <div className="space-y-4">
         {KEY_NAMES.map(({ key, label, description }) => (
           <div key={key}>
-            <Label>{label}</Label>
+            <div className="flex items-center gap-1.5">
+              <Label>{label}</Label>
+              <ModifiedBadge show={modified.has(`asciiComposer.switchKey.${key}`)} />
+            </div>
             <Select value={asciiComposer.switchKey[key]} onValueChange={(v) => handleSwitchKeyChange(key, v as SwitchKeyAction)}>
               <SelectTrigger className="mt-1 w-72"><SelectValue /></SelectTrigger>
               <SelectContent>

@@ -63,4 +63,32 @@ export const PRESETS: Preset[] = [
       return p
     },
   },
+  {
+    id: 'wanxiang',
+    name: '万象拼音推荐',
+    description: '万象拼音方案 + 9候选 + 推荐设置',
+    createProject() {
+      const p = createEmptyProject()
+      p.defaultConfig.schemaList = [{ schema: 'wanxiang' }]
+      p.defaultConfig.pageSize = 9
+      p.defaultConfig.asciiComposer.switchKey.shiftL = 'commit_code'
+      p.platformConfig.appOptions = {
+        'com.apple.Terminal': { asciiMode: true },
+        'com.microsoft.VSCode': { asciiMode: true },
+      }
+      return p
+    },
+  },
+  {
+    id: 'wubi',
+    name: '五笔经典',
+    description: '五笔86标准配置',
+    createProject() {
+      const p = createEmptyProject()
+      p.defaultConfig.schemaList = [{ schema: 'wubi86' }]
+      p.defaultConfig.pageSize = 5
+      p.defaultConfig.selectKeys = '1234567890'
+      return p
+    },
+  },
 ]
