@@ -3,6 +3,7 @@ import { EditorContent } from '@/features/editor/EditorContent'
 import { ImportDialog } from '@/features/share/ImportDialog'
 import { ExportButton } from '@/features/share/ExportButton'
 import { ShareDialog } from '@/features/share/ShareDialog'
+import { GistDialog } from '@/features/share/GistDialog'
 import { PRESETS } from '@/data/presets'
 import { useConfigStore } from '@/stores/config-store'
 import {
@@ -37,6 +38,7 @@ export function EditorPage() {
           <ShareDialog />
           <ImportDialog />
           <ExportButton />
+          <GistDialog />
         </div>
       </div>
       <div className="flex flex-1 overflow-hidden">
