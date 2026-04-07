@@ -31,6 +31,11 @@ export function HomePage() {
           </Card>
         ))}
       </div>
+      <div className="mt-12 text-center">
+        <Link to="/gallery" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+          浏览社区配置画廊 →
+        </Link>
+      </div>
     </div>
   )
 }

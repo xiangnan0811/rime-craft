@@ -17,6 +17,9 @@ const DocsLayout = lazy(() =>
 const DocsPage = lazy(() =>
   import('@/app/docs/DocsPage').then((m) => ({ default: m.DocsPage }))
 )
+const GalleryPage = lazy(() =>
+  import('@/app/gallery/GalleryPage').then((m) => ({ default: m.GalleryPage }))
+)
 
 export function App() {
   useShareUrl()
@@ -40,6 +43,14 @@ export function App() {
             element={
               <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
                 <ComparePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="gallery"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <GalleryPage />
               </Suspense>
             }
           />
