@@ -1,0 +1,124 @@
+# Lua 脚本扩展入门
+
+## Lua 脚本能做什么
+
+Rime 内置了 Lua 脚本引擎，允许用户在不修改 C++ 源码的情况下扩展输入法功能。通过 Lua，你可以实现：
+
+- **自定义翻译器（Translator）**：将特定编码转换为候选词，例如输入 `date` 自动返回今天的日期
+- **自定义过滤器（Filter）**：对候选词列表进行二次加工，如排序调整、追加提示、过滤特定词汇
+- **自定义处理器（Processor）**：拦截并处理键盘事件，实现特殊按键逻辑
+
+这三类组件覆盖了输入法流水线的各个阶段，让 Rime 的可定制性远超普通输入法。
+
+## 脚本放置位置
+
+所有 Lua 脚本统一通过 `rime.lua` 文件入口加载，该文件位于 Rime 用户目录：
+
+```
+~/Library/Rime/rime.lua          # macOS（鼠须管）
+%APPDATA%\Rime\rime.lua          # Windows（小狼毫）
+~/.config/ibus/rime/rime.lua     # Linux（ibus-rime）
+```
+
+`rime.lua` 的作用是注册函数，实际逻辑可以拆分到子文件：
+
+```lua
+-- rime.lua
+date_translator = require("date_translator")  -- 加载子模块
+greeting_filter = require("greeting_filter")
+```
+
+子文件放在用户目录的 `lua/` 子文件夹下，如 `~/Library/Rime/lua/date_translator.lua`。
+
+## 示例一：日期输出翻译器
+
+输入 `rq`（日期的声母），自动输出今天的日期：
+
+```lua
+-- lua/date_translator.lua
+local function translator(input, seg)
+  if input == "rq" then
+    local date = os.date("%Y年%m月%d日")
+    local cand = Candidate("date", seg.start, seg._end, date, "日期")
+    yield(cand)
+  end
+end
+
+return translator
+```
+
+在 `*.schema.yaml` 中挂载：
+
+```yaml
+engine:
+  translators:
+    - lua_translator@date_translator
+```
+
+## 示例二：自定义问候过滤器
+
+在候选列表首位插入一条问候语（仅在特定时间触发）：
+
+```lua
+-- lua/greeting_filter.lua
+local function filter(input, env)
+  local hour = tonumber(os.date("%H"))
+  local greeting = ""
+  if hour >= 6 and hour < 12 then
+    greeting = "早上好"
+  elseif hour >= 12 and hour < 18 then
+    greeting = "下午好"
+  else
+    greeting = "晚上好"
+  end
+
+  -- 在第一个候选前插入问候（仅当输入为 "wh" 时）
+  local context = env.engine.context
+  if context.input == "wh" then
+    yield(Candidate("greeting", input:peek().start, input:peek()._end, greeting, "问候"))
+  end
+
+  for cand in input:iter() do
+    yield(cand)
+  end
+end
+
+return filter
+```
+
+## Lua 与引擎的交互
+
+Lua 脚本通过 `env` 对象访问引擎上下文：
+
+```lua
+env.engine          -- 引擎实例
+env.engine.context  -- 当前输入上下文
+env.engine.schema   -- 当前方案配置
+env.name_space      -- 组件命名空间
+```
+
+`Candidate` 是创建候选词的核心类，构造参数依次为：类型、起始位置、结束位置、文字、注释。
+
+## 社区常见 Lua 配方
+
+- **时间翻译器**：输入 `sj` 输出当前时间
+- **计算器**：输入数学表达式实时计算结果
+- **农历翻译器**：输入 `nl` 输出农历日期
+- **Unicode 输入**：输入 `U` + 码点直接输入特殊字符
+- **以词定字**：用 `[` `]` 键从词语中选取单字
+
+这些配方在 GitHub 和 Rime 论坛均可找到完整实现。
+
+## 调试技巧
+
+Lua 脚本的错误信息会输出到 Rime 的日志文件：
+
+```bash
+# macOS
+tail -f ~/Library/Logs/Squirrel/Squirrel.log
+
+# 或查看 rime 日志
+tail -f /tmp/rime.squirrel.INFO
+```
+
+在脚本中使用 `log.info("调试信息")` 输出中间值，配合日志查看，可以快速定位问题。

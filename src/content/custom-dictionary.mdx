@@ -1,0 +1,120 @@
+# 自定义词库的制作和维护
+
+## custom_phrase.txt 与 dict.yaml 的区别
+
+Rime 提供两种方式添加自定义词汇：
+
+| 方式 | 文件 | 特点 |
+|------|------|------|
+| 临时短语 | `custom_phrase.txt` | 简单直接，固定优先级，适合少量高频词 |
+| 完整词典 | `*.dict.yaml` | 功能完整，支持权重、排序、批量导入 |
+
+`custom_phrase.txt` 适合快速添加几十条个人习惯词；`dict.yaml` 适合管理数百至数万条词汇的专业词库。
+
+## custom_phrase.txt 格式
+
+```
+# 格式：词条<Tab>编码<Tab>权重（权重越大越靠前）
+姓名	xm	100
+公司名称	gsmc	100
+常用邮箱	cyyxiang	100
+```
+
+在方案的 `*.schema.yaml` 中引用：
+
+```yaml
+translator:
+  custom_phrase:
+    - custom_phrase  # 对应 custom_phrase.txt
+```
+
+## 制作 dict.yaml 词典
+
+一个完整的词典文件由两部分组成：**文件头**和**词条列表**，以 `---` 分隔。
+
+### 文件头
+
+```yaml
+# my_dict.dict.yaml
+---
+name: my_dict          # 词典名称，需唯一
+version: "2024.01.01"  # 版本号，建议用日期
+sort: by_weight        # 排序方式：by_weight 或 original
+use_preset_vocabulary: false  # 是否使用预置词汇表
+columns:               # 列定义
+  - text               # 词条文字
+  - code               # 编码
+  - weight             # 权重（可选）
+...
+```
+
+### 词条列表
+
+`---` 之后每行一条词汇，用 Tab 分隔各列：
+
+```
+# 词条	编码	权重
+人工智能	rengongzhineng	1000
+机器学习	jiqixuexi	900
+深度学习	shenduxuexi	900
+自然语言处理	ziranvuyanchuli	800
+```
+
+## 从其他输入法导入词库
+
+大多数主流输入法支持导出词库为文本格式：
+
+1. **搜狗词库**：导出为 `.scel` 格式，使用 `scel2rime` 工具转换
+2. **百度词库**：导出为 `.bdict`，使用社区工具转换
+3. **QQ 词库**：导出为 `.qpyd`，同样有开源转换工具
+
+转换后得到 Tab 分隔的文本文件，整理为 dict.yaml 格式即可使用。
+
+## 在方案中引用词典
+
+在 `*.schema.yaml` 的主词典文件（`*.dict.yaml`）中，通过 `import_tables` 引入外部词典：
+
+```yaml
+# luna_pinyin.dict.yaml（主词典）
+---
+name: luna_pinyin
+version: "2024.01.01"
+import_tables:
+  - my_dict          # 引入自定义词典
+  - tech_terms       # 引入技术术语词典
+  - company_names    # 引入公司名词典
+...
+```
+
+这样可以将不同主题的词汇分文件管理，结构清晰。
+
+## 词库维护技巧
+
+### 调整词语权重
+
+权重数值越大，候选排序越靠前。日常使用时 Rime 会自动学习用词习惯（用户词频），但词典中的初始权重仍会影响冷启动时的排序。
+
+### 定期清理用户词频
+
+Rime 的用户词频数据存储在 `*.userdb/` 目录。若积累了大量错误习惯词，可以：
+
+```bash
+# 在 Rime 用户目录下
+rm -rf luna_pinyin.userdb/   # 清空用户词频（慎用）
+```
+
+也可通过 Rime 自带的词频调整功能逐条处理。
+
+### 用 Git 管理词库
+
+词典文件是纯文本，非常适合用 Git 进行版本管理：
+
+```bash
+git init ~/Library/Rime/
+echo "*.bin" >> ~/Library/Rime/.gitignore
+echo "*.userdb/" >> ~/Library/Rime/.gitignore
+git add *.dict.yaml *.schema.yaml *.custom.yaml
+git commit -m "add custom dictionary"
+```
+
+这样词库的增删改都有历史记录，误删时可以回滚。

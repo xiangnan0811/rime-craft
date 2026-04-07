@@ -18,6 +18,11 @@ const MDX_MODULES: Record<string, () => Promise<{ default: ComponentType }>> = {
   'punctuation': () => import('@/content/punctuation.mdx'),
   'dictionary': () => import('@/content/dictionary.mdx'),
   'switches': () => import('@/content/switches.mdx'),
+  'double-pinyin-guide': () => import('@/content/double-pinyin-guide.mdx'),
+  'auxiliary-code': () => import('@/content/auxiliary-code.mdx'),
+  'custom-dictionary': () => import('@/content/custom-dictionary.mdx'),
+  'lua-scripting': () => import('@/content/lua-scripting.mdx'),
+  'multi-device-sync': () => import('@/content/multi-device-sync.mdx'),
 }
 
 export function DocsPage() {

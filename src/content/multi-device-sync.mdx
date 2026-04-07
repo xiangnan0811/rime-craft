@@ -1,0 +1,133 @@
+# 多设备配置同步方案
+
+## 问题背景
+
+Rime 的配置文件默认存储在本地用户目录，不同设备之间相互独立。当你在多台电脑（如家里的 Mac 和公司的 Windows）同时使用 Rime 时，在一台设备上调整的配置无法自动同步到另一台，词库积累也无法共享。
+
+解决这个问题有两种主流方案：**Git 仓库**和**云盘同步**。
+
+## 方案一：Git 仓库（推荐）
+
+Git 是管理 Rime 配置最干净、最可靠的方式，完整保留修改历史，支持多设备协作。
+
+### 初始化仓库
+
+```bash
+# 进入 Rime 用户目录（macOS）
+cd ~/Library/Rime/
+
+# 初始化 Git 仓库
+git init
+git remote add origin git@github.com:yourname/rime-config.git
+```
+
+### 配置 .gitignore
+
+编译产物和用户词频不应纳入版本控制：
+
+```gitignore
+# 编译产物
+build/
+*.bin
+*.reverse.bin
+*.prism.bin
+*.table.bin
+
+# 用户词频数据库（可选：若想共享学习词频则不加此行）
+*.userdb/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+```
+
+### 日常工作流
+
+```bash
+# 修改配置后提交
+git add *.custom.yaml *.dict.yaml custom_phrase.txt
+git commit -m "add double pinyin scheme"
+git push
+
+# 在另一台设备拉取
+git pull
+# 重新部署 Rime 使配置生效
+```
+
+### 注意事项
+
+- 私有仓库更安全，避免个人词库泄露
+- 提交前先部署确认配置无误，再推送
+- 不同平台（macOS/Windows/Linux）的 Rime 用户目录路径不同，建议每台设备单独 clone
+
+## 方案二：云盘同步（符号链接方式）
+
+若不熟悉 Git，可以使用 iCloud、OneDrive 或 Syncthing 配合符号链接实现同步。
+
+### 基本思路
+
+将 Rime 用户目录移动到云盘文件夹，然后在原位置创建符号链接：
+
+```bash
+# macOS：将 Rime 目录移到 iCloud Drive
+mv ~/Library/Rime ~/Library/Mobile\ Documents/com~apple~CloudDocs/Rime
+
+# 创建符号链接
+ln -s ~/Library/Mobile\ Documents/com~apple~CloudDocs/Rime ~/Library/Rime
+```
+
+其他设备上执行相同操作，Rime 就会读写同一份云盘上的文件。
+
+### Syncthing 方案
+
+Syncthing 是开源的 P2P 同步工具，无需依赖第三方云服务：
+
+1. 在所有设备安装 Syncthing
+2. 将 Rime 用户目录添加为同步文件夹
+3. 配置忽略规则（等价于 .gitignore）排除编译产物
+
+## 应该同步哪些文件
+
+| 文件类型 | 是否同步 | 说明 |
+|----------|----------|------|
+| `*.custom.yaml` | ✅ 同步 | 个人配置的核心 |
+| `*.dict.yaml` | ✅ 同步 | 自定义词典 |
+| `custom_phrase.txt` | ✅ 同步 | 自定义短语 |
+| `*.schema.yaml` | ✅ 同步 | 自制方案文件 |
+| `*.userdb/` | 可选 | 用户词频，文件较大 |
+| `build/` | ❌ 不同步 | 编译产物，各设备自动生成 |
+| `*.bin` | ❌ 不同步 | 同上 |
+
+## 各平台配置目录路径
+
+| 平台 | Rime 用户目录 |
+|------|---------------|
+| macOS（鼠须管） | `~/Library/Rime/` |
+| Windows（小狼毫） | `%APPDATA%\Rime\` |
+| Linux（ibus-rime） | `~/.config/ibus/rime/` |
+| Linux（fcitx5-rime） | `~/.local/share/fcitx5/rime/` |
+| iOS（仓输入法） | 应用内文件目录 |
+
+## 自动化脚本示例
+
+在新设备上一键完成配置拉取和部署：
+
+```bash
+#!/bin/bash
+# setup-rime.sh
+
+RIME_DIR="$HOME/Library/Rime"
+REPO="git@github.com:yourname/rime-config.git"
+
+# 备份已有配置
+if [ -d "$RIME_DIR" ]; then
+  mv "$RIME_DIR" "${RIME_DIR}.bak.$(date +%Y%m%d)"
+fi
+
+# 克隆配置仓库
+git clone "$REPO" "$RIME_DIR"
+
+echo "Rime 配置已就绪，请打开 Rime 执行部署。"
+```
+
+无论选择哪种方案，关键原则都是一样的：**只同步源文件，不同步编译产物**，让每台设备在本地自行编译，这样可以避免跨平台二进制兼容问题。

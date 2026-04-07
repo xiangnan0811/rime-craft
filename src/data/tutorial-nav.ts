@@ -31,6 +31,16 @@ export const TUTORIAL_NAV: TutorialSection[] = [
       { slug: 'switches', title: '开关与杂项' },
     ],
   },
+  {
+    title: '进阶技巧',
+    items: [
+      { slug: 'double-pinyin-guide', title: '双拼方案指南' },
+      { slug: 'auxiliary-code', title: '辅助码详解' },
+      { slug: 'custom-dictionary', title: '词库制作与维护' },
+      { slug: 'lua-scripting', title: 'Lua 脚本入门' },
+      { slug: 'multi-device-sync', title: '多设备同步' },
+    ],
+  },
 ]
 
 /** Flatten all items for lookup */
