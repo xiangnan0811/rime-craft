@@ -2,6 +2,7 @@ import { EditorSidebar } from '@/features/editor/EditorSidebar'
 import { EditorContent } from '@/features/editor/EditorContent'
 import { ImportDialog } from '@/features/share/ImportDialog'
 import { ExportButton } from '@/features/share/ExportButton'
+import { ShareDialog } from '@/features/share/ShareDialog'
 import { PRESETS } from '@/data/presets'
 import { useConfigStore } from '@/stores/config-store'
 import {
@@ -33,6 +34,7 @@ export function EditorPage() {
           </Select>
         </div>
         <div className="flex gap-2">
+          <ShareDialog />
           <ImportDialog />
           <ExportButton />
         </div>

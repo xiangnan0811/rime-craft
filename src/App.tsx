@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
+import { useShareUrl } from '@/features/share/useShareUrl'
 
 const ThemePage = lazy(() =>
   import('@/app/theme/ThemePage').then((m) => ({ default: m.ThemePage }))
@@ -18,6 +19,8 @@ const DocsPage = lazy(() =>
 )
 
 export function App() {
+  useShareUrl()
+
   return (
     <BrowserRouter>
       <Routes>
