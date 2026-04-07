@@ -1,15 +1,86 @@
 # 安装教程
 
-根据你的操作系统，选择对应的 Rime 发行版进行安装。
+根据你的操作系统，选择对应的 Rime 发行版进行安装。所有发行版共享同一套配置体系，安装完成后的配置方式完全相同。
 
-## macOS - 鼠须管
+## macOS — 鼠须管（Squirrel）
 
-从官网下载最新版本的鼠须管安装包，双击运行即可完成安装。安装后需要注销并重新登录以激活输入法。
+**方法一：使用 Homebrew（推荐）**
 
-## Windows - 小狼毫
+```bash
+brew install --cask squirrel
+```
 
-下载小狼毫安装程序，按照向导提示完成安装。安装完成后在任务栏输入法列表中选择小狼毫。
+**方法二：手动下载**
 
-## Linux
+访问 [https://rime.im](https://rime.im)，下载最新版本的 `.pkg` 安装包，双击运行并按照提示完成安装。
 
-主流 Linux 发行版可通过包管理器安装 ibus-rime 或 fcitx5-rime。
+**安装后的步骤：**
+
+1. 打开「系统设置」→「键盘」→「输入法」
+2. 点击 `+`，找到「鼠须管」，添加为输入法
+3. 注销并重新登录，或重启系统，使输入法完全生效
+4. 切换到鼠须管后，点击菜单栏图标，选择「重新部署」
+
+## Windows — 小狼毫（Weasel）
+
+1. 访问 [https://rime.im](https://rime.im)，下载最新版本的小狼毫安装程序（`.exe`）
+2. 以管理员权限运行安装程序，按照向导提示完成安装
+3. 安装完成后，在任务栏的语言栏中切换到「中文（小狼毫）」
+4. 右键点击系统托盘中的小狼毫图标，选择「重新部署」
+
+> **注意**：安装过程中如果提示需要安装 VC++ 运行库，请同意安装，否则小狼毫无法正常运行。
+
+## Linux — ibus-rime 或 fcitx5-rime
+
+Linux 下有两种主流输入法框架可以选择。
+
+**IBus 框架：**
+
+```bash
+# Debian / Ubuntu
+sudo apt install ibus-rime
+
+# Arch Linux
+sudo pacman -S ibus-rime
+
+# Fedora
+sudo dnf install ibus-rime
+```
+
+**Fcitx5 框架（推荐，功能更完善）：**
+
+```bash
+# Debian / Ubuntu
+sudo apt install fcitx5 fcitx5-rime
+
+# Arch Linux
+sudo pacman -S fcitx5 fcitx5-rime fcitx5-configtool
+
+# Fedora
+sudo dnf install fcitx5 fcitx5-rime
+```
+
+安装后，在系统语言和输入法设置中将 ibus 或 fcitx5 设为默认输入法框架，重新登录后生效。
+
+## Android — 同文输入法（Trime）
+
+同文输入法是 Rime 在 Android 上的实现，支持完整的配置体系。
+
+- **F-Droid（推荐）**：在 F-Droid 中搜索「同文输入法」并安装
+- **GitHub**：访问 [https://github.com/osfans/trime](https://github.com/osfans/trime) 下载最新 APK
+
+安装后，在「设置」→「语言和输入法」中启用同文输入法，并将其设为默认输入法。
+
+## iOS — 仓输入法（Hamster）
+
+仓输入法是 iOS 平台上功能最完整的 Rime 实现。
+
+- 打开 App Store，搜索「仓输入法」，点击安装
+- 安装后进入「设置」→「通用」→「键盘」→「键盘」，添加「仓输入法」
+- 开启「允许完全访问」以获得最佳使用体验
+
+## 安装后：第一次部署
+
+所有平台安装完成后，都需要执行一次**重新部署**操作，让 Rime 编译内置的配置文件。具体步骤请参阅[第一次部署](./first-deploy)。
+
+部署完成后，Rime 默认会加载朙月拼音（全拼）方案，你可以按 `Ctrl+~`（macOS / Windows / Linux）呼出方案选单，切换到其他方案。

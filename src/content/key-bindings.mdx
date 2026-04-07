@@ -1,13 +1,100 @@
 # 按键绑定
 
-Rime 提供了灵活的按键绑定系统，你可以自定义几乎所有的快捷键行为。
+Rime 的按键绑定系统控制中英文切换、Caps Lock 行为等核心操作。理解这些设置，可以让 Rime 的切换逻辑完全符合你的使用习惯。
 
-## 常用按键
+## 概念解释
 
-- `Shift`：中英文切换（可配置）
-- `Ctrl+~`：方案切换菜单
-- `PageUp / PageDown`：翻页候选词
+Rime 中与切换相关的按键配置集中在 `ascii_composer` 段。它定义了：
 
-## 自定义按键
+- 哪些键可以触发中英文切换（`switch_key`）
+- 每个切换键的具体行为（五种 `SwitchKeyAction`）
+- Caps Lock 是否保持传统行为（`good_old_caps_lock`）
 
-在 `key_binder` 配置段中，可以通过 `bindings` 列表添加自定义按键绑定。每个绑定由触发键、条件和动作三部分组成。
+这里的配置作用于**全局**，影响所有方案。
+
+## 配置项说明
+
+在 `default.custom.yaml` 中配置：
+
+```yaml
+patch:
+  ascii_composer/good_old_caps_lock: true
+  ascii_composer/switch_key:
+    Shift_L: commit_code
+    Shift_R: commit_text
+    Control_L: noop
+    Control_R: noop
+    Caps_Lock: clear
+```
+
+### `switch_key` 支持的键名
+
+| 键名 | 说明 |
+|------|------|
+| `Shift_L` | 左 Shift 键 |
+| `Shift_R` | 右 Shift 键 |
+| `Control_L` | 左 Control 键 |
+| `Control_R` | 右 Control 键 |
+| `Caps_Lock` | 大写锁定键 |
+
+### 五种 `SwitchKeyAction`
+
+| 动作 | 说明 | 适用场景 |
+|------|------|---------|
+| `commit_code` | 提交当前输入串的原始字母（拼音字母），然后切换到英文模式 | 希望保留已输入字母的场景 |
+| `commit_text` | 提交当前已转换的中文候选词，然后切换到英文模式 | 希望保留当前候选词的场景 |
+| `inline_ascii` | 在输入串末尾进入临时英文模式，松开 Shift 自动回到中文 | 短暂输入英文，不想完全切换 |
+| `clear` | 清除当前输入串，然后切换到英文模式 | 输入一半想放弃，直接切英文 |
+| `noop` | 此键不做任何切换操作（禁用该键的切换功能） | 防止误触切换 |
+
+### `good_old_caps_lock`
+
+控制 Caps Lock 的行为模式：
+
+- `true`（推荐）：Caps Lock 保持传统键盘行为，按下时直接切换大写状态，**不经过 Rime** 处理。这样 Caps Lock 的行为与系统一致，不受 Rime 干预。
+- `false`：Caps Lock 按照 `switch_key/Caps_Lock` 中配置的 `SwitchKeyAction` 行为执行，由 Rime 接管。
+
+## 常见搭配
+
+**macOS 用户的经典配置（左 Shift 上屏拼音字母，右 Shift 上屏候选词）：**
+
+```yaml
+patch:
+  ascii_composer/good_old_caps_lock: true
+  ascii_composer/switch_key:
+    Shift_L: commit_code
+    Shift_R: commit_text
+    Control_L: noop
+    Control_R: noop
+    Caps_Lock: clear
+```
+
+**只用左 Shift 切换（最简配置）：**
+
+```yaml
+patch:
+  ascii_composer/switch_key:
+    Shift_L: inline_ascii
+    Shift_R: noop
+    Caps_Lock: noop
+```
+
+**禁用所有 Shift 切换（避免误触，适合双拼用户）：**
+
+```yaml
+patch:
+  ascii_composer/switch_key:
+    Shift_L: noop
+    Shift_R: noop
+    Control_L: noop
+    Control_R: noop
+    Caps_Lock: noop
+```
+
+**`commit_code` vs `commit_text` 的直观区别：**
+
+假设你输入了 `nihao`，候选词显示「你好」：
+- 按左 Shift（`commit_code`）：上屏「nihao」这五个字母，切换到英文
+- 按右 Shift（`commit_text`）：上屏「你好」这个候选词，切换到英文
+
+在编辑器中可以直观地修改这些设置，实时预览每种行为的效果。

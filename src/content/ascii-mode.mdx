@@ -1,13 +1,125 @@
 # 中英文切换
 
-中英文切换是日常输入中最频繁的操作之一，Rime 提供了多种切换方式和策略。
+Rime 支持为不同应用程序设置默认的输入模式。对于终端、代码编辑器等主要输入英文的程序，可以配置为默认进入英文（ASCII）模式，避免每次切换应用后都要手动切英文。
 
-## 切换方式
+## 概念解释
 
-- **Shift 键切换**：最常用的方式，可配置为左 Shift、右 Shift 或双 Shift
-- **Caps Lock 切换**：按下大写锁定键切换到英文模式
-- **快捷键切换**：通过自定义按键绑定实现
+`app_options` 是 Rime 中用于**按应用程序覆盖输入状态**的配置段。当你切换到某个应用时，Rime 会查找该应用的配置，并按照预设将输入法切换到指定状态。
 
-## 应用级别设置
+最常用的选项是 `ascii_mode: true`，表示该应用默认使用英文输入模式。
 
-可以为不同的应用程序设置默认的输入模式，例如在终端中默认使用英文模式。
+## 配置项说明
+
+在 `default.custom.yaml`（macOS/Linux）或方案的 `.custom.yaml` 中配置：
+
+```yaml
+patch:
+  app_options:
+    # macOS：使用应用的 Bundle Identifier
+    com.apple.Terminal:
+      ascii_mode: true
+    com.googlecode.iterm2:
+      ascii_mode: true
+    com.microsoft.VSCode:
+      ascii_mode: true
+    com.jetbrains.intellij:
+      ascii_mode: true
+
+    # Windows：使用可执行文件名（不含路径，不区分大小写）
+    cmd.exe:
+      ascii_mode: true
+    WindowsTerminal.exe:
+      ascii_mode: true
+    Code.exe:
+      ascii_mode: true
+```
+
+### 可配置的选项
+
+| 选项 | 类型 | 说明 |
+|------|------|------|
+| `ascii_mode` | bool | `true` = 进入该应用时切换到英文模式 |
+| `ascii_punct` | bool | `true` = 中文模式下也输出半角标点 |
+| `vim_mode` | bool | `true` = 在普通模式（Normal）下自动切换为英文 |
+
+## 如何找到应用的 Bundle Identifier（macOS）
+
+macOS 用 Bundle Identifier（如 `com.apple.Terminal`）标识每个应用。有几种方式可以查找：
+
+**方法一：命令行查询**
+
+```bash
+# 替换为应用名称
+osascript -e 'id of app "Terminal"'
+# 输出：com.apple.Terminal
+
+osascript -e 'id of app "Visual Studio Code"'
+# 输出：com.microsoft.VSCode
+```
+
+**方法二：查看应用包内容**
+
+右键点击应用 → 「显示包内容」→ 打开 `Contents/Info.plist`，找到 `CFBundleIdentifier` 字段的值。
+
+**方法三：常用应用 ID 速查**
+
+| 应用 | Bundle Identifier |
+|------|------------------|
+| Terminal（系统终端） | `com.apple.Terminal` |
+| iTerm2 | `com.googlecode.iterm2` |
+| Visual Studio Code | `com.microsoft.VSCode` |
+| Cursor | `com.todesktop.230313mzl4w4u92` |
+| Warp | `dev.warp.Warp-Stable` |
+| JetBrains IDE（系列） | `com.jetbrains.intellij` / `com.jetbrains.pycharm` 等 |
+| Xcode | `com.apple.dt.Xcode` |
+| Sublime Text | `com.sublimetext.4` |
+
+## Windows 的配置方式
+
+Windows 版（小狼毫）使用**可执行文件名**（不含路径）作为应用标识：
+
+```yaml
+patch:
+  app_options:
+    cmd.exe:
+      ascii_mode: true
+    powershell.exe:
+      ascii_mode: true
+    WindowsTerminal.exe:
+      ascii_mode: true
+    Code.exe:
+      ascii_mode: true
+    idea64.exe:
+      ascii_mode: true
+```
+
+## 常见搭配
+
+**开发者常用配置（macOS）：**
+
+```yaml
+patch:
+  app_options:
+    com.apple.Terminal:
+      ascii_mode: true
+    com.googlecode.iterm2:
+      ascii_mode: true
+    com.microsoft.VSCode:
+      ascii_mode: true
+    dev.warp.Warp-Stable:
+      ascii_mode: true
+    com.apple.dt.Xcode:
+      ascii_mode: true
+```
+
+**同时禁用中文标点（适合代码编辑器）：**
+
+```yaml
+patch:
+  app_options:
+    com.microsoft.VSCode:
+      ascii_mode: true
+      ascii_punct: true
+```
+
+在编辑器中可以直观地修改这些设置，通过搜索应用名称快速找到对应的 Bundle ID。

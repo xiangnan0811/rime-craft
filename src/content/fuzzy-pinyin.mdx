@@ -1,13 +1,106 @@
 # 模糊音配置
 
-模糊音功能允许你在输入时忽略某些发音差异，适合方言区用户或习惯性输入偏差。
+模糊音（Fuzzy Pinyin）是一种让 Rime 容忍特定发音混淆的功能。开启后，即使输入了方言习惯的"错误"拼音，Rime 也能正确识别并给出候选词。
 
-## 常见模糊音对
+## 概念解释
 
-- `zh ↔ z`、`ch ↔ c`、`sh ↔ s`：平翘舌不分
-- `n ↔ l`：鼻音边音不分
-- `an ↔ ang`、`en ↔ eng`：前后鼻音不分
+普通话中有一些发音区别，对许多地区的用户来说是难以区分的：
 
-## 配置方式
+- **平翘舌**：z/zh、c/ch、s/sh 不分——南方大部分地区
+- **前后鼻音**：an/ang、en/eng、in/ing 不分——广泛分布
+- **n/l 混淆**：n、l 不分——华南、西南部分地区
+- **f/h 混淆**：f、h 不分——部分方言区
 
-在输入方案的 `speller/algebra` 段中添加对应的模糊音规则，通过正则表达式将相似音节映射到同一输入码。
+没有模糊音时，输入「zi」只能找到「自、字、紫……」；输入「zhi」只能找到「之、知、只……」。开启 z↔zh 模糊音后，输入「zi」也能候选出「之、知、只」。
+
+## 支持的模糊音对
+
+### 声母模糊音
+
+| 模糊对 | 配置写法 | 说明 |
+|--------|---------|------|
+| z ↔ zh | `derive/^([zcs])h/$1/` | 平翘舌（z/zh） |
+| c ↔ ch | （同上，一条规则覆盖） | 平翘舌（c/ch） |
+| s ↔ sh | （同上，一条规则覆盖） | 平翘舌（s/sh） |
+| n ↔ l | `derive/^n/l/` 和 `derive/^l/n/` | 鼻音边音 |
+| f ↔ h | `derive/^f/h/` 和 `derive/^h/f/` | f/h 混淆 |
+| r ↔ l | `derive/^r/l/` 和 `derive/^l/r/` | r/l 混淆 |
+
+### 韵母模糊音
+
+| 模糊对 | 配置写法 |
+|--------|---------|
+| an ↔ ang | `derive/an$/ang/` 和 `derive/ang$/an/` |
+| en ↔ eng | `derive/en$/eng/` 和 `derive/eng$/en/` |
+| in ↔ ing | `derive/in$/ing/` 和 `derive/ing$/in/` |
+| ian ↔ iang | `derive/ian$/iang/` 和 `derive/iang$/ian/` |
+| uan ↔ uang | `derive/uan$/uang/` 和 `derive/uang$/uan/` |
+
+## 技术原理
+
+模糊音通过 `speller/algebra`（拼写运算）中的 `derive` 规则实现。`derive` 的作用是**在不删除原始拼音的基础上，额外生成一条派生拼音**。
+
+例如规则 `derive/^([zcs])h/$1/` 的含义：
+
+- 正则匹配：以 z/c/s 开头后跟 h 的音节（即 zh/ch/sh）
+- 替换结果：去掉 h，派生出 z/c/s 对应的拼音
+- 效果：输入 `zi` 也能匹配 `zhi` 的词
+
+## 配置方法
+
+在方案的 `.custom.yaml` 中（以朙月拼音简体为例）：
+
+```yaml
+# luna_pinyin_simp.custom.yaml
+patch:
+  speller/algebra:
+    - erase/^xx$/
+    - abbrev/^([a-z]).+$/$1/
+    - abbrev/^([zcs]h).+$/$1/
+    # --- 模糊音规则 ---
+    - derive/^([zcs])h/$1/        # zh→z, ch→c, sh→s
+    - derive/^([zcs])([^h])/$1h$2/  # z→zh, c→ch, s→sh
+    - derive/^n/l/                # n→l
+    - derive/^l/n/                # l→n
+    - derive/an$/ang/             # an→ang
+    - derive/ang$/an/             # ang→an
+    - derive/en$/eng/
+    - derive/eng$/en/
+    - derive/in$/ing/
+    - derive/ing$/in/
+```
+
+> **注意**：粘贴上述配置时，需要保留方案原有的 `erase` 和 `abbrev` 规则，仅在其后追加模糊音规则。完整的 `algebra` 列表因方案不同而异。
+
+## 常见地区推荐组合
+
+**南方用户（平翘舌 + 前后鼻音）：**
+
+```yaml
+- derive/^([zcs])h/$1/
+- derive/^([zcs])([^h])/$1h$2/
+- derive/an$/ang/
+- derive/ang$/an/
+- derive/en$/eng/
+- derive/eng$/en/
+```
+
+**华南 / 西南用户（额外加 n/l 不分）：**
+
+在上述基础上再加：
+
+```yaml
+- derive/^n/l/
+- derive/^l/n/
+```
+
+**只需前后鼻音的用户：**
+
+```yaml
+- derive/an$/ang/
+- derive/ang$/an/
+- derive/in$/ing/
+- derive/ing$/in/
+```
+
+在编辑器中可以直观地勾选需要的模糊音对，无需手动编写正则规则。

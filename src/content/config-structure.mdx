@@ -1,15 +1,100 @@
 # 配置文件结构
 
-Rime 的配置文件使用 YAML 格式，按照功能分为多个文件，存放在用户配置目录中。
+Rime 的所有配置都以 YAML 文本文件的形式存放在用户配置目录中。理解这个目录结构，是自定义 Rime 的第一步。
 
-## 用户配置目录
+## 用户配置目录位置
 
-- macOS：`~/Library/Rime/`
-- Windows：`%APPDATA%\Rime\`
-- Linux：`~/.config/ibus/rime/` 或 `~/.local/share/fcitx5/rime/`
+| 平台 | 配置目录路径 |
+|------|------------|
+| macOS | `~/Library/Rime/` |
+| Windows | `%APPDATA%\Rime\`（即 `C:\Users\用户名\AppData\Roaming\Rime\`） |
+| Linux（IBus） | `~/.config/ibus/rime/` |
+| Linux（Fcitx5） | `~/.local/share/fcitx5/rime/` |
+| Android（同文） | `/sdcard/rime/` 或应用内部存储 |
+| iOS（仓） | 仓输入法「文件」标签页内 |
 
-## 核心配置文件
+## 核心文件说明
 
-- `default.custom.yaml`：全局设置，如候选词数量、切换快捷键等
-- `<方案名>.custom.yaml`：针对特定输入方案的自定义配置
-- `<方案名>.schema.yaml`：输入方案的完整定义文件
+### `default.yaml`
+
+这是 Rime 的**全局默认配置**文件，由 Rime 官方维护，定义了候选词数量、快捷键、已启用方案等全局设置。
+
+**不要直接编辑这个文件**。每次 Rime 升级都可能覆盖它，你的修改会丢失。
+
+### `default.custom.yaml` ← 你应该编辑这个
+
+这是全局配置的**用户补丁文件**。使用 `patch:` 机制，将你的改动叠加到 `default.yaml` 上，而不替换整个文件。
+
+```yaml
+# default.custom.yaml 示例
+patch:
+  menu/page_size: 7
+  schema_list:
+    - schema: luna_pinyin_simp
+    - schema: double_pinyin_flypy
+```
+
+### `<方案名>.schema.yaml`
+
+输入方案的**完整定义文件**，包含该方案的拼写规则、词典引用、按键行为等所有设定。例如 `luna_pinyin.schema.yaml` 是朙月拼音的方案文件。
+
+同样，不建议直接修改这类文件，因为方案更新会覆盖它。
+
+### `<方案名>.custom.yaml`
+
+对特定输入方案的**用户补丁**。例如 `luna_pinyin_simp.custom.yaml` 只影响简体版朙月拼音，不影响其他方案。
+
+```yaml
+# luna_pinyin_simp.custom.yaml 示例
+patch:
+  speller/algebra:
+    - erase/^xx$/
+    - derive/^([zcs])h/$1/   # 模糊音：zh→z
+```
+
+### `custom_phrase.txt`
+
+用于添加自定义词组的纯文本文件，使用制表符分隔的三列格式：`词语<Tab>编码<Tab>权重`。
+
+```
+你好世界	nihao shijie	1
+Rime输入法	rime shurfa	1
+```
+
+## `patch:` 机制详解
+
+`.custom.yaml` 文件的核心是 `patch:` 键。它的作用是：**在不替换整个配置的前提下，精确修改某个配置项的值**。
+
+### 路径语法
+
+Rime 使用 `/` 分隔符表示 YAML 嵌套路径：
+
+```yaml
+patch:
+  # 等同于在 default.yaml 中设置 menu: { page_size: 7 }
+  menu/page_size: 7
+
+  # 等同于在顶层设置 key_binder: { bindings: [...] }
+  key_binder/bindings:
+    - { when: paging, accept: bracketleft, send: Page_Up }
+```
+
+### 为什么使用 `.custom.yaml` 而不是直接改 `.yaml`？
+
+| 直接改 `.yaml` | 使用 `.custom.yaml` |
+|--------------|-------------------|
+| 方案升级后改动丢失 | 方案升级不影响你的改动 |
+| 必须维护完整文件 | 只需写出变更的部分 |
+| 难以追踪改了什么 | 一目了然，改动集中 |
+| 易引入格式错误 | 补丁文件更简短，出错概率低 |
+
+**结论：始终通过 `.custom.yaml` 进行定制，保持 `.yaml` 原文件不变。**
+
+## 目录中其他常见文件
+
+- `build/`：部署后生成的编译产物，不要手动修改
+- `*.dict.yaml`：词典文件，定义方案使用的词汇
+- `opencc/`：OpenCC 简繁转换配置目录
+- `lua/`：Lua 脚本目录，用于高级扩展
+
+在编辑器中可以直观地修改这些设置，而无需手动了解每个文件的路径和语法。

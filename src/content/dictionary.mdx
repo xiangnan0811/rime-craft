@@ -1,11 +1,115 @@
 # 自定义词库
 
-词库是输入法的核心组件，Rime 支持加载自定义词库来扩展词汇量和提升输入准确度。
+词库是输入法的核心数据。Rime 除了支持方案自带的词典外，还提供了一个轻量级的自定义词组机制：`custom_phrase.txt`，让你无需了解词典格式就能快速添加个人词组。
 
-## 词库格式
+## 概念解释
 
-Rime 使用 `.dict.yaml` 格式的词典文件，每行包含一个词条及其拼音编码，可选地附带词频权重。
+Rime 的词汇来源有两种：
 
-## 导入自定义词库
+1. **`.dict.yaml` 词典文件**：方案的主词典，包含大量通用词汇，每次部署时被编译为二进制格式。修改主词典需要重新部署，适合批量添加词汇。
 
-创建自定义词典文件后，在输入方案的 `translator/dictionary` 中引用它，然后重新部署即可生效。
+2. **`custom_phrase.txt`**：轻量级的个人词组列表，格式简单，Rime 会在候选词中优先展示其中的词组。适合添加人名、网名、常用短语等个性化内容。
+
+本文主要介绍 `custom_phrase.txt`，它是最常用的个人词库工具。
+
+## `custom_phrase.txt` 格式
+
+文件位于用户配置目录，格式为**制表符（Tab）分隔的三列**：
+
+```
+词语<Tab>编码<Tab>权重
+```
+
+| 列 | 说明 |
+|----|------|
+| 第一列 | 要输出的词语（中文或其他内容） |
+| 第二列 | 输入编码（拼音用空格分隔音节） |
+| 第三列 | 权重（正整数，越大越靠前，可省略） |
+
+**示例：**
+
+```
+# 这是注释行（以 # 开头的行被忽略）
+张三丰	zhang san feng	1000
+前端工程师	qian duan gong cheng shi	1
+claude@anthropic.com	claude	1
+我的手机号	wo de shou ji hao	1
+Rime输入法	rime shu ru fa	100
+```
+
+**关键规则：**
+- 列与列之间必须用**制表符**（Tab 键）分隔，不能用空格
+- 拼音音节之间用**空格**分隔（`zhang san feng`，不是 `zhángsānfēng`）
+- 权重建议使用较大值（如 100、1000）让词组出现在候选列表靠前位置
+- 文件编码必须为 **UTF-8**
+
+## 启用 `custom_phrase`
+
+`custom_phrase.txt` 需要在方案配置中显式引用才会生效。大多数主流方案（如朙月拼音）已内置支持，但如果你使用的方案没有，需要在方案的 `.custom.yaml` 中添加：
+
+```yaml
+# luna_pinyin_simp.custom.yaml
+patch:
+  engine/translators:
+    - punct_translator
+    - script_translator
+    - reverse_lookup_translator
+    - table_translator@custom_phrase   # 添加这一行
+
+  custom_phrase:
+    dictionary: ""
+    user_dict: custom_phrase
+    db_class: stabledb
+    enable_completion: false
+    enable_sentence: false
+    initial_quality: 1
+```
+
+修改后重新部署即可。
+
+## `custom_phrase.txt` vs 主词典
+
+| 对比项 | `custom_phrase.txt` | 主词典（`.dict.yaml`） |
+|--------|--------------------|--------------------|
+| 上手难度 | 极低，文本编辑即可 | 较高，需了解词典格式 |
+| 适合场景 | 个人词组、专有名词 | 大批量通用词汇 |
+| 生效方式 | 重新部署后生效 | 重新部署后生效 |
+| 词频学习 | 不支持 | 支持（用户词频自动调整） |
+| 文件大小 | 轻量 | 可达数十万行 |
+
+## 维护建议
+
+**用 Git 管理你的词库：**
+
+```bash
+# 将用户配置目录纳入 Git 管理
+cd ~/Library/Rime  # macOS
+git init
+git add custom_phrase.txt
+git commit -m "初始化个人词库"
+```
+
+这样词库修改历史有迹可查，跨设备同步也更方便。
+
+**定期整理词库：**
+
+随着词库增长，建议按类别加注释分组：
+
+```
+# === 工作相关 ===
+某某科技有限公司	mou mou ke ji you xian gong si	1000
+
+# === 个人信息 ===
+我的邮箱	wo de you xiang	1000
+
+# === 常用短语 ===
+不客气	bu ke qi	500
+```
+
+**权重参考值：**
+
+- 权重 `1`：正常优先级，与词典词汇竞争
+- 权重 `100`：高优先级，通常出现在第一页
+- 权重 `1000`：极高优先级，几乎总是第一候选
+
+在编辑器中可以直观地修改这些设置，通过表格界面添加和管理个人词组。
