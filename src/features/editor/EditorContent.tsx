@@ -12,6 +12,9 @@ const MODULE_COMPONENTS: Record<EditorModule, React.ReactNode> = {
   'key-bindings': <KeyBindings />,
   'fuzzy-pinyin': <FuzzyPinyin />,
   'ascii-mode': <AsciiMode />,
+  'punctuation': null,
+  'dictionary': null,
+  'switches': null,
 }
 
 export function EditorContent() {

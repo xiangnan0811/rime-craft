@@ -72,6 +72,8 @@ export interface AppOption {
 export interface SchemaConfig {
   schemaId: string;
   fuzzyRules: FuzzyRuleState[];
+  switches?: SwitchItem[];
+  punctuator?: PunctuatorConfig;
 }
 
 export interface FuzzyRuleState {
@@ -87,6 +89,20 @@ export interface CustomPhrase {
   weight: number;
 }
 
+// ─── Punctuation config ─────────────────────────────────
+
+export interface PunctuatorConfig {
+  halfShape: Record<string, string | string[]>;
+}
+
+// ─── Switch items ───────────────────────────────────────
+
+export interface SwitchItem {
+  name: string;
+  reset: number;
+  states?: [string, string];
+}
+
 // ─── Editor UI state ────────────────────────────────────
 
 export type EditorModule =
@@ -94,4 +110,7 @@ export type EditorModule =
   | 'candidate-settings'
   | 'key-bindings'
   | 'fuzzy-pinyin'
-  | 'ascii-mode';
+  | 'ascii-mode'
+  | 'punctuation'
+  | 'dictionary'
+  | 'switches';
