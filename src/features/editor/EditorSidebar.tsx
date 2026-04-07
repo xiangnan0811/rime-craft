@@ -8,6 +8,9 @@ const MODULES: { id: EditorModule; label: string }[] = [
   { id: 'key-bindings', label: '按键绑定' },
   { id: 'fuzzy-pinyin', label: '模糊音规则' },
   { id: 'ascii-mode', label: '中英文切换' },
+  { id: 'punctuation', label: '标点符号映射' },
+  { id: 'dictionary', label: '词典管理' },
+  { id: 'switches', label: '开关与杂项' },
 ]
 
 export function EditorSidebar() {

@@ -4,6 +4,9 @@ import { CandidateSettings } from './modules/CandidateSettings'
 import { KeyBindings } from './modules/KeyBindings'
 import { FuzzyPinyin } from './modules/FuzzyPinyin'
 import { AsciiMode } from './modules/AsciiMode'
+import { Punctuation } from './modules/Punctuation'
+import { Dictionary } from './modules/Dictionary'
+import { Switches } from './modules/Switches'
 import type { EditorModule } from '@/types/config'
 
 const MODULE_COMPONENTS: Record<EditorModule, React.ReactNode> = {
@@ -12,9 +15,9 @@ const MODULE_COMPONENTS: Record<EditorModule, React.ReactNode> = {
   'key-bindings': <KeyBindings />,
   'fuzzy-pinyin': <FuzzyPinyin />,
   'ascii-mode': <AsciiMode />,
-  'punctuation': null,
-  'dictionary': null,
-  'switches': null,
+  'punctuation': <Punctuation />,
+  'dictionary': <Dictionary />,
+  'switches': <Switches />,
 }
 
 export function EditorContent() {
