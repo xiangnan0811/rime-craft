@@ -10,6 +10,9 @@ export function AppLayout() {
             Rime Craft
           </Link>
           <nav className="flex items-center gap-4">
+            <Link to="/docs">
+              <Button variant="ghost">教程中心</Button>
+            </Link>
             <Link to="/editor">
               <Button variant="ghost">配置编辑器</Button>
             </Link>

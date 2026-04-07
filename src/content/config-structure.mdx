@@ -1,0 +1,15 @@
+# 配置文件结构
+
+Rime 的配置文件使用 YAML 格式，按照功能分为多个文件，存放在用户配置目录中。
+
+## 用户配置目录
+
+- macOS：`~/Library/Rime/`
+- Windows：`%APPDATA%\Rime\`
+- Linux：`~/.config/ibus/rime/` 或 `~/.local/share/fcitx5/rime/`
+
+## 核心配置文件
+
+- `default.custom.yaml`：全局设置，如候选词数量、切换快捷键等
+- `<方案名>.custom.yaml`：针对特定输入方案的自定义配置
+- `<方案名>.schema.yaml`：输入方案的完整定义文件

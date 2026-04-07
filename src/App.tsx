@@ -1,7 +1,15 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
+
+const DocsLayout = lazy(() =>
+  import('@/app/docs/DocsLayout').then((m) => ({ default: m.DocsLayout }))
+)
+const DocsPage = lazy(() =>
+  import('@/app/docs/DocsPage').then((m) => ({ default: m.DocsPage }))
+)
 
 export function App() {
   return (
@@ -10,6 +18,17 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
           <Route path="editor" element={<EditorPage />} />
+          <Route
+            path="docs"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <DocsLayout />
+              </Suspense>
+            }
+          >
+            <Route index element={<Suspense fallback={null}><DocsPage /></Suspense>} />
+            <Route path=":slug" element={<Suspense fallback={null}><DocsPage /></Suspense>} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
