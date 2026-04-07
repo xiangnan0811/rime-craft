@@ -68,6 +68,82 @@ describe('serializePlatformConfig', () => {
   })
 })
 
+describe('serializePlatformConfig with style', () => {
+  it('serializes theme colors as BGR integers', () => {
+    const config = {
+      ...DEFAULT_PLATFORM_CONFIG,
+      style: {
+        name: 'test',
+        horizontal: true,
+        fontFace: 'PingFang SC',
+        fontSize: 16,
+        labelFontSize: 14,
+        cornerRadius: 6,
+        borderWidth: 1,
+        lineSpacing: 5,
+        spacing: 8,
+        colors: {
+          backgroundColor: '#FFFFFF',
+          borderColor: '#CCCCCC',
+          textColor: '#000000',
+          hilitedTextColor: '#FF6600',
+          hilitedBackColor: '#EEEEEE',
+          candidateTextColor: '#000000',
+          hilitedCandidateTextColor: '#FFFFFF',
+          hilitedCandidateBackColor: '#4A90D9',
+          commentTextColor: '#888888',
+          labelColor: '#666666',
+        },
+      },
+    }
+    const patch = serializePlatformConfig(config)
+    expect(patch.style).toBeDefined()
+    const style = patch.style as Record<string, unknown>
+    expect(style.back_color).toBe(0xFFFFFF)
+    expect(style.text_color).toBe(0x000000)
+    expect(style.horizontal).toBe(true)
+    expect(style.font_face).toBe('PingFang SC')
+  })
+
+  it('outputs hex format colors in YAML string', () => {
+    const config = {
+      ...DEFAULT_PLATFORM_CONFIG,
+      style: {
+        name: 'test',
+        horizontal: true,
+        fontFace: 'sans-serif',
+        fontSize: 16,
+        labelFontSize: 14,
+        cornerRadius: 6,
+        borderWidth: 1,
+        lineSpacing: 5,
+        spacing: 8,
+        colors: {
+          backgroundColor: '#FF0000',
+          borderColor: '#CCCCCC',
+          textColor: '#000000',
+          hilitedTextColor: '#0000FF',
+          hilitedBackColor: '#EEEEEE',
+          candidateTextColor: '#000000',
+          hilitedCandidateTextColor: '#FFFFFF',
+          hilitedCandidateBackColor: '#4A90D9',
+          commentTextColor: '#888888',
+          labelColor: '#666666',
+        },
+      },
+    }
+    const patch = serializePlatformConfig(config)
+    const yamlStr = buildCustomYaml(patch)
+    expect(yamlStr).toContain('0x')
+  })
+
+  it('does not include style when absent', () => {
+    const config = { ...DEFAULT_PLATFORM_CONFIG, appOptions: {} }
+    const patch = serializePlatformConfig(config)
+    expect(patch.style).toBeUndefined()
+  })
+})
+
 describe('serializeSchemaConfig', () => {
   it('serializes switches', () => {
     const config: SchemaConfig = {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useConfigStore } from './config-store'
-import { createEmptyProject } from '@/lib/config/defaults'
+import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 
 describe('useConfigStore', () => {
   beforeEach(() => {
@@ -107,5 +107,36 @@ describe('useConfigStore', () => {
       { text: 'b', code: 'b', weight: 2 },
     ])
     expect(useConfigStore.getState().project.customPhrases).toHaveLength(2)
+  })
+
+  it('setThemeStyle sets the theme', () => {
+    const theme = { ...DEFAULT_THEME_STYLE, name: 'test' }
+    useConfigStore.getState().setThemeStyle(theme)
+    expect(useConfigStore.getState().project.platformConfig.style?.name).toBe('test')
+    expect(useConfigStore.getState().isDirty).toBe(true)
+  })
+
+  it('updateThemeColors merges color changes', () => {
+    useConfigStore.getState().setThemeStyle(structuredClone(DEFAULT_THEME_STYLE))
+    useConfigStore.getState().updateThemeColors({ backgroundColor: '#FF0000' })
+    expect(useConfigStore.getState().project.platformConfig.style?.colors.backgroundColor).toBe('#FF0000')
+    expect(useConfigStore.getState().project.platformConfig.style?.colors.textColor).toBe('#000000')
+  })
+
+  it('updateThemeColors does nothing when no style set', () => {
+    useConfigStore.getState().updateThemeColors({ backgroundColor: '#FF0000' })
+    expect(useConfigStore.getState().project.platformConfig.style).toBeUndefined()
+  })
+
+  it('updateThemeLayout merges layout changes', () => {
+    useConfigStore.getState().setThemeStyle(structuredClone(DEFAULT_THEME_STYLE))
+    useConfigStore.getState().updateThemeLayout({ horizontal: true, fontSize: 20 })
+    expect(useConfigStore.getState().project.platformConfig.style?.horizontal).toBe(true)
+    expect(useConfigStore.getState().project.platformConfig.style?.fontSize).toBe(20)
+  })
+
+  it('updateThemeLayout does nothing when no style set', () => {
+    useConfigStore.getState().updateThemeLayout({ horizontal: true })
+    expect(useConfigStore.getState().project.platformConfig.style).toBeUndefined()
   })
 })

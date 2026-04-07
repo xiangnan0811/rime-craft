@@ -8,6 +8,8 @@ import type {
   PunctuatorConfig,
   CustomPhrase,
   EditorModule,
+  ThemeStyle,
+  ThemeColors,
 } from '@/types/config'
 import { createEmptyProject } from '@/lib/config/defaults'
 
@@ -27,6 +29,9 @@ interface ConfigState {
   setFuzzyRules: (schemaId: string, rules: FuzzyRuleState[]) => void;
   setSwitches: (schemaId: string, switches: SwitchItem[]) => void;
   setPunctuator: (schemaId: string, punctuator: PunctuatorConfig) => void;
+  setThemeStyle: (style: ThemeStyle) => void;
+  updateThemeColors: (colors: Partial<ThemeColors>) => void;
+  updateThemeLayout: (layout: Partial<Omit<ThemeStyle, 'colors' | 'name'>>) => void;
   addCustomPhrase: (phrase: CustomPhrase) => void;
   removeCustomPhrase: (index: number) => void;
   updateCustomPhrase: (index: number, phrase: CustomPhrase) => void;
@@ -152,6 +157,50 @@ export const useConfigStore = create<ConfigState>((set) => ({
       },
       isDirty: true,
     })),
+
+  setThemeStyle: (style) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        platformConfig: { ...s.project.platformConfig, style },
+      },
+      isDirty: true,
+    })),
+
+  updateThemeColors: (colors) =>
+    set((s) => {
+      const current = s.project.platformConfig.style
+      if (!current) return {}
+      return {
+        project: {
+          ...s.project,
+          platformConfig: {
+            ...s.project.platformConfig,
+            style: {
+              ...current,
+              colors: { ...current.colors, ...colors },
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  updateThemeLayout: (layout) =>
+    set((s) => {
+      const current = s.project.platformConfig.style
+      if (!current) return {}
+      return {
+        project: {
+          ...s.project,
+          platformConfig: {
+            ...s.project.platformConfig,
+            style: { ...current, ...layout },
+          },
+        },
+        isDirty: true,
+      }
+    }),
 
   addCustomPhrase: (phrase) =>
     set((s) => ({

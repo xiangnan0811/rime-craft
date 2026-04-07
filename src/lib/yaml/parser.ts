@@ -5,7 +5,10 @@ import type {
   SchemaConfig,
   SwitchKeyAction,
   AppOption,
+  ThemeStyle,
+  ThemeColors,
 } from '@/types/config'
+import { bgrIntToHex } from '@/lib/color/convert'
 
 // ─── Parse raw YAML ──────────────────────────────────────
 
@@ -130,6 +133,41 @@ export function mapToDefaultConfig(
   }
 }
 
+// ─── Parse theme colors & style ─────────────────────────
+
+function parseThemeColors(style: Record<string, unknown>): ThemeColors {
+  const c = (key: string, fallback: number) =>
+    bgrIntToHex((style[key] as number) ?? fallback)
+
+  return {
+    backgroundColor: c('back_color', 0xFFFFFF),
+    borderColor: c('border_color', 0xCCCCCC),
+    textColor: c('text_color', 0x000000),
+    hilitedTextColor: c('hilited_text_color', 0xFF6600),
+    hilitedBackColor: c('hilited_back_color', 0xEEEEEE),
+    candidateTextColor: c('candidate_text_color', 0x000000),
+    hilitedCandidateTextColor: c('hilited_candidate_text_color', 0xFFFFFF),
+    hilitedCandidateBackColor: c('hilited_candidate_back_color', 0xD99A4A),
+    commentTextColor: c('comment_text_color', 0x888888),
+    labelColor: c('label_color', 0x666666),
+  }
+}
+
+function parseThemeStyle(style: Record<string, unknown>): ThemeStyle {
+  return {
+    name: (style.color_scheme as string) ?? 'custom',
+    horizontal: (style.horizontal as boolean) ?? false,
+    fontFace: (style.font_face as string) ?? 'sans-serif',
+    fontSize: (style.font_point as number) ?? 16,
+    labelFontSize: (style.label_font_point as number) ?? 14,
+    cornerRadius: (style.corner_radius as number) ?? 6,
+    borderWidth: (style.border_width as number) ?? 1,
+    lineSpacing: (style.line_spacing as number) ?? 5,
+    spacing: (style.spacing as number) ?? 8,
+    colors: parseThemeColors(style),
+  }
+}
+
 // ─── Map to PlatformConfig ───────────────────────────────
 
 export function mapToPlatformConfig(
@@ -149,11 +187,18 @@ export function mapToPlatformConfig(
     }
   }
 
-  return {
+  const result: PlatformConfig = {
     platform: defaults.platform,
     appOptions:
       Object.keys(appOptions).length > 0 ? appOptions : defaults.appOptions,
   }
+
+  const rawStyle = expanded.style as Record<string, unknown> | undefined
+  if (rawStyle) {
+    result.style = parseThemeStyle(rawStyle)
+  }
+
+  return result
 }
 
 // ─── Extract preserved fields ────────────────────────────

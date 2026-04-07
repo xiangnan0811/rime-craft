@@ -144,6 +144,50 @@ describe('mapToSchemaConfig', () => {
   })
 })
 
+describe('mapToPlatformConfig with style', () => {
+  it('parses theme style with BGR colors', () => {
+    const patch = {
+      style: {
+        horizontal: true,
+        font_face: 'PingFang SC',
+        font_point: 18,
+        corner_radius: 8,
+        back_color: 0xFFFFFF,
+        text_color: 0x000000,
+        hilited_candidate_back_color: 0xD99A4A,
+      },
+    }
+    const config = mapToPlatformConfig(patch, DEFAULT_PLATFORM_CONFIG)
+    expect(config.style).toBeDefined()
+    expect(config.style!.horizontal).toBe(true)
+    expect(config.style!.fontFace).toBe('PingFang SC')
+    expect(config.style!.fontSize).toBe(18)
+    expect(config.style!.colors.backgroundColor).toBe('#FFFFFF')
+    expect(config.style!.colors.hilitedCandidateBackColor).toBe('#4A9AD9')
+  })
+
+  it('uses defaults when style fields are missing', () => {
+    const patch = {
+      style: {
+        horizontal: true,
+      },
+    }
+    const config = mapToPlatformConfig(patch, DEFAULT_PLATFORM_CONFIG)
+    expect(config.style).toBeDefined()
+    expect(config.style!.fontFace).toBe('sans-serif')
+    expect(config.style!.fontSize).toBe(16)
+    expect(config.style!.name).toBe('custom')
+  })
+
+  it('does not set style when no style block', () => {
+    const patch = {
+      app_options: { 'com.apple.Terminal': { ascii_mode: true } },
+    }
+    const config = mapToPlatformConfig(patch, DEFAULT_PLATFORM_CONFIG)
+    expect(config.style).toBeUndefined()
+  })
+})
+
 describe('extractPreservedFields', () => {
   it('extracts keys not in the known set', () => {
     const patch = {

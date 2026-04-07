@@ -1,5 +1,6 @@
-import { stringify } from 'yaml'
+import { Document, Scalar } from 'yaml'
 import type { DefaultConfig, PlatformConfig, SchemaConfig } from '@/types/config'
+import { hexToBgrInt } from '@/lib/color/convert'
 
 export function serializeDefaultConfig(
   config: DefaultConfig,
@@ -42,6 +43,31 @@ export function serializePlatformConfig(
 ): Record<string, unknown> {
   const patch: Record<string, unknown> = {}
 
+  if (config.style) {
+    const s = config.style
+    patch.style = {
+      color_scheme: s.name,
+      horizontal: s.horizontal,
+      font_face: s.fontFace,
+      font_point: s.fontSize,
+      label_font_point: s.labelFontSize,
+      corner_radius: s.cornerRadius,
+      border_width: s.borderWidth,
+      line_spacing: s.lineSpacing,
+      spacing: s.spacing,
+      back_color: hexToBgrInt(s.colors.backgroundColor),
+      border_color: hexToBgrInt(s.colors.borderColor),
+      text_color: hexToBgrInt(s.colors.textColor),
+      hilited_text_color: hexToBgrInt(s.colors.hilitedTextColor),
+      hilited_back_color: hexToBgrInt(s.colors.hilitedBackColor),
+      candidate_text_color: hexToBgrInt(s.colors.candidateTextColor),
+      hilited_candidate_text_color: hexToBgrInt(s.colors.hilitedCandidateTextColor),
+      hilited_candidate_back_color: hexToBgrInt(s.colors.hilitedCandidateBackColor),
+      comment_text_color: hexToBgrInt(s.colors.commentTextColor),
+      label_color: hexToBgrInt(s.colors.labelColor),
+    }
+  }
+
   if (Object.keys(config.appOptions).length > 0) {
     const appOptions: Record<string, Record<string, unknown>> = {}
     for (const [bundleId, opts] of Object.entries(config.appOptions)) {
@@ -73,10 +99,32 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
   return patch
 }
 
+const STYLE_COLOR_KEYS = new Set([
+  'back_color', 'border_color', 'text_color', 'hilited_text_color',
+  'hilited_back_color', 'candidate_text_color', 'hilited_candidate_text_color',
+  'hilited_candidate_back_color', 'comment_text_color', 'label_color',
+])
+
 export function buildCustomYaml(
   patch: Record<string, unknown>,
   preserved?: Record<string, unknown>,
 ): string {
   const merged = preserved ? { ...preserved, ...patch } : patch
-  return stringify({ patch: merged }, { lineWidth: 0 })
+  const doc = new Document({ patch: merged })
+
+  // Set HEX format for color values in style block
+  const styleNode = doc.getIn(['patch', 'style'], true)
+  if (styleNode && typeof styleNode === 'object' && 'items' in styleNode) {
+    for (const item of (styleNode as { items: Array<{ key: { value?: string }; value: unknown }> }).items) {
+      const keyValue = item.key?.value ?? String(item.key)
+      if (STYLE_COLOR_KEYS.has(keyValue)) {
+        const val = item.value
+        if (val instanceof Scalar && typeof val.value === 'number') {
+          val.format = 'HEX'
+        }
+      }
+    }
+  }
+
+  return doc.toString({ lineWidth: 0 })
 }
