@@ -60,6 +60,7 @@ export interface KeyBinderConfig {
 
 export interface PlatformConfig {
   platform: 'macos' | 'windows';
+  style?: ThemeStyle;
   appOptions: Record<string, AppOption>;
 }
 
@@ -101,6 +102,34 @@ export interface SwitchItem {
   name: string;
   reset: number;
   states?: [string, string];
+}
+
+// ─── Theme style (squirrel / weasel appearance) ─────────
+
+export interface ThemeColors {
+  backgroundColor: string;             // back_color
+  borderColor: string;                 // border_color
+  textColor: string;                   // text_color (composing area)
+  hilitedTextColor: string;            // hilited_text_color
+  hilitedBackColor: string;            // hilited_back_color
+  candidateTextColor: string;          // candidate_text_color
+  hilitedCandidateTextColor: string;   // hilited_candidate_text_color
+  hilitedCandidateBackColor: string;   // hilited_candidate_back_color
+  commentTextColor: string;            // comment_text_color
+  labelColor: string;                  // label_color
+}
+
+export interface ThemeStyle {
+  name: string;
+  horizontal: boolean;
+  fontFace: string;
+  fontSize: number;
+  labelFontSize: number;
+  cornerRadius: number;
+  borderWidth: number;
+  lineSpacing: number;
+  spacing: number;
+  colors: ThemeColors;
 }
 
 // ─── Editor UI state ────────────────────────────────────
