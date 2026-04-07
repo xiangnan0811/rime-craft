@@ -1,0 +1,95 @@
+import { describe, it, expect } from 'vitest'
+import { parse } from 'yaml'
+import {
+  serializeDefaultConfig,
+  serializePlatformConfig,
+  buildCustomYaml,
+} from './serializer'
+import { expandPatchPaths, mapToDefaultConfig } from './parser'
+import { DEFAULT_CONFIG, DEFAULT_PLATFORM_CONFIG } from '@/lib/config/defaults'
+
+describe('serializeDefaultConfig', () => {
+  it('serializes schema list and page size', () => {
+    const config = {
+      ...DEFAULT_CONFIG,
+      schemaList: [{ schema: 'rime_ice' }, { schema: 'double_pinyin_flypy' }],
+      pageSize: 9,
+    }
+    const patch = serializeDefaultConfig(config)
+    expect(patch.schema_list).toEqual([
+      { schema: 'rime_ice' },
+      { schema: 'double_pinyin_flypy' },
+    ])
+    expect(patch['menu/page_size']).toBe(9)
+  })
+
+  it('serializes ascii composer switch keys', () => {
+    const config = {
+      ...DEFAULT_CONFIG,
+      asciiComposer: {
+        goodOldCapsLock: true,
+        switchKey: {
+          shiftL: 'commit_code' as const,
+          shiftR: 'inline_ascii' as const,
+          controlL: 'noop' as const,
+          controlR: 'noop' as const,
+          capsLock: 'clear' as const,
+        },
+      },
+    }
+    const patch = serializeDefaultConfig(config)
+    expect(patch.ascii_composer).toEqual({
+      good_old_caps_lock: true,
+      switch_key: {
+        Shift_L: 'commit_code',
+        Shift_R: 'inline_ascii',
+        Control_L: 'noop',
+        Control_R: 'noop',
+        Caps_Lock: 'clear',
+      },
+    })
+  })
+})
+
+describe('serializePlatformConfig', () => {
+  it('serializes app options', () => {
+    const config = {
+      ...DEFAULT_PLATFORM_CONFIG,
+      appOptions: {
+        'com.apple.Terminal': { asciiMode: true },
+      },
+    }
+    const patch = serializePlatformConfig(config)
+    expect(patch.app_options).toEqual({
+      'com.apple.Terminal': { ascii_mode: true },
+    })
+  })
+})
+
+describe('buildCustomYaml', () => {
+  it('wraps patch in a valid custom yaml structure', () => {
+    const patch = { schema_list: [{ schema: 'rime_ice' }] }
+    const yamlStr = buildCustomYaml(patch)
+    const parsed = parse(yamlStr)
+    expect(parsed.patch.schema_list).toEqual([{ schema: 'rime_ice' }])
+  })
+})
+
+describe('round-trip: serialize → yaml → parse', () => {
+  it('preserves config through round-trip', () => {
+    const original = {
+      ...DEFAULT_CONFIG,
+      schemaList: [{ schema: 'rime_ice' }],
+      pageSize: 9,
+      selectKeys: 'ASDFGHJKL',
+    }
+    const patch = serializeDefaultConfig(original)
+    const yamlStr = buildCustomYaml(patch)
+    const reparsed = parse(yamlStr)
+    const expanded = expandPatchPaths(reparsed.patch)
+    const result = mapToDefaultConfig(expanded, DEFAULT_CONFIG)
+    expect(result.schemaList).toEqual(original.schemaList)
+    expect(result.pageSize).toBe(original.pageSize)
+    expect(result.selectKeys).toBe(original.selectKeys)
+  })
+})
