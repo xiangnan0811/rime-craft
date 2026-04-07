@@ -6,6 +6,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { useState } from 'react'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 export function SchemaManager() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -42,7 +43,10 @@ export function SchemaManager() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">输入方案管理</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">输入方案管理</h3>
+          <LearnMoreLink module="schema-manager" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           管理已启用的输入方案及其优先顺序。列表中排在前面的方案为默认方案。
         </p>

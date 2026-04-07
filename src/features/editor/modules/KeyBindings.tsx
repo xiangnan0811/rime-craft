@@ -5,6 +5,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import type { SwitchKeyAction } from '@/types/config'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 const SWITCH_KEY_OPTIONS: { value: SwitchKeyAction; label: string }[] = [
   { value: 'inline_ascii', label: '行内切换英文' },
@@ -40,7 +41,10 @@ export function KeyBindings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">按键绑定</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">按键绑定</h3>
+          <LearnMoreLink module="key-bindings" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">配置修饰键的中英文切换行为。</p>
       </div>
       <div className="space-y-4">

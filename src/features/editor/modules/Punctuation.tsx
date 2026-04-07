@@ -2,6 +2,7 @@ import { useConfigStore } from '@/stores/config-store'
 import { DEFAULT_HALF_SHAPE } from '@/data/punctuation-defaults'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 function valueToString(val: string | string[]): string {
   return Array.isArray(val) ? val.join(', ') : val
@@ -46,7 +47,10 @@ export function Punctuation() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-semibold">标点符号映射</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">标点符号映射</h3>
+            <LearnMoreLink module="punctuation" />
+          </div>
           <p className="mt-1 text-sm text-gray-500">
             编辑半角标点到中文标点的映射。多个候选项用英文逗号分隔。当前配置应用于方案：{primarySchemaId}
           </p>

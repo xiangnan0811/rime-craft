@@ -1,7 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
+import { GoToConfigButton } from './GoToConfigButton'
 
 /** Custom components to use in MDX rendering */
 export const mdxComponents = {
+  GoToConfigButton,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
     <h1 className="mb-4 text-3xl font-bold" {...props} />
   ),

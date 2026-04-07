@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CustomPhrase } from '@/types/config'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 export function Dictionary() {
   const customPhrases = useConfigStore((s) => s.project.customPhrases)
@@ -41,7 +42,10 @@ export function Dictionary() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">词典管理</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">词典管理</h3>
+          <LearnMoreLink module="dictionary" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           管理自定义词组（custom_phrase.txt）。每个词条包含文字、编码和权重。
         </p>

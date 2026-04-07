@@ -3,6 +3,7 @@ import { SWITCH_DEFINITIONS } from '@/data/switch-definitions'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import type { SwitchItem } from '@/types/config'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 export function Switches() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -37,7 +38,10 @@ export function Switches() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">开关与杂项</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">开关与杂项</h3>
+          <LearnMoreLink module="switches" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           控制方案的各项功能开关，当前配置应用于方案：{primarySchemaId}
         </p>

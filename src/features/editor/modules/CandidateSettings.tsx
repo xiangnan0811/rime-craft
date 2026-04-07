@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 const PAGE_SIZE_OPTIONS = [3, 4, 5, 6, 7, 8, 9]
 const SELECT_KEY_PRESETS: { label: string; value: string }[] = [
@@ -20,7 +21,10 @@ export function CandidateSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">候选词设置</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">候选词设置</h3>
+          <LearnMoreLink module="candidate-settings" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">设置候选词每页显示数量和选词按键。</p>
       </div>
       <div className="space-y-4">

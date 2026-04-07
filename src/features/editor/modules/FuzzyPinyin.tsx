@@ -3,6 +3,7 @@ import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import type { FuzzyRuleState } from '@/types/config'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 export function FuzzyPinyin() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -32,7 +33,10 @@ export function FuzzyPinyin() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">模糊音规则</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">模糊音规则</h3>
+          <LearnMoreLink module="fuzzy-pinyin" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           启用模糊音后，发音相近的声母或韵母会被视为相同，可以减少输入错误。当前配置应用于方案：{primarySchemaId}
         </p>

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Card } from '@/components/ui/card'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 const COMMON_APPS: { bundleId: string; name: string }[] = [
   { bundleId: 'com.apple.Terminal', name: 'Terminal' },
@@ -33,7 +34,10 @@ export function AsciiMode() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">中英文切换与应用设置</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">中英文切换与应用设置</h3>
+          <LearnMoreLink module="ascii-mode" />
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           为特定应用设置默认输入模式。例如终端和代码编辑器通常默认英文模式。
           {targetPlatform === 'macos' && ' (macOS: 使用 Bundle Identifier)'}
