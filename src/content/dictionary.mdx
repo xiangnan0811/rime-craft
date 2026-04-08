@@ -1,61 +1,46 @@
-# 自定义词库
+# 词典管理
 
-词库是输入法的核心数据。Rime 除了支持方案自带的词典外，还提供了一个轻量级的自定义词组机制：`custom_phrase.txt`，让你无需了解词典格式就能快速添加个人词组。
+词典是输入法的「大脑」——它决定了你能打出什么词、候选词的排序有多准确、输入法能不能跟上你的用词习惯。理解词典系统的工作方式，能帮助你有效管理和优化输入体验。
 
-## 概念解释
+## 这是什么
 
-Rime 的词汇来源有两种：
+Rime 的词典系统由三层组成：
 
-1. **`.dict.yaml` 词典文件**：方案的主词典，包含大量通用词汇，每次部署时被编译为二进制格式。修改主词典需要重新部署，适合批量添加词汇。
+**主词典（.dict.yaml）**：方案自带的核心词库，包含数万到数十万条词汇及其拼音编码和默认词频。这是输入法的基础数据，由方案维护者提供。
 
-2. **`custom_phrase.txt`**：轻量级的个人词组列表，格式简单，Rime 会在候选词中优先展示其中的词组。适合添加人名、网名、常用短语等个性化内容。
+**用户词典**：Rime 在使用过程中自动积累的个人数据，记录你每次选词的行为。选过的词会提升词频，下次输入时排名更靠前。这是输入法「越用越聪明」的关键。
 
-本文主要介绍 `custom_phrase.txt`，它是最常用的个人词库工具。
+**自定义词典（custom_phrase.txt）**：你手动添加的自定义短语，适合输入固定格式的文本（如邮箱、地址、常用句式）。
 
-## `custom_phrase.txt` 格式
+## 配置项详解
 
-文件位于用户配置目录，格式为**制表符（Tab）分隔的三列**：
+### 词频调整机制
 
-```
-词语<Tab>编码<Tab>权重
-```
-
-| 列 | 说明 |
-|----|------|
-| 第一列 | 要输出的词语（中文或其他内容） |
-| 第二列 | 输入编码（拼音用空格分隔音节） |
-| 第三列 | 权重（正整数，越大越靠前，可省略） |
-
-**示例：**
-
-```
-# 这是注释行（以 # 开头的行被忽略）
-张三丰	zhang san feng	1000
-前端工程师	qian duan gong cheng shi	1
-claude@anthropic.com	claude	1
-我的手机号	wo de shou ji hao	1
-Rime输入法	rime shu ru fa	100
-```
-
-**关键规则：**
-- 列与列之间必须用**制表符**（Tab 键）分隔，不能用空格
-- 拼音音节之间用**空格**分隔（`zhang san feng`，不是 `zhángsānfēng`）
-- 权重建议使用较大值（如 100、1000）让词组出现在候选列表靠前位置
-- 文件编码必须为 **UTF-8**
-
-## 启用 `custom_phrase`
-
-`custom_phrase.txt` 需要在方案配置中显式引用才会生效。大多数主流方案（如朙月拼音）已内置支持，但如果你使用的方案没有，需要在方案的 `.custom.yaml` 中添加：
+Rime 的词频系统是动态的：每次你选择一个候选词，它的词频权重就会增加。经过一段时间的使用，候选词列表会越来越「懂」你的用词习惯。
 
 ```yaml
-# luna_pinyin_simp.custom.yaml
+patch:
+  translator/dictionary: wanxiang       # 指定主词典
+  translator/user_dict: wanxiang_user   # 指定用户词典名
+```
+
+### 自定义短语
+
+自定义短语文件 `custom_phrase.txt` 放在 Rime 用户目录下，格式为：
+
+```
+# 文本\t编码\t权重
+# Tab 分隔，权重可选
+example@mail.com	yx	1
+我的收件地址	dz	1
+```
+
+在方案中启用自定义短语翻译器：
+
+```yaml
 patch:
   engine/translators:
-    - punct_translator
-    - script_translator
-    - reverse_lookup_translator
-    - table_translator@custom_phrase   # 添加这一行
-
+    - table_translator@custom_phrase
   custom_phrase:
     dictionary: ""
     user_dict: custom_phrase
@@ -65,55 +50,77 @@ patch:
     initial_quality: 1
 ```
 
-修改后重新部署即可。
+### 用户词典维护
 
-## `custom_phrase.txt` vs 主词典
+**同步（Sync）**：Rime 支持将用户词典同步到指定目录，用于备份或多设备共享：
 
-| 对比项 | `custom_phrase.txt` | 主词典（`.dict.yaml`） |
-|--------|--------------------|--------------------|
-| 上手难度 | 极低，文本编辑即可 | 较高，需了解词典格式 |
-| 适合场景 | 个人词组、专有名词 | 大批量通用词汇 |
-| 生效方式 | 重新部署后生效 | 重新部署后生效 |
-| 词频学习 | 不支持 | 支持（用户词频自动调整） |
-| 文件大小 | 轻量 | 可达数十万行 |
-
-## 维护建议
-
-**用 Git 管理你的词库：**
-
-```bash
-# 将用户配置目录纳入 Git 管理
-cd ~/Library/Rime  # macOS
-git init
-git add custom_phrase.txt
-git commit -m "初始化个人词库"
+```yaml
+patch:
+  installation_id: "my-mac"              # 设备标识
+  sync_dir: "/Users/你的用户名/RimeSync"  # 同步目录
 ```
 
-这样词库修改历史有迹可查，跨设备同步也更方便。
+执行「同步用户数据」后，用户词典会导出到同步目录。在另一台设备上配置相同的同步目录（如通过云盘），再执行同步即可合并词典。
 
-**定期整理词库：**
+<ConfigSlot module="dictionary" />
 
-随着词库增长，建议按类别加注释分组：
+## 常见场景与推荐搭配
+
+**添加常用短语**：
+
+在 `custom_phrase.txt` 中添加：
 
 ```
-# === 工作相关 ===
-某某科技有限公司	mou mou ke ji you xian gong si	1000
+# 个人信息
+张三	zs	1
+13800138000	sj	1
+example@mail.com	yx	1
 
-# === 个人信息 ===
-我的邮箱	wo de you xiang	1000
-
-# === 常用短语 ===
-不客气	bu ke qi	500
+# 常用短语
+麻烦你帮我看一下	mf	1
+收到，谢谢	sd	1
 ```
 
-**权重参考值：**
+**多设备词典同步**：
 
-- 权重 `1`：正常优先级，与词典词汇竞争
-- 权重 `100`：高优先级，通常出现在第一页
-- 权重 `1000`：极高优先级，几乎总是第一候选
+两台设备使用相同的云盘目录作为同步路径：
 
-如果需要管理更大规模的词库（数百至数万条），或从其他输入法导入词汇，请参阅[词库制作与维护](./custom-dictionary)。
+```yaml
+# 设备 A
+patch:
+  installation_id: "macbook"
+  sync_dir: "/Users/xxx/Dropbox/RimeSync"
 
-在编辑器中可以直观地修改这些设置，通过表格界面添加和管理个人词组。
+# 设备 B
+patch:
+  installation_id: "desktop"
+  sync_dir: "C:\\Users\\xxx\\Dropbox\\RimeSync"
+```
 
-<GoToConfigButton module="dictionary" label="在编辑器中管理词典" />
+分别在两台设备执行「同步用户数据」即可合并词频记录。
+
+## 进阶技巧
+
+<tip>
+自定义短语的编码可以设为任意字母组合，不需要是拼音。例如把邮箱编码为 `yx`、地址编码为 `dz`。只要在输入时输入这个编码，就会出现你定义的短语。
+</tip>
+
+<warning>
+清理用户词典是一个不可逆操作。如果你觉得候选词排序「学坏了」（比如经常把错误的词排在前面），建议先尝试同步导出备份，再考虑是否清理。清理后所有积累的词频数据都会丢失。
+</warning>
+
+<note>
+用户词典的质量直接影响候选词排序。如果你发现某些常用词总是排在后面，可能是因为你之前多次选择了其他候选词导致它们的词频更高。持续选择正确的词，词频会逐渐调整过来。
+</note>
+
+## 学习路径
+
+1. **起步**：正常使用输入法，让用户词典自然积累
+2. **优化**：添加个人常用短语到 `custom_phrase.txt`
+3. **进阶**：配置词典同步，实现多设备统一的输入体验
+
+## 相关模块
+
+- [候选词设置](./candidate-settings) — 词典质量直接影响候选词排序准确度
+
+<ConfigSlot module="dictionary" />
