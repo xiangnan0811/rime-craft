@@ -10,6 +10,8 @@ import type {
   EditorModule,
   ThemeStyle,
   ThemeColors,
+  SchemaConfig,
+  EditorUIState,
 } from '@/types/config'
 import { createEmptyProject } from '@/lib/config/defaults'
 
@@ -17,6 +19,11 @@ interface ConfigState {
   project: RimeProject;
   activeModule: EditorModule;
   isDirty: boolean;
+  editorUI: EditorUIState;
+  setViewMode: (mode: 'panel' | 'immersive') => void;
+  setTutorialCollapsed: (collapsed: boolean) => void;
+  setActiveSection: (section?: string) => void;
+  updateSchemaConfig: (schemaId: string, partial: Partial<SchemaConfig>) => void;
 
   setActiveModule: (module: EditorModule) => void;
   loadProject: (project: RimeProject) => void;
@@ -42,6 +49,11 @@ export const useConfigStore = create<ConfigState>((set) => ({
   project: createEmptyProject(),
   activeModule: 'schema-manager',
   isDirty: false,
+  editorUI: {
+    viewMode: 'panel' as const,
+    tutorialCollapsed: false,
+    activeSection: undefined,
+  },
 
   setActiveModule: (module) => set({ activeModule: module }),
 
@@ -52,6 +64,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
       project: createEmptyProject(),
       activeModule: 'schema-manager',
       isDirty: false,
+      editorUI: { viewMode: 'panel' as const, tutorialCollapsed: false, activeSection: undefined },
     }),
 
   setTargetPlatform: (platform) =>
@@ -232,6 +245,30 @@ export const useConfigStore = create<ConfigState>((set) => ({
   setCustomPhrases: (phrases) =>
     set((s) => ({
       project: { ...s.project, customPhrases: phrases },
+      isDirty: true,
+    })),
+
+  setViewMode: (mode) =>
+    set((s) => ({ editorUI: { ...s.editorUI, viewMode: mode } })),
+
+  setTutorialCollapsed: (collapsed) =>
+    set((s) => ({ editorUI: { ...s.editorUI, tutorialCollapsed: collapsed } })),
+
+  setActiveSection: (section) =>
+    set((s) => ({ editorUI: { ...s.editorUI, activeSection: section } })),
+
+  updateSchemaConfig: (schemaId, partial) =>
+    set((s) => ({
+      project: {
+        ...s.project,
+        schemaConfigs: {
+          ...s.project.schemaConfigs,
+          [schemaId]: {
+            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+            ...partial,
+          },
+        },
+      },
       isDirty: true,
     })),
 }))
