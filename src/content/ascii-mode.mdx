@@ -50,9 +50,9 @@ patch:
       ascii_mode: true
 ```
 
-<tip>
+:::tip
 应用级切换的 `ascii_mode: true` 表示**切换到该应用时默认进入英文模式**。你仍然可以手动切换回中文——这只是设置了一个初始状态。
-</tip>
+:::
 
 <ConfigSlot module="ascii-mode" />
 
@@ -95,11 +95,11 @@ patch:
 
 ## 进阶技巧
 
-<warning>
+:::warning
 macOS 上，系统自带的输入法切换（`Ctrl+空格` 或 `Fn`）和 Rime 的中英文切换是**两套独立机制**。系统切换是在不同输入法之间切换（如从 Rime 切到 ABC），而 Rime 的 Shift 切换是在 Rime 内部切换中英文模式。建议用 Shift 切换中英文，用系统快捷键在需要时切换到其他输入法。
-</warning>
+:::
 
-<note>
+:::note
 `app_options` 中的应用标识符（如 `com.apple.Terminal`）需要精确匹配。在 macOS 上可以通过以下命令查看应用的 Bundle ID：
 
 ```bash
@@ -107,7 +107,7 @@ osascript -e 'id of app "应用名"'
 ```
 
 在 Windows 上使用进程的 `.exe` 文件名即可。
-</note>
+:::
 
 ## 学习路径
 
