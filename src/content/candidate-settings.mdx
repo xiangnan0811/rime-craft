@@ -1,88 +1,54 @@
 # 候选词设置
 
-候选词面板是输入法最核心的交互界面。合理设置候选词数量和选择方式，能显著降低选词次数，提升输入效率。
+候选词面板是输入法最核心的交互界面。合理设置候选词数量、选择方式和高级翻译参数，能显著降低选词次数，提升输入效率。
 
-## 概念解释
+## 这是什么
 
-当你输入一段拼音时，Rime 会显示一列候选词供你选择。这个设置控制：
+当你输入一段拼音时，Rime 会显示一列候选词供你选择。候选词设置控制三个层面：
 
-- **每页显示多少个候选词**（`page_size`）
-- **用什么键来快速选词**（`alternative_select_keys`）
+- **基础显示**：每页显示多少个候选词、用什么键来选词
+- **翻页行为**：如何在候选词页面之间导航
+- **翻译引擎**：控制候选词的生成策略（逐码提示、整句模式、优先级）
 
-这两个设置共同决定了你的选词效率。候选词太少，需要频繁翻页；候选词太多，需要频繁扫描；选词键设计得不顺手，则会拖慢节奏。
+## 配置项详解
 
-## 配置项说明
-
-在 `default.custom.yaml`（影响所有方案）或 `<方案名>.custom.yaml`（只影响该方案）中配置：
+### 每页候选词数（page_size）
 
 ```yaml
 patch:
   menu/page_size: 7
-  menu/alternative_select_keys: "ASDFGHJKL"
 ```
-
-### `menu/page_size`
-
-每页显示的候选词数量，取值范围 1–9。
 
 | 值 | 适用场景 |
 |----|---------|
-| 3–4 | 竖排候选词，屏幕空间紧张 |
-| 5 | 平衡选项，适合大多数用户 |
-| 7–9 | 希望减少翻页，愿意扫描更多候选词 |
+| 3-4 | 竖排候选词、屏幕空间紧张、配合精准词库 |
+| 5 | 平衡选项，适合大多数全拼用户 |
+| 7-9 | 减少翻页、配合字母键选词、双拼用户推荐 |
 
-推荐值：**5 或 7**。
+### 选词键（alternative_select_keys）
 
-### `menu/alternative_select_keys`
-
-快速选词的备选键序列。默认情况下，数字键 `1`–`9` 对应候选词第 1–9 项。如果设置了 `alternative_select_keys`，这些字母键也可以用来快速选词。
-
-```yaml
-# 使用数字键选词（默认行为，无需配置）
-# 按 1 选第1个，按 2 选第2个，以此类推
-
-# 使用字母键选词（需配置）
-menu/alternative_select_keys: "ASDFGHJKL"
-# 按 A 选第1个，S 选第2个，D 选第3个……
-```
-
-**字母键的优势**：手指不需要离开主键盘区移动到数字行，选词速度更快，特别适合双拼用户（双拼本身用到字母，数字键用于选词反而不顺手）。
-
-**字母键的劣势**：需要适应一段时间，且输入英文缩写时可能误触发选词。
-
-## 常见搭配
-
-**全拼用户的典型配置：**
+除了默认的数字键 1-9，你可以配置字母键来选词：
 
 ```yaml
 patch:
-  menu/page_size: 5
-```
-
-数字键选词、5 个候选词，简单直接，上手无负担。
-
-**双拼用户推荐配置：**
-
-```yaml
-patch:
-  menu/page_size: 7
   menu/alternative_select_keys: "ASDFGHJKL"
+  # 按 A 选第1个，S 选第2个，D 选第3个……
 ```
 
-7 个候选词减少翻页，字母键选词让手指保持在主键盘区。
+字母键选词的优势：手指不需要离开主键盘区移动到数字行。特别适合双拼用户——双拼本身用字母键输入，选词也用字母键，手指始终在主键盘区。
 
-**极简配置（配合精准词库）：**
+### 翻页键
+
+候选词翻页默认使用 `Page_Up` / `Page_Down`，万象拼音额外配置了 `-` / `=` 翻页：
 
 ```yaml
 patch:
-  menu/page_size: 3
+  key_binder/bindings:
+    - { when: has_menu, accept: minus, send: Page_Up }
+    - { when: has_menu, accept: equal, send: Page_Down }
 ```
 
-如果词库优化得足够好，前 3 个候选词能覆盖大部分需求，减少干扰。
-
-## 翻页键
-
-候选词翻页默认使用 `PageUp` / `PageDown`，也常见用方括号 `[` / `]` 翻页的配置：
+也可以配置方括号翻页：
 
 ```yaml
 patch:
@@ -91,6 +57,91 @@ patch:
     - { when: has_menu, accept: bracketright, send: Page_Down }
 ```
 
-在编辑器中可以直观地修改这些设置。
+### 翻译引擎高级设置
 
-<GoToConfigButton module="candidate-settings" label="在编辑器中配置候选词" />
+这些参数控制候选词的生成策略：
+
+**逐码提示（enable_completion）**：
+
+```yaml
+patch:
+  translator/enable_completion: true
+```
+
+开启后，输入不完整的拼音也会显示候选词。例如输入 `n` 就会出现「你、那、能……」。关闭后必须输入完整音节才会有候选。大多数用户应保持开启。
+
+**整句模式（enable_sentence）**：
+
+```yaml
+patch:
+  translator/enable_sentence: true
+```
+
+开启后，Rime 会尝试将多个音节组合成完整的句子候选。适合习惯整句输入的用户。关闭后每次只匹配单个词组。
+
+**优先级（initial_quality）**：
+
+```yaml
+patch:
+  translator/initial_quality: 1.2
+```
+
+控制翻译器生成的候选词的初始权重。数值越高，该翻译器的候选词排名越靠前。通常不需要修改，除非你同时使用多个翻译器并想调整它们的优先级。
+
+<ConfigSlot module="candidate-settings" />
+
+## 常见场景与推荐搭配
+
+**全拼用户的典型配置**：
+
+```yaml
+patch:
+  menu/page_size: 5
+  translator/enable_completion: true
+  translator/enable_sentence: true
+```
+
+数字键选词、5 个候选词，简单直接。
+
+**双拼用户推荐配置**：
+
+```yaml
+patch:
+  menu/page_size: 7
+  menu/alternative_select_keys: "ASDFGHJKL"
+  translator/enable_completion: true
+```
+
+7 个候选词减少翻页，字母键选词让手指保持在主键盘区。
+
+**单字输入为主（配合辅助码）**：
+
+```yaml
+patch:
+  menu/page_size: 5
+  translator/enable_sentence: false     # 关闭整句，专注单字
+  translator/enable_completion: true
+```
+
+## 进阶技巧
+
+<tip>
+如果你使用辅助码，`page_size` 的重要性会降低——因为辅助码可以将候选词精确缩减到 1-3 个，几乎不需要翻页。此时 5 个候选词就足够了。
+</tip>
+
+<warning>
+`alternative_select_keys` 设置的字母会「占用」这些键位。例如设置了 `ASDFGHJKL` 后，输入过程中按大写 A 会选择第一个候选词而不是输入字母。这在输入英文缩写时可能造成误操作。
+</warning>
+
+## 学习路径
+
+1. **起步**：使用默认配置（5 个候选词、数字键选词）
+2. **优化**：根据选词习惯调整 `page_size`（翻页太多就加大，扫描太慢就减小）
+3. **进阶**：双拼用户尝试字母键选词，调整翻译引擎参数
+
+## 相关模块
+
+- [词典管理](./dictionary) — 词典质量直接影响候选词排序准确度
+- [开关与杂项](./switches) — 部分开关（如候选排序）影响候选行为
+
+<ConfigSlot module="candidate-settings" />
