@@ -1,5 +1,8 @@
 import { EditorSidebar } from '@/features/editor/EditorSidebar'
 import { EditorContent } from '@/features/editor/EditorContent'
+import { TutorialPanel } from '@/features/editor/TutorialPanel'
+import { ImmersiveView } from '@/features/editor/ImmersiveView'
+import { EditorContext } from '@/features/editor/EditorContext'
 import { ImportDialog } from '@/features/share/ImportDialog'
 import { ExportButton } from '@/features/share/ExportButton'
 import { ShareDialog } from '@/features/share/ShareDialog'
@@ -12,6 +15,9 @@ import {
 
 export function EditorPage() {
   const loadProject = useConfigStore((s) => s.loadProject)
+  const editorUI = useConfigStore((s) => s.editorUI)
+  const setViewMode = useConfigStore((s) => s.setViewMode)
+  const setTutorialCollapsed = useConfigStore((s) => s.setTutorialCollapsed)
 
   function handlePresetChange(presetId: string) {
     const preset = PRESETS.find((p) => p.id === presetId)
@@ -43,7 +49,18 @@ export function EditorPage() {
       </div>
       <div className="flex flex-1 overflow-hidden">
         <EditorSidebar />
-        <EditorContent />
+        {editorUI.viewMode === 'immersive' ? (
+          <ImmersiveView onExitImmersive={() => setViewMode('panel')} />
+        ) : (
+          <EditorContext.Provider value={{ isImmersive: false }}>
+            <EditorContent />
+            <TutorialPanel
+              collapsed={editorUI.tutorialCollapsed}
+              onToggleCollapse={() => setTutorialCollapsed(!editorUI.tutorialCollapsed)}
+              onEnterImmersive={() => setViewMode('immersive')}
+            />
+          </EditorContext.Provider>
+        )}
       </div>
     </div>
   )
