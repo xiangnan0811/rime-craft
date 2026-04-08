@@ -1,7 +1,9 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { MDXProvider } from '@mdx-js/react'
 import { useConfigStore } from '@/stores/config-store'
 import { MODULE_REGISTRY } from '@/data/module-registry'
 import { MDX_LOADERS } from '@/data/tutorial-loaders'
+import { mdxComponents } from '@/components/shared/mdx-components'
 import { EditorContext } from './EditorContext'
 
 interface ImmersiveViewProps {
@@ -27,13 +29,15 @@ export function ImmersiveView({ onExitImmersive }: ImmersiveViewProps) {
             ← 返回面板模式
           </button>
           <div className="prose prose-sm max-w-none">
-            {MdxContent ? (
-              <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
-                <MdxContent />
-              </Suspense>
-            ) : (
-              <p className="text-gray-400">暂无此模块的教程内容</p>
-            )}
+            <MDXProvider components={mdxComponents}>
+              {MdxContent ? (
+                <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
+                  <MdxContent />
+                </Suspense>
+              ) : (
+                <p className="text-gray-400">暂无此模块的教程内容</p>
+              )}
+            </MDXProvider>
           </div>
         </div>
       </div>

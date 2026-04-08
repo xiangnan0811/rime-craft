@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { GoToConfigButton } from './GoToConfigButton'
+import { ConfigSlot } from './ConfigSlot'
 import { Pre, InlineCode } from './CodeBlock'
 import { Callout } from './Callout'
 
@@ -12,6 +13,7 @@ function slugify(text: string): string {
 
 export const mdxComponents = {
   GoToConfigButton,
+  ConfigSlot,
 
   h1: (props: ComponentPropsWithoutRef<'h1'>) => {
     const id = typeof props.children === 'string' ? slugify(props.children) : undefined

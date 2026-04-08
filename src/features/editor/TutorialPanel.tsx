@@ -1,7 +1,9 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { MDXProvider } from '@mdx-js/react'
 import { useConfigStore } from '@/stores/config-store'
 import { MODULE_REGISTRY } from '@/data/module-registry'
 import { MDX_LOADERS } from '@/data/tutorial-loaders'
+import { mdxComponents } from '@/components/shared/mdx-components'
 
 interface TutorialPanelProps {
   collapsed: boolean;
@@ -44,13 +46,15 @@ export function TutorialPanel({ collapsed, onToggleCollapse, onEnterImmersive }:
         </div>
       </div>
       <div className="prose prose-sm max-w-none p-4">
-        {MdxContent ? (
-          <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
-            <MdxContent />
-          </Suspense>
-        ) : (
-          <p className="text-gray-400">暂无此模块的教程内容</p>
-        )}
+        <MDXProvider components={mdxComponents}>
+          {MdxContent ? (
+            <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
+              <MdxContent />
+            </Suspense>
+          ) : (
+            <p className="text-gray-400">暂无此模块的教程内容</p>
+          )}
+        </MDXProvider>
       </div>
     </div>
   )
