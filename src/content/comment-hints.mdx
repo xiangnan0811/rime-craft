@@ -1,17 +1,119 @@
 # 注释与提示
 
-配置候选词注释和编码显示方式。注释信息可以帮助用户学习辅助码和确认候选词读音。
+注释系统是万象拼音的「学习助手」——通过在候选词旁显示拼音注释和编码信息，帮助你学习辅助码、确认读音、纠正输入错误。
 
-## 注释模式
+## 这是什么
 
-- **关闭注释**：不显示任何注释
-- **有声调注释**：显示带声调标记的拼音注释
-- **无声调注释**：显示不带声调的拼音注释
+万象拼音的注释系统由两个独立维度组成：
 
-## 编码显示
+- **注释模式**：控制候选词**旁边**显示什么注释内容（拼音、辅助码等）
+- **编码显示**：控制候选栏**顶部**显示的输入编码格式
 
-- **原始编码**：显示用户实际输入的编码
-- **带声调拼音**：将编码转换为带声调的标准拼音显示
-- **无声调拼音**：将编码转换为不带声调的拼音显示
+两者都是多状态开关，通过 `Ctrl+~` 方案菜单或快捷键切换。它们与 [Lua 扩展](./lua-extensions)中的「超级注释」功能配合工作：注释模式控制「显不显示」，超级注释控制「显示什么内容」。
+
+## 配置项详解
+
+### 注释模式（3 种状态）
+
+| 状态 | 内部值 | 视觉效果 |
+|------|--------|---------|
+| **注释关** | `comment_off` | 候选词旁不显示任何注释信息 |
+| **有声调** | `tone_hint` | 显示带声调标记的拼音注释，如 `nǐ hǎo` |
+| **无声调** | `toneless_hint` | 显示不带声调的拼音注释，如 `ni hao` |
+
+```yaml
+patch:
+  switches:
+    - options: [comment_off, tone_hint, toneless_hint]
+      reset: 0              # 默认关闭注释
+      states: [注释关, 有声调, 无声调]
+```
+
+当注释模式为「有声调」或「无声调」时，如果同时开启了超级注释（[Lua 扩展](./lua-extensions)），候选词旁还会显示辅助码编码和纠错提示。
+
+### 编码显示（3 种状态）
+
+| 状态 | 内部值 | 视觉效果 |
+|------|--------|---------|
+| **原编码** | `raw_input` | 显示你实际按下的键，如 `nihk`（双拼编码） |
+| **有声调** | `tone_display` | 将编码转换为标准拼音，如 `nǐ hǎo` |
+| **无声调** | `full_pinyin` | 将编码转换为无声调拼音，如 `ni hao` |
+
+```yaml
+patch:
+  switches:
+    - options: [raw_input, tone_display, full_pinyin]
+      reset: 0              # 默认显示原始编码
+      states: [原编码, 有声调, 无声调]
+```
+
+<tip>
+编码显示的「有声调」模式对双拼用户特别有用——双拼的编码（如 `nihk`）对旁人来说完全不可读，但转换为 `nǐ hǎo` 后就能看懂了。在给别人演示输入法时很有帮助。
+</tip>
+
+<ConfigSlot module="comment-hints" />
+
+## 常见场景与推荐搭配
+
+**学习辅助码阶段**：最大化辅助信息，帮助记忆：
+
+```yaml
+patch:
+  switches:
+    - options: [comment_off, tone_hint, toneless_hint]
+      reset: 1              # 默认「有声调」注释
+    - options: [raw_input, tone_display, full_pinyin]
+      reset: 0              # 编码显示保持原编码
+  # 配合超级注释
+  super_comment/enabled: true
+  super_comment/max_length: 2
+```
+
+这样每个候选词旁边都会显示辅助码编码和带声调拼音，一边打字一边学习。
+
+**日常高效输入**：关闭注释减少视觉干扰：
+
+```yaml
+patch:
+  switches:
+    - options: [comment_off, tone_hint, toneless_hint]
+      reset: 0              # 注释关闭
+    - options: [raw_input, tone_display, full_pinyin]
+      reset: 0              # 原始编码
+```
+
+**教学演示场景**：展示最完整的输入信息：
+
+```yaml
+patch:
+  switches:
+    - options: [comment_off, tone_hint, toneless_hint]
+      reset: 1              # 有声调注释
+    - options: [raw_input, tone_display, full_pinyin]
+      reset: 1              # 有声调编码显示
+```
+
+## 进阶技巧
+
+<note>
+你可以通过快捷键快速切换注释模式，而不需要进入方案菜单。`Ctrl+A` 可以在注释模式的三种状态之间循环切换，`Ctrl+S` 切换编码显示。在需要查看辅助码时临时开启，用完后快速关闭。
+</note>
+
+<warning>
+注释模式和超级注释是**两个不同的控制层**。如果你开启了注释模式但没有开启超级注释（或超级注释的 Lua 脚本未加载），注释内容可能只有基本拼音而没有辅助码信息。确保两者配合使用。
+</warning>
+
+## 学习路径
+
+1. **起步**：保持默认（注释关闭），先熟悉基本输入
+2. **学习期**：开启「有声调」注释 + 超级注释，观察每个字的辅助码编码
+3. **熟练后**：关闭注释回到极简模式，只在需要时通过 `Ctrl+A` 临时开启
+
+## 相关模块
+
+- [辅助码配置](./auxiliary-code-config) — 辅助码编码信息通过注释系统显示
+- [Lua 扩展](./lua-extensions) — 超级注释功能控制注释的具体内容
+- [候选词显示](./candidate-display) — `always_show_comments` 与注释显示联动
+- [开关与杂项](./switches) — 注释模式和编码显示都是多状态开关
 
 <ConfigSlot module="comment-hints" />
