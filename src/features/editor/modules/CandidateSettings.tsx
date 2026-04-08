@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,11 +13,20 @@ import { getModifiedFields } from '@/lib/config/diff'
 import type { TranslatorConfig } from '@/types/config'
 
 const PAGE_SIZE_OPTIONS = [3, 4, 5, 6, 7, 8, 9]
-const SELECT_KEY_PRESETS: { label: string; value: string }[] = [
-  { label: '数字键 1-9', value: '123456789' },
-  { label: '数字键 1-0', value: '1234567890' },
-  { label: '字母键 ASDFGHJKL', value: 'ASDFGHJKL' },
-]
+
+function getSelectKeyPresets(pageSize: number) {
+  const digits = '1234567890'
+  const sized = digits.slice(0, pageSize)
+  const presets: { label: string; value: string }[] = []
+
+  presets.push({ label: `数字键 1-${sized.slice(-1)}`, value: sized })
+
+  if (pageSize !== 9) presets.push({ label: '数字键 1-9', value: '123456789' })
+  if (pageSize !== 10) presets.push({ label: '数字键 1-0', value: '1234567890' })
+
+  presets.push({ label: '字母键 ASDFGHJKL', value: 'ASDFGHJKL' })
+  return presets
+}
 
 export function CandidateSettings() {
   const pageSize = useConfigStore((s) => s.project.defaultConfig.pageSize)
@@ -24,6 +34,11 @@ export function CandidateSettings() {
   const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
   const defaultConfig = useConfigStore((s) => s.project.defaultConfig)
   const modified = getModifiedFields(defaultConfig)
+
+  const [customMode, setCustomMode] = useState(false)
+  const presets = getSelectKeyPresets(pageSize)
+  const isPreset = presets.some((p) => p.value === selectKeys)
+  const showCustomInput = customMode || !isPreset
 
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
   const schemaConfigs = useConfigStore((s) => s.project.schemaConfigs)
@@ -80,21 +95,28 @@ export function CandidateSettings() {
             <ModifiedBadge show={modified.has('selectKeys')} />
           </div>
           <Select
-            value={SELECT_KEY_PRESETS.find((p) => p.value === selectKeys) ? selectKeys : 'custom'}
-            onValueChange={(v) => { if (v !== 'custom') updateDefaultConfig({ selectKeys: v }) }}
+            value={showCustomInput ? 'custom' : selectKeys}
+            onValueChange={(v) => {
+              if (v === 'custom') {
+                setCustomMode(true)
+              } else {
+                setCustomMode(false)
+                updateDefaultConfig({ selectKeys: v })
+              }
+            }}
           >
             <SelectTrigger className="mt-1 w-64"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {SELECT_KEY_PRESETS.map((p) => (
+              {presets.map((p) => (
                 <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
               ))}
               <SelectItem value="custom">自定义...</SelectItem>
             </SelectContent>
           </Select>
-          {!SELECT_KEY_PRESETS.find((p) => p.value === selectKeys) && (
+          {showCustomInput && (
             <Input className="mt-2 w-64" value={selectKeys}
               onChange={(e) => updateDefaultConfig({ selectKeys: e.target.value })}
-              placeholder="输入选词按键序列" />
+              placeholder={`输入 ${pageSize} 个选词按键`} />
           )}
         </div>
       </div>
