@@ -33,7 +33,7 @@ export function TutorialPanel({ collapsed, onToggleCollapse, onEnterImmersive }:
   }
 
   return (
-    <div className="w-72 flex-shrink-0 overflow-y-auto border-l bg-gray-50/50">
+    <div className="w-[420px] flex-shrink-0 overflow-y-auto border-l bg-gray-50/50">
       <div className="flex items-center justify-between border-b px-3 py-2">
         <span className="text-xs font-semibold text-gray-500">📖 教程</span>
         <div className="flex gap-2">
