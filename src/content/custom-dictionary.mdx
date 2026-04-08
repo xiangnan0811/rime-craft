@@ -9,7 +9,7 @@ Rime 提供两种方式添加自定义词汇：
 | 临时短语 | `custom_phrase.txt` | 简单直接，固定优先级，适合少量高频词 |
 | 完整词典 | `*.dict.yaml` | 功能完整，支持权重、排序、批量导入 |
 
-`custom_phrase.txt` 适合快速添加几十条个人习惯词；`dict.yaml` 适合管理数百至数万条词汇的专业词库。
+`custom_phrase.txt` 适合快速添加几十条个人习惯词（基本用法见[自定义词库](./dictionary)）；`dict.yaml` 适合管理数百至数万条词汇的专业词库。本文重点介绍 `dict.yaml` 的制作方法。
 
 ## custom_phrase.txt 格式
 
@@ -20,13 +20,7 @@ Rime 提供两种方式添加自定义词汇：
 常用邮箱	cyyxiang	100
 ```
 
-在方案的 `*.schema.yaml` 中引用：
-
-```yaml
-translator:
-  custom_phrase:
-    - custom_phrase  # 对应 custom_phrase.txt
-```
+启用方法详见[自定义词库](./dictionary)教程中的「启用 custom_phrase」章节。
 
 ## 制作 dict.yaml 词典
 
@@ -57,7 +51,7 @@ columns:               # 列定义
 人工智能	rengongzhineng	1000
 机器学习	jiqixuexi	900
 深度学习	shenduxuexi	900
-自然语言处理	ziranvuyanchuli	800
+自然语言处理	ziranyuyanchuli	800
 ```
 
 ## 从其他输入法导入词库

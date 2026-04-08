@@ -115,10 +115,12 @@ Lua 脚本的错误信息会输出到 Rime 的日志文件：
 
 ```bash
 # macOS
-tail -f ~/Library/Logs/Squirrel/Squirrel.log
+tail -f $TMPDIR/rime.squirrel.INFO
 
-# 或查看 rime 日志
-tail -f /tmp/rime.squirrel.INFO
+# Windows
+# 查看 %TEMP%\rime.weasel.INFO
 ```
+
+日志文件的完整路径说明见[第一次部署](./first-deploy)中的「常见问题」部分。
 
 在脚本中使用 `log.info("调试信息")` 输出中间值，配合日志查看，可以快速定位问题。

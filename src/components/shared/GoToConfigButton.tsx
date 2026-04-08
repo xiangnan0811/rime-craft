@@ -28,7 +28,7 @@ export function GoToConfigButton({ module, label }: GoToConfigButtonProps) {
           {label ?? '在编辑器中配置'}
         </div>
         <div className="text-xs text-blue-600 dark:text-blue-400">
-          Open in visual editor
+          打开可视化编辑器
         </div>
       </div>
       <ArrowRight className="h-4 w-4 text-blue-400" />
