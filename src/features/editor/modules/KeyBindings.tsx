@@ -4,10 +4,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
 import type { SwitchKeyAction } from '@/types/config'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
 import { getModifiedFields } from '@/lib/config/diff'
+import { FUNCTION_KEY_DEFINITIONS, FUNCTION_KEY_CATEGORIES } from '@/data/key-binding-definitions'
 
 const SWITCH_KEY_OPTIONS: { value: SwitchKeyAction; label: string }[] = [
   { value: 'inline_ascii', label: '行内切换英文' },
@@ -32,6 +34,7 @@ export function KeyBindings() {
   const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
   const defaultConfig = useConfigStore((s) => s.project.defaultConfig)
   const modified = getModifiedFields(defaultConfig)
+  const keyBindings = useConfigStore((s) => s.project.defaultConfig.keyBinder.bindings)
 
   function handleSwitchKeyChange(key: SwitchKeyName, value: SwitchKeyAction) {
     updateDefaultConfig({
@@ -40,6 +43,31 @@ export function KeyBindings() {
         switchKey: { ...asciiComposer.switchKey, [key]: value },
       },
     })
+  }
+
+  function isFunctionKeyEnabled(defId: string): boolean {
+    const def = FUNCTION_KEY_DEFINITIONS.find((d) => d.id === defId)
+    if (!def) return false
+    return keyBindings.some((b) => b.accept === def.defaultAccept)
+  }
+
+  function toggleFunctionKey(defId: string, enabled: boolean) {
+    const def = FUNCTION_KEY_DEFINITIONS.find((d) => d.id === defId)
+    if (!def) return
+    let newBindings = keyBindings.filter((b) => b.accept !== def.defaultAccept)
+    if (enabled) {
+      const binding: { when: string; accept: string; send: string; toggle?: string } = {
+        when: def.when,
+        accept: def.defaultAccept,
+        send: def.defaultSend ?? '',
+      }
+      if (def.defaultToggle) {
+        binding.toggle = def.defaultToggle
+        binding.send = ''
+      }
+      newBindings = [...newBindings, binding]
+    }
+    updateDefaultConfig({ keyBinder: { bindings: newBindings } })
   }
 
   return (
@@ -77,6 +105,34 @@ export function KeyBindings() {
             <p className="text-sm text-gray-500">启用后 Caps Lock 切换大写锁定而非中英切换</p>
           </div>
         </div>
+      </div>
+      <Separator className="my-6" />
+      <div>
+        <h4 className="mb-1 text-lg font-semibold">功能快捷键</h4>
+        <p className="mb-4 text-sm text-gray-500">配置万象拼音等方案的功能快捷键。启用后将添加到按键绑定列表中。</p>
+        {FUNCTION_KEY_CATEGORIES.map((cat) => {
+          const defs = FUNCTION_KEY_DEFINITIONS.filter((d) => d.category === cat.id)
+          if (defs.length === 0) return null
+          return (
+            <div key={cat.id} className="mb-4">
+              <h5 className="mb-2 text-sm font-medium text-gray-600">{cat.label}</h5>
+              <div className="space-y-3">
+                {defs.map((def) => (
+                  <div key={def.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{def.label}</p>
+                      <p className="text-sm text-gray-500">{def.description}</p>
+                    </div>
+                    <Switch
+                      checked={isFunctionKeyEnabled(def.id)}
+                      onCheckedChange={(checked) => toggleFunctionKey(def.id, checked)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
