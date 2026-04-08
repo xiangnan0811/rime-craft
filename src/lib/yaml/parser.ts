@@ -7,6 +7,9 @@ import type {
   AppOption,
   ThemeStyle,
   ThemeColors,
+  TranslatorConfig,
+  SimpleSwitchItem,
+  MultiStateSwitchItem,
 } from '@/types/config'
 import { bgrIntToHex } from '@/lib/color/convert'
 
@@ -238,11 +241,20 @@ export function mapToSchemaConfig(
   // Switches
   const rawSwitches = expanded.switches as Array<Record<string, unknown>> | undefined
   if (rawSwitches) {
-    result.switches = rawSwitches.map((s) => ({
-      name: (s.name as string) ?? '',
-      reset: (s.reset as number) ?? 0,
-      states: Array.isArray(s.states) ? (s.states as [string, string]) : undefined,
-    }))
+    result.switches = rawSwitches.map((s) => {
+      if ('options' in s) {
+        return {
+          options: s.options as string[],
+          reset: (s.reset as number) ?? 0,
+          states: s.states as string[],
+        } satisfies MultiStateSwitchItem
+      }
+      return {
+        name: (s.name as string) ?? '',
+        reset: (s.reset as number) ?? 0,
+        states: Array.isArray(s.states) ? (s.states as [string, string]) : undefined,
+      } as SimpleSwitchItem
+    })
   }
 
   // Punctuator
@@ -254,7 +266,42 @@ export function mapToSchemaConfig(
     }
   }
 
+  // Translator
+  const rawTranslator = expanded.translator as Record<string, unknown> | undefined
+  if (rawTranslator) {
+    result.translator = {
+      enableCompletion: (rawTranslator.enable_completion as boolean) ?? false,
+      enableUserDict: (rawTranslator.enable_user_dict as boolean) ?? true,
+      coreWordLength: (rawTranslator.core_word_length as number) ?? 4,
+      maxWordLength: (rawTranslator.max_word_length as number) ?? 7,
+      maxHomophones: (rawTranslator.max_homophones as number) ?? 1,
+      maxHomographs: (rawTranslator.max_homographs as number) ?? 1,
+      spellingHints: (rawTranslator.spelling_hints as number) ?? 0,
+      alwaysShowComments: (rawTranslator.always_show_comments as boolean) ?? false,
+    }
+  }
+
+  // Lua extensions - super_comment
+  const rawSuperComment = expanded.super_comment as Record<string, unknown> | undefined
+  const rawUserPredict = expanded.user_predict as Record<string, unknown> | undefined
+  if (rawSuperComment || rawUserPredict) {
+    result.luaExtensions = {}
+    if (rawSuperComment) {
+      result.luaExtensions.superComment = {
+        candidateLength: (rawSuperComment.candidate_length as number) ?? 5,
+        correctorType: (rawSuperComment.corrector_type as string) ?? 'none',
+      }
+    }
+    if (rawUserPredict) {
+      result.luaExtensions.userPredict = {
+        maxCandidates: (rawUserPredict.max_candidates as number) ?? 3,
+        expiryDays: (rawUserPredict.expiry_days as number) ?? 30,
+        activationDays: (rawUserPredict.activation_days as number) ?? 3,
+      }
+    }
+  }
+
   return result
 }
 
-export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine']
+export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'user_predict']

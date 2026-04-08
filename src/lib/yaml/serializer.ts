@@ -1,5 +1,5 @@
 import { Document, Scalar } from 'yaml'
-import type { DefaultConfig, PlatformConfig, SchemaConfig } from '@/types/config'
+import type { DefaultConfig, PlatformConfig, SchemaConfig, SimpleSwitchItem, MultiStateSwitchItem } from '@/types/config'
 import { hexToBgrInt } from '@/lib/color/convert'
 
 export function serializeDefaultConfig(
@@ -85,8 +85,13 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
   // Switches
   if (config.switches && config.switches.length > 0) {
     patch.switches = config.switches.map((s) => {
-      const entry: Record<string, unknown> = { name: s.name, reset: s.reset }
-      if (s.states) entry.states = s.states
+      if ('options' in s) {
+        const ms = s as MultiStateSwitchItem
+        return { options: ms.options, reset: ms.reset, states: ms.states }
+      }
+      const ss = s as SimpleSwitchItem
+      const entry: Record<string, unknown> = { name: ss.name, reset: ss.reset }
+      if (ss.states) entry.states = ss.states
       return entry
     })
   }
@@ -94,6 +99,32 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
   // Punctuator
   if (config.punctuator) {
     patch.punctuator = { half_shape: config.punctuator.halfShape }
+  }
+
+  // Translator
+  if (config.translator) {
+    const t = config.translator
+    patch['translator/enable_completion'] = t.enableCompletion
+    patch['translator/enable_user_dict'] = t.enableUserDict
+    patch['translator/core_word_length'] = t.coreWordLength
+    patch['translator/max_word_length'] = t.maxWordLength
+    patch['translator/max_homophones'] = t.maxHomophones
+    patch['translator/max_homographs'] = t.maxHomographs
+    patch['translator/spelling_hints'] = t.spellingHints
+    patch['translator/always_show_comments'] = t.alwaysShowComments
+  }
+
+  // Lua extensions
+  if (config.luaExtensions?.superComment) {
+    const sc = config.luaExtensions.superComment
+    patch['super_comment/candidate_length'] = sc.candidateLength
+    patch['super_comment/corrector_type'] = sc.correctorType
+  }
+  if (config.luaExtensions?.userPredict) {
+    const up = config.luaExtensions.userPredict
+    patch['user_predict/max_candidates'] = up.maxCandidates
+    patch['user_predict/expiry_days'] = up.expiryDays
+    patch['user_predict/activation_days'] = up.activationDays
   }
 
   return patch

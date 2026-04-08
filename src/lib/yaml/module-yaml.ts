@@ -18,7 +18,7 @@ interface ModuleKeyMapping {
   keys: string[];
 }
 
-const MODULE_KEY_MAP: Record<EditorModule, ModuleKeyMapping> = {
+const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
   'schema-manager': { file: 'default', keys: ['schema_list'] },
   'candidate-settings': { file: 'default', keys: ['menu'] },
   'key-bindings': { file: 'default', keys: ['ascii_composer', 'key_binder'] },
@@ -27,6 +27,13 @@ const MODULE_KEY_MAP: Record<EditorModule, ModuleKeyMapping> = {
   'punctuation': { file: 'schema', keys: ['punctuator'] },
   'dictionary': { file: 'custom_phrase', keys: [] },
   'switches': { file: 'schema', keys: ['switches'] },
+  'spelling-scheme': { file: 'schema', keys: ['speller'] },
+  'auxiliary-code': { file: 'schema', keys: ['speller'] },
+  'reverse-lookup': { file: 'schema', keys: ['reverse_lookup', 'wanxiang_lookup'] },
+  'special-input': { file: 'schema', keys: ['recognizer'] },
+  'lua-extensions': { file: 'schema', keys: ['super_comment', 'super_processor', 'user_predict', 'super_replacer'] },
+  'candidate-display': { file: 'schema', keys: ['translator'] },
+  'comment-hints': { file: 'schema', keys: ['super_comment'] },
 }
 
 /**

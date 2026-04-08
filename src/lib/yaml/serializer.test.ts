@@ -184,6 +184,40 @@ describe('serializeSchemaConfig', () => {
     expect(switches[0]).toEqual({ name: 'ascii_mode', reset: 0 })
     expect(switches[0]).not.toHaveProperty('states')
   })
+
+  it('serializes translator config', () => {
+    const config = {
+      schemaId: 'wanxiang',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: true,
+        enableUserDict: false,
+        coreWordLength: 4,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const result = serializeSchemaConfig(config)
+    expect(result['translator/enable_completion']).toBe(true)
+    expect(result['translator/enable_user_dict']).toBe(false)
+    expect(result['translator/core_word_length']).toBe(4)
+  })
+
+  it('serializes multi-state switches', () => {
+    const config = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      switches: [
+        { options: ['s2s', 's2t'], reset: 0, states: ['简体', '繁体'] },
+      ],
+    }
+    const result = serializeSchemaConfig(config)
+    const switches = result.switches as Array<Record<string, unknown>>
+    expect(switches[0]).toEqual({ options: ['s2s', 's2t'], reset: 0, states: ['简体', '繁体'] })
+  })
 })
 
 describe('buildCustomYaml', () => {

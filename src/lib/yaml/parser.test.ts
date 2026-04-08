@@ -142,6 +142,56 @@ describe('mapToSchemaConfig', () => {
     expect(config.switches).toBeUndefined()
     expect(config.punctuator).toBeUndefined()
   })
+
+  it('maps translator fields from expanded patch', () => {
+    const patch = {
+      translator: {
+        enable_completion: true,
+        enable_user_dict: false,
+        core_word_length: 4,
+        max_word_length: 7,
+        max_homophones: 8,
+        max_homographs: 8,
+        spelling_hints: 30,
+        always_show_comments: true,
+      },
+    }
+    const config = mapToSchemaConfig(patch, 'wanxiang')
+    expect(config.translator).toBeDefined()
+    expect(config.translator!.enableCompletion).toBe(true)
+    expect(config.translator!.enableUserDict).toBe(false)
+    expect(config.translator!.coreWordLength).toBe(4)
+    expect(config.translator!.spellingHints).toBe(30)
+  })
+
+  it('maps multi-state switches', () => {
+    const patch = {
+      switches: [
+        { options: ['s2s', 's2t'], reset: 0, states: ['简体', '繁体'] },
+        { name: 'emoji', reset: 1, states: ['关', '开'] },
+      ],
+    }
+    const config = mapToSchemaConfig(patch, 'test')
+    expect(config.switches).toHaveLength(2)
+    const first = config.switches![0] as { options: string[]; reset: number; states: string[] }
+    expect(first.options).toEqual(['s2s', 's2t'])
+    expect(first.states).toEqual(['简体', '繁体'])
+    const second = config.switches![1] as { name: string; reset: number }
+    expect(second.name).toBe('emoji')
+  })
+
+  it('maps lua extension super_comment from expanded patch', () => {
+    const patch = {
+      super_comment: {
+        candidate_length: 10,
+        corrector_type: 'pinyin',
+      },
+    }
+    const config = mapToSchemaConfig(patch, 'test')
+    expect(config.luaExtensions).toBeDefined()
+    expect(config.luaExtensions!.superComment!.candidateLength).toBe(10)
+    expect(config.luaExtensions!.superComment!.correctorType).toBe('pinyin')
+  })
 })
 
 describe('mapToPlatformConfig with style', () => {
