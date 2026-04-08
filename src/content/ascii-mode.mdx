@@ -1,127 +1,123 @@
 # 中英文切换
 
-Rime 支持为不同应用程序设置默认的输入模式。对于终端、代码编辑器等主要输入英文的程序，可以配置为默认进入英文（ASCII）模式，避免每次切换应用后都要手动切英文。
+中英文切换是输入法最基础也最频繁的操作。Rime 提供了灵活的切换机制，从按键选择到应用级自动切换，让你可以完全掌控什么时候输入中文、什么时候输入英文。
 
-## 概念解释
+## 这是什么
 
-`app_options` 是 Rime 中用于**按应用程序覆盖输入状态**的配置段。当你切换到某个应用时，Rime 会查找该应用的配置，并按照预设将输入法切换到指定状态。
+Rime 中的中英文切换涉及两个概念：
 
-最常用的选项是 `ascii_mode: true`，表示该应用默认使用英文输入模式。
+**ascii_mode 开关**：输入法的中英文状态。当 `ascii_mode` 为 0（关闭）时输入中文，为 1（开启）时输入英文。这是一个「状态」，需要被某个操作来切换。
 
-## 配置项说明
+**ascii_composer**：负责处理中英文切换操作的组件。它监听 Shift、Control、Caps Lock 等键的按下和释放事件，根据配置执行对应的切换动作。在[按键绑定](./key-bindings)中详细配置。
 
-在 `default.custom.yaml`（macOS/Linux）或方案的 `.custom.yaml` 中配置：
+两者的关系：`ascii_composer` 是「切换动作」，`ascii_mode` 是「当前状态」。
+
+## 配置项详解
+
+### 全局切换 vs 临时切换
+
+**全局切换**（`commit_code`、`commit_text`、`clear`）：按下切换键后，输入法进入英文模式并**保持**，直到再次按切换键才回到中文。
+
+**临时切换**（`inline_ascii`）：按住 Shift 输入英文，松开后自动回到中文模式。适合在中文句子中临时插入一两个英文单词。
+
+### 应用级自动切换
+
+Rime 支持为特定应用设置默认的中英文模式——比如在终端和 IDE 中默认英文，在文档编辑器中默认中文：
+
+**macOS（鼠须管）**：在 `squirrel.custom.yaml` 中配置：
 
 ```yaml
 patch:
   app_options:
-    # macOS：使用应用的 Bundle Identifier
-    com.apple.Terminal:
+    com.apple.Terminal:          # 终端
       ascii_mode: true
-    com.googlecode.iterm2:
+    com.microsoft.VSCode:        # VS Code
       ascii_mode: true
-    com.microsoft.VSCode:
-      ascii_mode: true
-    com.jetbrains.intellij:
-      ascii_mode: true
-
-    # Windows：使用可执行文件名（不含路径，不区分大小写）
-    cmd.exe:
-      ascii_mode: true
-    WindowsTerminal.exe:
-      ascii_mode: true
-    Code.exe:
+    com.googlecode.iterm2:       # iTerm2
       ascii_mode: true
 ```
 
-### 可配置的选项
-
-| 选项 | 类型 | 说明 |
-|------|------|------|
-| `ascii_mode` | bool | `true` = 进入该应用时切换到英文模式 |
-| `ascii_punct` | bool | `true` = 中文模式下也输出半角标点 |
-| `vim_mode` | bool | `true` = 在普通模式（Normal）下自动切换为英文 |
-
-## 如何找到应用的 Bundle Identifier（macOS）
-
-macOS 用 Bundle Identifier（如 `com.apple.Terminal`）标识每个应用。有几种方式可以查找：
-
-**方法一：命令行查询**
-
-```bash
-# 替换为应用名称
-osascript -e 'id of app "Terminal"'
-# 输出：com.apple.Terminal
-
-osascript -e 'id of app "Visual Studio Code"'
-# 输出：com.microsoft.VSCode
-```
-
-**方法二：查看应用包内容**
-
-右键点击应用 → 「显示包内容」→ 打开 `Contents/Info.plist`，找到 `CFBundleIdentifier` 字段的值。
-
-**方法三：常用应用 ID 速查**
-
-| 应用 | Bundle Identifier |
-|------|------------------|
-| Terminal（系统终端） | `com.apple.Terminal` |
-| iTerm2 | `com.googlecode.iterm2` |
-| Visual Studio Code | `com.microsoft.VSCode` |
-| Cursor | `com.todesktop.230313mzl4w4u92` |
-| Warp | `dev.warp.Warp-Stable` |
-| JetBrains IDE（系列） | `com.jetbrains.intellij` / `com.jetbrains.pycharm` 等 |
-| Xcode | `com.apple.dt.Xcode` |
-| Sublime Text | `com.sublimetext.4` |
-
-## Windows 的配置方式
-
-Windows 版（小狼毫）使用**可执行文件名**（不含路径）作为应用标识：
+**Windows（小狼毫）**：在 `weasel.custom.yaml` 中配置：
 
 ```yaml
 patch:
   app_options:
     cmd.exe:
+      ascii_mode: true
+    code.exe:                    # VS Code
       ascii_mode: true
     powershell.exe:
       ascii_mode: true
-    WindowsTerminal.exe:
-      ascii_mode: true
-    Code.exe:
-      ascii_mode: true
-    idea64.exe:
-      ascii_mode: true
 ```
 
-## 常见搭配
+<tip>
+应用级切换的 `ascii_mode: true` 表示**切换到该应用时默认进入英文模式**。你仍然可以手动切换回中文——这只是设置了一个初始状态。
+</tip>
 
-**开发者常用配置（macOS）：**
+<ConfigSlot module="ascii-mode" />
+
+## 常见场景与推荐搭配
+
+**程序员（大量中英切换）**：
 
 ```yaml
+# squirrel.custom.yaml (macOS)
 patch:
   app_options:
     com.apple.Terminal:
       ascii_mode: true
+    com.microsoft.VSCode:
+      ascii_mode: true
     com.googlecode.iterm2:
       ascii_mode: true
-    com.microsoft.VSCode:
-      ascii_mode: true
-    dev.warp.Warp-Stable:
-      ascii_mode: true
-    com.apple.dt.Xcode:
-      ascii_mode: true
 ```
 
-**同时禁用中文标点（适合代码编辑器）：**
+在编程相关应用中默认英文，写文档时保持中文。
+
+**写作者（以中文输入为主）**：
+
+不需要配置 app_options，保持所有应用默认中文模式。在偶尔需要英文时，使用 `inline_ascii`（临时英文）功能即可。
+
+**混合使用**：
+
+建议的按键绑定配合（在[按键绑定](./key-bindings)中配置）：
 
 ```yaml
+# default.custom.yaml
 patch:
-  app_options:
-    com.microsoft.VSCode:
-      ascii_mode: true
-      ascii_punct: true
+  ascii_composer/switch_key:
+    Shift_L: inline_ascii      # 左 Shift 临时英文
+    Shift_R: commit_text       # 右 Shift 上屏候选并切英文
+    Caps_Lock: clear
 ```
 
-在编辑器中可以直观地修改这些设置，通过搜索应用名称快速找到对应的 Bundle ID。
+左 Shift 用于中文句子中临时插入英文（松开自动回中文），右 Shift 用于需要持续切换到英文的场景。
 
-<GoToConfigButton module="ascii-mode" label="在编辑器中配置中英文切换" />
+## 进阶技巧
+
+<warning>
+macOS 上，系统自带的输入法切换（`Ctrl+空格` 或 `Fn`）和 Rime 的中英文切换是**两套独立机制**。系统切换是在不同输入法之间切换（如从 Rime 切到 ABC），而 Rime 的 Shift 切换是在 Rime 内部切换中英文模式。建议用 Shift 切换中英文，用系统快捷键在需要时切换到其他输入法。
+</warning>
+
+<note>
+`app_options` 中的应用标识符（如 `com.apple.Terminal`）需要精确匹配。在 macOS 上可以通过以下命令查看应用的 Bundle ID：
+
+```bash
+osascript -e 'id of app "应用名"'
+```
+
+在 Windows 上使用进程的 `.exe` 文件名即可。
+</note>
+
+## 学习路径
+
+1. **起步**：了解 Shift 切换中英文的基本操作
+2. **优化**：在[按键绑定](./key-bindings)中配置最适合你的切换键行为
+3. **进阶**：为常用应用配置自动切换，减少手动切换频率
+
+## 相关模块
+
+- [按键绑定](./key-bindings) — 配置 ascii_composer 的切换键行为
+- [开关与杂项](./switches) — ascii_mode 是开关系统的一部分
+
+<ConfigSlot module="ascii-mode" />
