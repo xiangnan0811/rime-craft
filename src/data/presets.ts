@@ -66,12 +66,33 @@ export const PRESETS: Preset[] = [
   {
     id: 'wanxiang',
     name: '万象拼音推荐',
-    description: '万象拼音方案 + 9候选 + 推荐设置',
+    description: '万象拼音方案 + 9候选 + 辅助码 + 推荐设置',
     createProject() {
       const p = createEmptyProject()
       p.defaultConfig.schemaList = [{ schema: 'wanxiang' }]
       p.defaultConfig.pageSize = 9
       p.defaultConfig.asciiComposer.switchKey.shiftL = 'commit_code'
+      p.schemaConfigs['wanxiang'] = {
+        schemaId: 'wanxiang',
+        fuzzyRules: [],
+        translator: {
+          enableCompletion: true,
+          enableUserDict: false,
+          coreWordLength: 4,
+          maxWordLength: 7,
+          maxHomophones: 8,
+          maxHomographs: 8,
+          spellingHints: 30,
+          alwaysShowComments: true,
+        },
+        auxiliaryCode: {
+          scheme: 'zrm',
+          triggerMode: 'direct',
+          hintEnabled: true,
+          hintLength: 1,
+          splitHintEnabled: false,
+        },
+      }
       p.platformConfig.appOptions = {
         'com.apple.Terminal': { asciiMode: true },
         'com.microsoft.VSCode': { asciiMode: true },
