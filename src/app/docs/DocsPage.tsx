@@ -20,9 +20,9 @@ const MDX_MODULES: Record<string, () => Promise<{ default: ComponentType }>> = {
   'dictionary': () => import('@/content/dictionary.mdx'),
   'switches': () => import('@/content/switches.mdx'),
   'double-pinyin-guide': () => import('@/content/double-pinyin-guide.mdx'),
-  'auxiliary-code': () => import('@/content/auxiliary-code.mdx'),
+  'auxiliary-code': () => import('@/content/auxiliary-code-config.mdx'),
   'custom-dictionary': () => import('@/content/custom-dictionary.mdx'),
-  'lua-scripting': () => import('@/content/lua-scripting.mdx'),
+  'lua-scripting': () => import('@/content/lua-extensions.mdx'),
   'multi-device-sync': () => import('@/content/multi-device-sync.mdx'),
 }
 
