@@ -34,8 +34,14 @@ const CALLOUT_CONFIG = {
 
 type CalloutType = keyof typeof CALLOUT_CONFIG
 
-export function Callout({ children, ...props }: ComponentPropsWithoutRef<'div'>) {
-  const directive = (props as Record<string, unknown>)['data-directive'] as string | undefined
+interface CalloutProps extends ComponentPropsWithoutRef<'div'> {
+  /** Explicit callout type (when used as a named MDX component like <tip>) */
+  calloutType?: CalloutType;
+}
+
+export function Callout({ children, calloutType, ...props }: CalloutProps) {
+  const directive = calloutType
+    ?? (props as Record<string, unknown>)['data-directive'] as string | undefined
   const type: CalloutType = directive && directive in CALLOUT_CONFIG ? (directive as CalloutType) : 'note'
   const config = CALLOUT_CONFIG[type]
 

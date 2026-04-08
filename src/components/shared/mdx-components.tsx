@@ -15,6 +15,11 @@ export const mdxComponents = {
   GoToConfigButton,
   ConfigSlot,
 
+  tip: (props: Record<string, unknown>) => <Callout calloutType="tip" {...props} />,
+  warning: (props: Record<string, unknown>) => <Callout calloutType="warning" {...props} />,
+  note: (props: Record<string, unknown>) => <Callout calloutType="note" {...props} />,
+  caution: (props: Record<string, unknown>) => <Callout calloutType="caution" {...props} />,
+
   h1: (props: ComponentPropsWithoutRef<'h1'>) => {
     const id = typeof props.children === 'string' ? slugify(props.children) : undefined
     return <h1 id={id} className="mb-2 text-2xl font-bold text-gray-900 dark:text-slate-100" {...props} />
