@@ -1,111 +1,108 @@
 # 输入方案管理
 
-输入方案（Schema）是 Rime 的核心概念之一。一个方案定义了一套完整的输入规则：如何将按键序列转化为候选词、使用什么词典、支持哪些功能开关。Rime 允许你同时安装多个方案，按需切换。
+输入方案是 Rime 的核心概念——每个方案定义了一套完整的输入规则，从拼音映射到候选词排序到功能开关。理解方案的结构和切换机制，是驾驭 Rime 的第一步。
 
-## 概念解释
+## 这是什么
 
-每个输入方案由一个 `.schema.yaml` 文件定义，文件名中包含方案的唯一 ID（`schema_id`）。例如：
+在 Rime 中，「输入方案」（Schema）是一套**完整的输入规则定义**，包含：
 
-- `luna_pinyin_simp.schema.yaml` → 方案 ID 为 `luna_pinyin_simp`（朙月拼音·简化字）
-- `double_pinyin_flypy.schema.yaml` → 方案 ID 为 `double_pinyin_flypy`（小鹤双拼）
+- 编码规则（全拼、双拼、五笔等）
+- 词典配置（使用哪个词库）
+- 开关定义（有哪些可切换的功能）
+- 引擎配置（挂载了哪些 Lua 扩展、过滤器等）
 
-`default.custom.yaml` 中的 `schema_list` 字段控制哪些方案出现在切换菜单中。
+每个方案对应一个 `.schema.yaml` 文件。你可以同时安装多个方案，通过 `Ctrl+~`（macOS 为 `Control+~`）打开方案菜单来切换。
 
-## 配置项说明
+### 方案文件结构
 
-在 `default.custom.yaml` 中配置方案列表：
+一个典型的 Rime 方案由以下文件组成：
 
-```yaml
-patch:
-  schema_list:
-    - schema: luna_pinyin_simp      # 朙月拼音·简化字（全拼）
-    - schema: double_pinyin_flypy   # 小鹤双拼
-    - schema: wubi86                # 五笔 86 版
-```
+| 文件 | 作用 |
+|------|------|
+| `xxx.schema.yaml` | 方案主文件，定义所有输入规则 |
+| `xxx.dict.yaml` | 方案词典，包含词库数据 |
+| `xxx.custom.yaml` | 用户自定义补丁（你的修改写在这里） |
+| `lua/` 目录 | Lua 扩展脚本 |
 
-**规则：**
-- 列表中的方案按顺序显示在切换菜单（`Ctrl+~`）中
-- 只有列在 `schema_list` 中的方案才会被加载，其他 `.schema.yaml` 文件不会生效
-- 重新部署后，第一个方案成为默认选中的方案
+<warning>
+永远不要直接修改 `.schema.yaml` 文件——方案更新时你的修改会被覆盖。所有自定义配置都应该写在 `.custom.yaml` 中，使用 `patch:` 语法。
+</warning>
 
-:::tip
-重新部署后才会生效。修改 `schema_list` 后，需要右键点击输入法图标并选择「重新部署」。
-:::
+## 配置项详解
 
-## 主流输入方案介绍
+### 方案列表
 
-### 雾凇拼音（`rime_ice`）
-
-目前最受欢迎的全拼方案，特点是词库大、词频准确、支持自动纠错。需要单独安装。
-
-```yaml
-- schema: rime_ice  # 需先安装雾凇拼音方案文件
-```
-
-### 朙月拼音（`luna_pinyin_simp`）
-
-Rime 内置的标准全拼方案（简体字版本），开箱即用，适合作为起点。
-
-```yaml
-- schema: luna_pinyin_simp
-```
-
-### 小鹤双拼（`double_pinyin_flypy`）
-
-双拼方案之一，将每个音节压缩为两键，适合追求高速输入的用户。Rime 内置此方案。
-
-```yaml
-- schema: double_pinyin_flypy
-```
-
-### 万象拼音（`wanxiang`）
-
-新一代全拼方案，支持辅助码功能，兼顾易用性与高效性。需单独安装。
-
-### 五笔 86（`wubi86`）
-
-经典形码输入法，字根固定、重码率低，适合专业用户。需配合对应词库使用。
-
-## 常见搭配
-
-**只用一种方案（不显示切换菜单）：**
+在 `default.custom.yaml` 中定义你启用的方案列表：
 
 ```yaml
 patch:
   schema_list:
+    - schema: wanxiang          # 万象拼音
+    - schema: rime_ice          # 雾凇拼音
+    - schema: double_pinyin_flypy  # 小鹤双拼
+```
+
+列表中的第一个方案是默认方案。
+
+### 主流方案对比
+
+| 方案 | 类型 | 特点 | 适合人群 |
+|------|------|------|---------|
+| **万象拼音** | 全拼/双拼 | 方案内切换拼写、内置辅助码、Lua 扩展丰富 | 追求极致效率、愿意深度定制的用户 |
+| **雾凇拼音** | 全拼 | 词库丰富、开箱即用、社区活跃 | 想要稳定好用的全拼方案 |
+| **朙月拼音** | 全拼 | Rime 内置、轻量稳定 | 极简主义者、方案开发者 |
+| **小鹤双拼** | 双拼 | 最流行的双拼方案 | 双拼用户（但万象也内置了小鹤双拼） |
+
+<ConfigSlot module="schema-manager" />
+
+## 常见场景与推荐搭配
+
+**只用万象拼音**：
+
+```yaml
+# default.custom.yaml
+patch:
+  schema_list:
+    - schema: wanxiang
+```
+
+**万象 + 雾凇双方案并存**（不确定时先都装上，对比体验）：
+
+```yaml
+patch:
+  schema_list:
+    - schema: wanxiang
     - schema: rime_ice
 ```
 
-**全拼 + 双拼双修，方便切换：**
+**多方案切换**（为不同场景准备不同方案）：
 
 ```yaml
 patch:
   schema_list:
-    - schema: rime_ice
-    - schema: double_pinyin_flypy
+    - schema: wanxiang          # 日常中文输入
+    - schema: wubi86            # 偶尔用五笔打生僻字
 ```
 
-**多方案用户：**
+## 进阶技巧
 
-```yaml
-patch:
-  schema_list:
-    - schema: rime_ice
-    - schema: double_pinyin_flypy
-    - schema: wubi86
-    - schema: cangjie5
-```
+<tip>
+安装新方案后需要执行「重新部署」（Deploy）才能生效。macOS 在鼠须管菜单中点击「重新部署」，Windows 在小狼毫托盘菜单中选择，Linux 使用 `ibus-daemon -drx` 或对应命令。
+</tip>
 
-## 安装新方案
+<note>
+万象拼音通过方案内切换（`/flypy` 等指令）实现多种拼写方案，不需要为每种双拼安装独立方案。这意味着你的用户词典在切换拼写方案后仍然共享，比安装多个独立方案更高效。
+</note>
 
-Rime 本身只内置少量方案。要使用雾凇拼音、万象拼音等第三方方案，需要将对应的 `.schema.yaml` 和 `.dict.yaml` 文件复制到用户配置目录，然后将方案 ID 加入 `schema_list`，重新部署即可。
+## 学习路径
 
-推荐使用 [东风破（plum）](https://github.com/rime/plum) 包管理器批量安装方案：
+1. **起步**：从一个方案开始（推荐万象拼音），熟悉基本输入
+2. **探索**：通过 `Ctrl+~` 方案菜单了解方案切换机制
+3. **进阶**：根据需要添加第二个方案（如五笔），为不同场景配置
 
-```bash
-bash rime-install rime-ice  # 安装雾凇拼音
-```
+## 相关模块
 
-在编辑器中可以直观地修改这些设置，无需手动管理文件。
+- [开关与杂项](./switches) — 每个方案有自己的开关定义
+- [按键绑定](./key-bindings) — 按键配置是全局的，影响所有方案
 
-<GoToConfigButton module="schema-manager" label="在编辑器中配置输入方案" />
+<ConfigSlot module="schema-manager" />
