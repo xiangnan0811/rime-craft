@@ -22,6 +22,7 @@ export interface DefaultConfig {
   selectKeys: string;
   asciiComposer: AsciiComposerConfig;
   keyBinder: KeyBinderConfig;
+  horizontal?: boolean;
 }
 
 export interface SchemaListItem {
@@ -50,6 +51,9 @@ export interface KeyBinding {
   when: string;
   accept: string;
   send: string;
+  toggle?: string;
+  description?: string;
+  category?: 'switch' | 'navigation' | 'editing' | 'function';
 }
 
 export interface KeyBinderConfig {
@@ -75,6 +79,13 @@ export interface SchemaConfig {
   fuzzyRules: FuzzyRuleState[];
   switches?: SwitchItem[];
   punctuator?: PunctuatorConfig;
+  translator?: TranslatorConfig;
+  spellingScheme?: SpellingScheme;
+  auxiliaryCode?: AuxiliaryCodeConfig;
+  reverseLookup?: ReverseLookupConfig;
+  specialInput?: SpecialInputConfig;
+  luaExtensions?: LuaExtensionsConfig;
+  displayConfig?: DisplayConfig;
 }
 
 export interface FuzzyRuleState {
@@ -98,10 +109,18 @@ export interface PunctuatorConfig {
 
 // ─── Switch items ───────────────────────────────────────
 
-export interface SwitchItem {
+export type SwitchItem = SimpleSwitchItem | MultiStateSwitchItem;
+
+export interface SimpleSwitchItem {
   name: string;
   reset: number;
-  states?: [string, string];
+  states: [string, string];
+}
+
+export interface MultiStateSwitchItem {
+  options: string[];
+  reset: number;
+  states: string[];
 }
 
 // ─── Theme style (squirrel / weasel appearance) ─────────
@@ -132,14 +151,97 @@ export interface ThemeStyle {
   colors: ThemeColors;
 }
 
+// ─── Translator config ─────────────────────────────────
+export interface TranslatorConfig {
+  enableCompletion: boolean;
+  enableUserDict: boolean;
+  coreWordLength: number;
+  maxWordLength: number;
+  maxHomophones: number;
+  maxHomographs: number;
+  spellingHints: number;
+  alwaysShowComments: boolean;
+}
+
+// ─── Spelling scheme ───────────────────────────────────
+export type SpellingScheme =
+  | 'full_pinyin' | 'flypy' | 'zrm' | 'mspy'
+  | 'sogou' | 'abc' | 'ziguang';
+
+// ─── Auxiliary code ────────────────────────────────────
+export type AuxiliaryCodeScheme =
+  | 'moqi' | 'hexing' | 'zrm' | 'tiger'
+  | 'wubi' | 'cangjie' | 'simple_he' | 'hanxin';
+
+export interface AuxiliaryCodeConfig {
+  scheme: AuxiliaryCodeScheme;
+  triggerMode: 'direct' | 'indirect' | 'backtick';
+  hintEnabled: boolean;
+  hintLength: number;
+  splitHintEnabled: boolean;
+}
+
+// ─── Reverse lookup ────────────────────────────────────
+export type ReverseLookupMethod =
+  | 'two_part' | 'multi_part' | 'stroke'
+  | 'tone' | 'auxiliary';
+
+export interface ReverseLookupConfig {
+  triggerKey: string;
+  dataSource: ('aux' | 'db')[];
+  enabledMethods: ReverseLookupMethod[];
+}
+
+// ─── Special input ─────────────────────────────────────
+export interface SpecialTrigger {
+  id: string;
+  enabled: boolean;
+  triggerCode: string;
+}
+
+export interface SpecialInputConfig {
+  enabledTriggers: SpecialTrigger[];
+}
+
+// ─── Lua extensions ────────────────────────────────────
+export interface LuaExtensionsConfig {
+  superComment?: {
+    candidateLength: number;
+    correctorType: string;
+  };
+  superProcessor?: {
+    backspaceLimit: boolean;
+    segLoop: boolean;
+    toneFallback: boolean;
+    limitRepeated: string;
+  };
+  userPredict?: {
+    maxCandidates: number;
+    expiryDays: number;
+    activationDays: number;
+  };
+  superReplacer?: {
+    chain: boolean;
+    delimiter: string;
+  };
+  inputStatistics?: {
+    enabled: boolean;
+  };
+}
+
+// ─── Display config ────────────────────────────────────
+export interface DisplayConfig {
+  horizontal: boolean;
+  commentMode: 'off' | 'toned' | 'toneless';
+  encodingDisplay: 'raw' | 'toned' | 'toneless';
+}
+
 // ─── Editor UI state ────────────────────────────────────
 
-export type EditorModule =
-  | 'schema-manager'
-  | 'candidate-settings'
-  | 'key-bindings'
-  | 'fuzzy-pinyin'
-  | 'ascii-mode'
-  | 'punctuation'
-  | 'dictionary'
-  | 'switches';
+export type EditorModule = string;
+
+export interface EditorUIState {
+  viewMode: 'panel' | 'immersive';
+  tutorialCollapsed: boolean;
+  activeSection?: string;
+}
