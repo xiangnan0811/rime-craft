@@ -1,24 +1,13 @@
 import { Link } from 'react-router-dom'
-import type { EditorModule } from '@/types/config'
-
-/** Map editor modules to tutorial slugs */
-const MODULE_TO_SLUG: Record<EditorModule, string> = {
-  'schema-manager': 'schema-manager',
-  'candidate-settings': 'candidate-settings',
-  'key-bindings': 'key-bindings',
-  'fuzzy-pinyin': 'fuzzy-pinyin',
-  'ascii-mode': 'ascii-mode',
-  'punctuation': 'punctuation',
-  'dictionary': 'dictionary',
-  'switches': 'switches',
-}
+import { MODULE_REGISTRY } from '@/data/module-registry'
 
 interface LearnMoreLinkProps {
-  module: EditorModule;
+  module: string;
 }
 
 export function LearnMoreLink({ module }: LearnMoreLinkProps) {
-  const slug = MODULE_TO_SLUG[module]
+  const moduleDef = MODULE_REGISTRY.find((m) => m.id === module)
+  const slug = moduleDef?.tutorialSlug ?? module
 
   return (
     <Link

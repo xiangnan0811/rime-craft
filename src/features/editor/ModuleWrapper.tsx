@@ -2,14 +2,13 @@ import { useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfigStore } from '@/stores/config-store'
 import { extractModuleYaml, applyModuleYaml } from '@/lib/yaml/module-yaml'
-import type { EditorModule } from '@/types/config'
 
 const YamlEditor = lazy(() =>
   import('@/components/shared/YamlEditor').then((m) => ({ default: m.YamlEditor }))
 )
 
 interface ModuleWrapperProps {
-  module: EditorModule;
+  module: string;
   children: React.ReactNode;
 }
 
