@@ -1,0 +1,67 @@
+<h2>三种架构方案对比</h2>
+<p class="subtitle">选择配置编辑器升级的核心架构策略</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>增量扩充 (Incremental)</h3>
+      <p>保持现有静态模块模式，逐一新增模块和配置项</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>改动最小，风险低</li>
+          <li>可以逐步交付</li>
+          <li>现有代码不需要重构</li>
+        </ul></div>
+        <div class="cons"><h4>劣势</h4><ul>
+          <li>EditorModule 类型硬编码，每加一个模块要改多处</li>
+          <li>无法实现方案动态显示，所有模块始终可见</li>
+          <li>侧边栏分组需要额外逻辑处理静态列表</li>
+          <li>难以支持「探索入口」—— 没有方案能力的元数据</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="border-color: #4A90D9; border-width: 2px;">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>方案驱动注册表 (Schema-Driven) — 推荐</h3>
+      <p>创建模块注册表 + 方案能力声明，侧边栏根据方案动态渲染</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>天然支持动态模块显示和方案能力探索</li>
+          <li>模块元数据（分组、图标、进度）集中管理</li>
+          <li>教程关联通过注册表统一维护</li>
+          <li>新增模块只需注册，无需改核心逻辑</li>
+          <li>可渐进迁移，不必一次重写所有模块</li>
+        </ul></div>
+        <div class="cons"><h4>劣势</h4><ul>
+          <li>需要重构 EditorModule 类型和侧边栏</li>
+          <li>需要设计方案能力声明格式</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>插件式架构 (Plugin-Based)</h3>
+      <p>每个模块完全自包含（UI + 配置类型 + 教程 + 方案兼容性），自注册到中心</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>极致的可扩展性和解耦</li>
+          <li>模块完全独立，可独立测试</li>
+          <li>理论上支持社区贡献模块</li>
+        </ul></div>
+        <div class="cons"><h4>劣势</h4><ul>
+          <li>实现复杂度最高</li>
+          <li>对当前项目规模过度设计</li>
+          <li>模块间通信和状态共享复杂</li>
+          <li>当前 8→15 个模块，不需要这么重的架构</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

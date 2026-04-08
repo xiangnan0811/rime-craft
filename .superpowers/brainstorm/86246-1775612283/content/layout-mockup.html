@@ -1,0 +1,186 @@
+<h2>编辑器布局 — 面板模式 vs 沉浸模式</h2>
+<p class="subtitle">默认面板模式（日常配置），可切换沉浸模式（学习教程）</p>
+
+<div class="split">
+  <!-- Left: Panel Mode -->
+  <div class="mockup" style="flex: 1;">
+    <div class="mockup-header">面板模式（默认）</div>
+    <div class="mockup-body" style="padding: 0; display: flex; min-height: 420px; font-size: 12px;">
+      <!-- Sidebar -->
+      <div style="width: 180px; background: #f8f9fa; border-right: 1px solid #e2e8f0; padding: 8px; flex-shrink: 0;">
+        <div style="font-size: 10px; color: #94a3b8; font-weight: 600; padding: 4px 8px; margin-bottom: 2px;">基本设置</div>
+        <div style="background: white; border-radius: 6px; padding: 6px 8px; margin-bottom: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; color: #1e293b;">输入方案管理</span>
+          <span style="background: #3b82f6; color: white; font-size: 9px; padding: 1px 5px; border-radius: 8px;">1</span>
+        </div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b; display: flex; justify-content: space-between;">
+          <span>候选词设置</span>
+          <span style="background: #f59e0b; color: white; font-size: 9px; padding: 1px 5px; border-radius: 8px;">2</span>
+        </div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b;">按键绑定</div>
+        <div style="padding: 6px 8px; margin-bottom: 6px; color: #64748b;">开关与杂项</div>
+
+        <div style="font-size: 10px; color: #94a3b8; font-weight: 600; padding: 4px 8px; margin-bottom: 2px; display: flex; justify-content: space-between;">
+          <span>输入行为</span>
+          <span style="color: #10b981; font-size: 9px;">2/4</span>
+        </div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b;">模糊音规则</div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b;">拼写方案</div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b;">辅助码配置</div>
+        <div style="padding: 6px 8px; margin-bottom: 6px; color: #64748b;">反查与筛选</div>
+
+        <div style="font-size: 10px; color: #94a3b8; font-weight: 600; padding: 4px 8px; margin-bottom: 2px;">辅助功能</div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b;">标点符号</div>
+        <div style="padding: 6px 8px; margin-bottom: 2px; color: #64748b; opacity: 0.5;">特殊输入 <span style="font-size: 9px;">🔒</span></div>
+
+        <div style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+          <div style="padding: 6px 8px; color: #94a3b8; font-size: 11px; cursor: pointer;">📖 查看所有模块...</div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div style="flex: 1; padding: 16px; overflow: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 15px; font-weight: 600;">输入方案管理</span>
+              <span style="font-size: 10px; background: #dbeafe; color: #2563eb; padding: 1px 6px; border-radius: 4px;">表单</span>
+              <span style="font-size: 10px; background: #f1f5f9; color: #64748b; padding: 1px 6px; border-radius: 4px;">YAML</span>
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">管理已启用的输入方案及其优先顺序</div>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="font-size: 10px; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer;">📖 教程</button>
+          </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 500;">万象拼音</div>
+            <div style="font-size: 11px; color: #94a3b8;">新一代拼音方案，支持直接辅助码</div>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white;">↑</button>
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white;">↓</button>
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; color: #ef4444;">删除</button>
+          </div>
+        </div>
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 500;">小鹤双拼</div>
+            <div style="font-size: 11px; color: #94a3b8;">最流行的双拼方案之一</div>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white;">↑</button>
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white;">↓</button>
+            <button style="padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; color: #ef4444;">删除</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tutorial Panel -->
+      <div style="width: 260px; background: #fafbfc; border-left: 1px solid #e2e8f0; padding: 12px; flex-shrink: 0; overflow: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 600; color: #64748b;">📖 教程</span>
+          <span style="font-size: 10px; color: #3b82f6; cursor: pointer;">沉浸模式 →</span>
+        </div>
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">输入方案管理</div>
+        <div style="font-size: 11px; color: #475569; line-height: 1.6;">
+          <p>输入方案（Schema）是 Rime 的核心概念之一。一个方案定义了一套完整的输入规则。</p>
+          <p style="margin-top: 6px;">每个输入方案由一个 <code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 10px;">.schema.yaml</code> 文件定义...</p>
+          <div style="background: #1e293b; color: #e2e8f0; padding: 8px; border-radius: 6px; margin-top: 8px; font-family: monospace; font-size: 10px;">
+            patch:<br>
+            &nbsp;&nbsp;schema_list:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- schema: wanxiang<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- schema: double_pinyin_flypy
+          </div>
+          <p style="margin-top: 8px; padding: 6px; background: #eff6ff; border-radius: 4px; font-size: 10px; color: #2563eb;">💡 重新部署后才会生效。修改后需右键点击输入法图标并选择「重新部署」。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Immersive Mode -->
+  <div class="mockup" style="flex: 1;">
+    <div class="mockup-header">沉浸模式（学习教程时）</div>
+    <div class="mockup-body" style="padding: 0; display: flex; min-height: 420px; font-size: 12px;">
+      <!-- Sidebar (same) -->
+      <div style="width: 160px; background: #f8f9fa; border-right: 1px solid #e2e8f0; padding: 8px; flex-shrink: 0;">
+        <div style="font-size: 10px; color: #94a3b8; font-weight: 600; padding: 4px 8px;">基本设置</div>
+        <div style="background: white; border-radius: 6px; padding: 6px 8px; margin-bottom: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight: 500; color: #1e293b;">输入方案管理</div>
+        <div style="padding: 6px 8px; color: #64748b;">候选词设置</div>
+        <div style="padding: 6px 8px; color: #64748b;">按键绑定</div>
+      </div>
+
+      <!-- Full-width Tutorial with Embedded Config -->
+      <div style="flex: 1; padding: 20px; overflow: auto; max-width: 600px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 10px; color: #3b82f6; cursor: pointer;">← 返回面板模式</span>
+        </div>
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">输入方案管理</div>
+        <div style="font-size: 12px; color: #475569; line-height: 1.8; margin-bottom: 12px;">
+          <p>输入方案（Schema）是 Rime 的核心概念之一。一个方案定义了一套完整的输入规则：如何将按键序列转化为候选词、使用什么词典、支持哪些功能开关。</p>
+          <p style="margin-top: 8px;">Rime 允许你同时安装多个方案，按需切换。</p>
+        </div>
+
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">概念解释</div>
+        <div style="font-size: 12px; color: #475569; line-height: 1.8; margin-bottom: 12px;">
+          每个输入方案由一个 <code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 11px;">.schema.yaml</code> 文件定义。<code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 11px;">default.custom.yaml</code> 中的 <code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 11px;">schema_list</code> 字段控制哪些方案出现在切换菜单中。
+        </div>
+
+        <!-- Embedded Config Component -->
+        <div style="border: 2px solid #3b82f6; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f8faff;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+            <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px;">⚡ 在此配置</span>
+            <span style="font-size: 11px; color: #64748b;">你的修改会实时生效</span>
+          </div>
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 500;">万象拼音</div>
+              <div style="font-size: 10px; color: #94a3b8;">新一代拼音方案</div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <button style="padding: 2px 6px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; font-size: 11px;">↑</button>
+              <button style="padding: 2px 6px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; font-size: 11px;">↓</button>
+            </div>
+          </div>
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 500;">小鹤双拼</div>
+              <div style="font-size: 10px; color: #94a3b8;">最流行的双拼方案</div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <button style="padding: 2px 6px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; font-size: 11px;">↑</button>
+              <button style="padding: 2px 6px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; font-size: 11px;">↓</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: #475569; line-height: 1.8;">
+          <div style="background: #eff6ff; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-size: 11px; color: #2563eb; border-left: 3px solid #3b82f6;">
+            💡 <strong>提示</strong>：重新部署后才会生效。修改 schema_list 后，需要右键点击输入法图标并选择「重新部署」。
+          </div>
+        </div>
+
+        <div style="font-size: 14px; font-weight: 600; margin-top: 16px; margin-bottom: 8px;">主流输入方案介绍</div>
+        <div style="font-size: 12px; color: #475569; line-height: 1.8;">
+          <p><strong>万象拼音</strong> — 新一代全拼方案，支持辅助码功能，兼顾易用性与高效性。</p>
+          <p style="margin-top: 4px;"><strong>雾凇拼音</strong> — 目前最受欢迎的全拼方案，词库大、词频准确。</p>
+          <p style="margin-top: 4px;"><strong>小鹤双拼</strong> — 双拼方案之一，每个音节两键。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; padding: 16px; background: #f8faff; border-radius: 8px; border: 1px solid #dbeafe;">
+  <h3 style="margin-bottom: 8px;">关键交互说明</h3>
+  <ul style="font-size: 13px; color: #475569; line-height: 1.8; padding-left: 20px;">
+    <li><strong>面板模式</strong>：左侧边栏（分组导航）+ 中间（配置表单/YAML）+ 右侧（教程面板，可收起）</li>
+    <li><strong>沉浸模式</strong>：左侧边栏 + 全宽教程文章，配置组件以蓝色边框卡片嵌入文章流中</li>
+    <li><strong>切换</strong>：右上角「沉浸模式 →」/「← 返回面板模式」一键切换</li>
+    <li><strong>侧边栏</strong>：分组标题 + 进度计数（如 2/4），模块旁显示修改数量徽标</li>
+    <li><strong>锁定模块</strong>：当前方案不支持的模块显示 🔒，点击后可查看教程（探索入口）</li>
+    <li><strong>教程面板</strong>：自动跟随当前模块，显示对应 MDX 内容</li>
+  </ul>
+</div>

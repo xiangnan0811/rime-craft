@@ -42,6 +42,8 @@ const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
 export function extractModuleYaml(module: EditorModule, project: RimeProject): string {
   const mapping = MODULE_KEY_MAP[module]
 
+  if (!mapping) return ''
+
   if (mapping.file === 'custom_phrase') {
     return serializeCustomPhrases(project.customPhrases)
   }
@@ -84,6 +86,8 @@ export function applyModuleYaml(
   project: RimeProject,
 ): { project: RimeProject; error?: string } {
   const mapping = MODULE_KEY_MAP[module]
+
+  if (!mapping) return { project, error: `未知模块: ${module}` }
 
   if (mapping.file === 'custom_phrase') {
     try {

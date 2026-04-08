@@ -1,0 +1,159 @@
+<h2>Design Direction for Tutorial Center</h2>
+<p class="subtitle">Which documentation style resonates most with Rime Craft's identity?</p>
+
+<div class="cards">
+  <!-- Option A: Clean Minimal -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#fafafa; border-radius:8px; padding:20px; font-family:system-ui;">
+        <!-- Mini mockup of clean style -->
+        <div style="display:flex; gap:20px;">
+          <div style="width:180px; border-right:1px solid #e5e7eb; padding-right:16px;">
+            <div style="font-size:10px; color:#6b7280; font-weight:600; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Getting Started</div>
+            <div style="font-size:11px; color:#111; background:#f0f9ff; padding:4px 8px; border-radius:4px; border-left:2px solid #3b82f6; margin-bottom:4px;">What is Rime</div>
+            <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:4px;">Installation</div>
+            <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:4px;">First Deploy</div>
+            <div style="font-size:10px; color:#6b7280; font-weight:600; margin-top:12px; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Configuration</div>
+            <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:4px;">Schema Manager</div>
+            <div style="font-size:11px; color:#6b7280; padding:4px 8px;">Candidate Settings</div>
+          </div>
+          <div style="flex:1; max-width:320px;">
+            <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:4px;">Rime is what</div>
+            <div style="font-size:10px; color:#6b7280; margin-bottom:12px;">A cross-platform input method framework</div>
+            <div style="height:1px; background:#e5e7eb; margin-bottom:12px;"></div>
+            <div style="font-size:11px; color:#374151; line-height:1.6; margin-bottom:10px;">Rime, full name Zhongzhou Yun Input Method Engine, is an open-source, cross-platform input method framework...</div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px; margin-bottom:10px;">
+              <div style="font-size:10px; color:#64748b; font-weight:500; margin-bottom:4px;">Key Features</div>
+              <div style="font-size:10px; color:#475569;">Open source &bull; Highly customizable &bull; Privacy-first</div>
+            </div>
+            <div style="background:#1e293b; border-radius:6px; padding:8px 10px;">
+              <div style="font-size:9px; color:#94a3b8; margin-bottom:2px;">yaml</div>
+              <div style="font-size:10px; color:#e2e8f0; font-family:monospace;">schema_list:<br>&nbsp;&nbsp;- schema: rime_ice</div>
+            </div>
+          </div>
+          <div style="width:100px; padding-left:12px; border-left:1px solid #f3f4f6;">
+            <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">On this page</div>
+            <div style="font-size:10px; color:#3b82f6; margin-bottom:4px;">Overview</div>
+            <div style="font-size:10px; color:#9ca3af; margin-bottom:4px;">Key Features</div>
+            <div style="font-size:10px; color:#9ca3af; margin-bottom:4px;">Installation</div>
+            <div style="font-size:10px; color:#9ca3af;">Getting Started</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Clean & Minimal</h3>
+      <p>Inspired by Tailwind/shadcn docs. White background, subtle borders, focused typography. Right-side TOC. Calm, professional feel.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Highly readable</li><li>Matches shadcn/ui components already in your project</li><li>Easy to maintain</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>May feel generic</li><li>Less visual personality</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Warm Documentation -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:linear-gradient(135deg, #fefce8 0%, #fff7ed 100%); border-radius:8px; padding:20px; font-family:system-ui;">
+        <div style="display:flex; gap:20px;">
+          <div style="width:180px; padding-right:16px;">
+            <div style="background:white; border-radius:8px; padding:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+              <div style="font-size:10px; color:#92400e; font-weight:600; margin-bottom:8px;">Getting Started</div>
+              <div style="font-size:11px; color:#78350f; background:#fef3c7; padding:5px 8px; border-radius:6px; margin-bottom:4px; font-weight:500;">What is Rime</div>
+              <div style="font-size:11px; color:#78716c; padding:5px 8px; margin-bottom:3px;">Installation</div>
+              <div style="font-size:11px; color:#78716c; padding:5px 8px; margin-bottom:3px;">First Deploy</div>
+              <div style="font-size:10px; color:#92400e; font-weight:600; margin-top:10px; margin-bottom:8px;">Configuration</div>
+              <div style="font-size:11px; color:#78716c; padding:5px 8px; margin-bottom:3px;">Schema Manager</div>
+              <div style="font-size:11px; color:#78716c; padding:5px 8px;">Candidates</div>
+            </div>
+          </div>
+          <div style="flex:1; max-width:320px;">
+            <div style="display:inline-block; background:#fef3c7; color:#92400e; font-size:9px; font-weight:600; padding:2px 8px; border-radius:10px; margin-bottom:8px;">GETTING STARTED</div>
+            <div style="font-size:17px; font-weight:700; color:#1c1917; margin-bottom:12px;">Rime is what</div>
+            <div style="font-size:11px; color:#57534e; line-height:1.7; margin-bottom:12px;">Rime is an open-source input method engine. It runs entirely locally - every character you type is processed on your machine...</div>
+            <div style="background:white; border-radius:8px; padding:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border-left:3px solid #f59e0b; margin-bottom:10px;">
+              <div style="font-size:10px; color:#b45309; font-weight:600; margin-bottom:4px;">TIP</div>
+              <div style="font-size:10px; color:#57534e;">Configuration files are plain text - you can use Git to manage them across devices.</div>
+            </div>
+            <div style="background:#292524; border-radius:8px; padding:10px;">
+              <div style="font-size:10px; color:#a8a29e; font-family:monospace;">brew install --cask squirrel</div>
+            </div>
+          </div>
+          <div style="width:100px; padding-left:12px;">
+            <div style="font-size:9px; color:#a8a29e; font-weight:600; margin-bottom:8px;">ON THIS PAGE</div>
+            <div style="border-left:2px solid #f59e0b; padding-left:8px; margin-bottom:4px;">
+              <div style="font-size:10px; color:#f59e0b; font-weight:500;">Overview</div>
+            </div>
+            <div style="padding-left:10px;">
+              <div style="font-size:10px; color:#a8a29e; margin-bottom:4px;">Features</div>
+              <div style="font-size:10px; color:#a8a29e; margin-bottom:4px;">Installation</div>
+              <div style="font-size:10px; color:#a8a29e;">Config</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Warm & Inviting</h3>
+      <p>Amber/warm tones, card-based layout, rounded corners, soft shadows. Friendly and approachable - great for newcomers to Rime.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Welcoming to beginners</li><li>Distinctive personality</li><li>Tip/warning callouts stand out</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Warm tones may not suit a technical tool</li><li>More visual complexity</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Developer-focused -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f172a; border-radius:8px; padding:20px; font-family:system-ui;">
+        <div style="display:flex; gap:20px;">
+          <div style="width:180px; padding-right:16px; border-right:1px solid #1e293b;">
+            <div style="font-size:10px; color:#64748b; font-weight:600; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Guide</div>
+            <div style="font-size:11px; color:#f1f5f9; background:#1e293b; padding:5px 8px; border-radius:4px; border-left:2px solid #818cf8; margin-bottom:4px;">What is Rime</div>
+            <div style="font-size:11px; color:#94a3b8; padding:5px 8px; margin-bottom:3px;">Installation</div>
+            <div style="font-size:11px; color:#94a3b8; padding:5px 8px; margin-bottom:3px;">First Deploy</div>
+            <div style="font-size:10px; color:#64748b; font-weight:600; margin-top:12px; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Config</div>
+            <div style="font-size:11px; color:#94a3b8; padding:5px 8px; margin-bottom:3px;">Schema Manager</div>
+            <div style="font-size:11px; color:#94a3b8; padding:5px 8px;">Candidates</div>
+          </div>
+          <div style="flex:1; max-width:320px;">
+            <div style="font-size:17px; font-weight:700; color:#f1f5f9; margin-bottom:4px;">Rime is what</div>
+            <div style="height:2px; background:linear-gradient(90deg, #818cf8, transparent); margin-bottom:12px; border-radius:1px;"></div>
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.7; margin-bottom:12px;">Rime is an open-source input method engine. It runs entirely locally, processing every keystroke on your machine...</div>
+            <div style="background:#1e293b; border:1px solid #334155; border-radius:6px; padding:10px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <div style="font-size:9px; color:#818cf8; font-weight:500;">default.custom.yaml</div>
+                <div style="font-size:9px; color:#64748b; cursor:pointer;">Copy</div>
+              </div>
+              <div style="font-size:10px; color:#e2e8f0; font-family:monospace; line-height:1.5;">
+                <span style="color:#818cf8;">patch:</span><br>
+                &nbsp;&nbsp;<span style="color:#818cf8;">schema_list:</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <span style="color:#34d399;">schema: rime_ice</span>
+              </div>
+            </div>
+            <div style="background:#1e293b; border-left:3px solid #818cf8; padding:8px 10px; border-radius:0 4px 4px 0;">
+              <div style="font-size:10px; color:#818cf8; font-weight:500; margin-bottom:2px;">NOTE</div>
+              <div style="font-size:10px; color:#94a3b8;">Only schemas listed here will be loaded on deploy.</div>
+            </div>
+          </div>
+          <div style="width:100px; padding-left:12px; border-left:1px solid #1e293b;">
+            <div style="font-size:9px; color:#475569; font-weight:600; margin-bottom:8px;">CONTENTS</div>
+            <div style="font-size:10px; color:#818cf8; margin-bottom:4px;">Overview</div>
+            <div style="font-size:10px; color:#64748b; margin-bottom:4px;">Features</div>
+            <div style="font-size:10px; color:#64748b; margin-bottom:4px;">Install</div>
+            <div style="font-size:10px; color:#64748b;">Config</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Developer-Centric Dark</h3>
+      <p>Inspired by Vite/Vue docs. Dark by default, code-first, syntax-highlighted blocks with copy buttons. Feels like a dev tool.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Matches Rime's technical identity</li><li>Code blocks are the star</li><li>Feels modern and developer-friendly</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Dark-only may alienate some users</li><li>Harder to read long prose</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

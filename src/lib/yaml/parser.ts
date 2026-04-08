@@ -7,7 +7,6 @@ import type {
   AppOption,
   ThemeStyle,
   ThemeColors,
-  TranslatorConfig,
   SimpleSwitchItem,
   MultiStateSwitchItem,
 } from '@/types/config'

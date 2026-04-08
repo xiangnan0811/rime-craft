@@ -1,0 +1,201 @@
+<h2>Section 1: Layout Architecture</h2>
+<p class="subtitle">Three-column layout with responsive breakpoints</p>
+
+<div class="mockup">
+  <div class="mockup-header">Desktop Layout (≥1280px)</div>
+  <div class="mockup-body" style="padding:0; background:#fff; font-family:system-ui;">
+    <!-- Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid #e5e7eb; background:#fff;">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span style="font-size:14px; font-weight:700; color:#111;">Rime Craft</span>
+        <div style="display:flex; gap:12px; font-size:11px; color:#6b7280;">
+          <span style="color:#111; font-weight:500; border-bottom:2px solid #3b82f6; padding-bottom:8px;">Tutorial</span>
+          <span>Editor</span>
+          <span>Theme Studio</span>
+          <span>Compare</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="background:#f3f4f6; border-radius:6px; padding:4px 12px; font-size:10px; color:#9ca3af; width:160px;">Search docs... ⌘K</div>
+        <div style="width:20px; height:20px; background:#f3f4f6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px;">🌙</div>
+      </div>
+    </div>
+
+    <!-- Three columns -->
+    <div style="display:flex; min-height:340px;">
+      <!-- Left Sidebar -->
+      <div style="width:220px; border-right:1px solid #f3f4f6; padding:16px; background:#fafafa; flex-shrink:0;">
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Getting Started</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">What is Rime</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">Installation</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">First Deploy</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:8px; border-radius:4px;">Config Structure</div>
+
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Configuration</div>
+        <div style="font-size:11px; color:#111; background:#fff; padding:4px 8px; margin-bottom:2px; border-radius:4px; border-left:2px solid #3b82f6; font-weight:500;">Schema Manager</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">Candidate Settings</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">Key Bindings</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">Fuzzy Pinyin</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:8px; border-radius:4px;">...</div>
+
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Advanced</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; margin-bottom:2px; border-radius:4px;">Double Pinyin Guide</div>
+        <div style="font-size:11px; color:#6b7280; padding:4px 8px; border-radius:4px;">Lua Scripting</div>
+      </div>
+
+      <!-- Main Content -->
+      <div style="flex:1; padding:24px 32px; max-width:720px;">
+        <!-- Breadcrumbs -->
+        <div style="font-size:10px; color:#9ca3af; margin-bottom:12px;">
+          <span style="color:#3b82f6;">Configuration</span> <span style="color:#d1d5db;">/</span> Schema Manager
+        </div>
+
+        <h1 style="font-size:22px; font-weight:700; color:#111; margin-bottom:4px;">Input Schema Management</h1>
+        <p style="font-size:12px; color:#6b7280; margin-bottom:16px;">Configure which input schemas are available and their switching order</p>
+        <div style="height:1px; background:#e5e7eb; margin-bottom:16px;"></div>
+
+        <p style="font-size:12px; color:#374151; line-height:1.7; margin-bottom:12px;">Input Schema is one of Rime's core concepts. A schema defines a complete set of input rules: how to convert key sequences to candidates, which dictionaries to use...</p>
+
+        <h2 style="font-size:16px; font-weight:600; color:#111; margin-bottom:8px; margin-top:16px;">Configuration</h2>
+        <p style="font-size:12px; color:#374151; line-height:1.7; margin-bottom:10px;">Configure the schema list in <code style="background:#f3f4f6; padding:1px 5px; border-radius:3px; font-size:11px;">default.custom.yaml</code>:</p>
+
+        <!-- Code block (C-style) -->
+        <div style="background:#1e293b; border-radius:8px; overflow:hidden; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#0f172a; border-bottom:1px solid #334155;">
+            <span style="font-size:9px; color:#94a3b8;">default.custom.yaml</span>
+            <span style="font-size:9px; color:#64748b; cursor:pointer;">📋 Copy</span>
+          </div>
+          <div style="padding:12px; font-size:11px; font-family:monospace; color:#e2e8f0; line-height:1.6;">
+            <span style="color:#7dd3fc;">patch</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;<span style="color:#7dd3fc;">schema_list</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- <span style="color:#7dd3fc;">schema</span><span style="color:#94a3b8;">:</span> <span style="color:#a5f3fc;">luna_pinyin_simp</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- <span style="color:#7dd3fc;">schema</span><span style="color:#94a3b8;">:</span> <span style="color:#a5f3fc;">double_pinyin_flypy</span>
+          </div>
+        </div>
+
+        <!-- Callout -->
+        <div style="background:#eff6ff; border-left:3px solid #3b82f6; border-radius:0 6px 6px 0; padding:10px 12px; margin-bottom:12px;">
+          <div style="font-size:10px; color:#1d4ed8; font-weight:600; margin-bottom:2px;">💡 Tip</div>
+          <div style="font-size:11px; color:#1e40af;">Only schemas listed in schema_list will be loaded after deploy.</div>
+        </div>
+
+        <!-- GoToConfigButton -->
+        <div style="display:inline-flex; align-items:center; gap:6px; background:#f0f9ff; border:1px solid #bfdbfe; border-radius:6px; padding:6px 12px; cursor:pointer;">
+          <span style="font-size:12px;">🔧</span>
+          <span style="font-size:11px; color:#1d4ed8; font-weight:500;">Configure in Editor</span>
+          <span style="font-size:10px; color:#93c5fd;">→</span>
+        </div>
+
+        <!-- Prev/Next Nav -->
+        <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:16px; border-top:1px solid #e5e7eb;">
+          <div style="font-size:11px;">
+            <div style="color:#9ca3af; font-size:9px; margin-bottom:2px;">Previous</div>
+            <span style="color:#3b82f6;">← Config Structure</span>
+          </div>
+          <div style="font-size:11px; text-align:right;">
+            <div style="color:#9ca3af; font-size:9px; margin-bottom:2px;">Next</div>
+            <span style="color:#3b82f6;">Candidate Settings →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right TOC -->
+      <div style="width:180px; padding:24px 16px; border-left:1px solid #f3f4f6; flex-shrink:0;">
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">On this page</div>
+        <div style="border-left:2px solid #e5e7eb; padding-left:10px;">
+          <div style="font-size:11px; color:#3b82f6; margin-bottom:6px; font-weight:500; position:relative;">
+            <div style="position:absolute; left:-12px; top:2px; width:2px; height:12px; background:#3b82f6; border-radius:1px;"></div>
+            Overview
+          </div>
+          <div style="font-size:11px; color:#9ca3af; margin-bottom:6px;">Configuration</div>
+          <div style="font-size:11px; color:#9ca3af; margin-bottom:6px;">Popular Schemas</div>
+          <div style="font-size:11px; color:#9ca3af; margin-bottom:6px;">Common Setups</div>
+          <div style="font-size:11px; color:#9ca3af;">Install New Schemas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px;"></div>
+
+<!-- Mobile mockup -->
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Tablet (768px–1279px): TOC collapses</div>
+    <div class="mockup-body" style="padding:0; background:#fff; font-family:system-ui;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #e5e7eb;">
+        <span style="font-size:12px; font-weight:700;">Rime Craft</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div style="background:#f3f4f6; border-radius:4px; padding:2px 8px; font-size:9px; color:#9ca3af; width:100px;">Search... ⌘K</div>
+          <div style="font-size:9px;">🌙</div>
+        </div>
+      </div>
+      <div style="display:flex; min-height:200px;">
+        <div style="width:180px; border-right:1px solid #f3f4f6; padding:10px; background:#fafafa; font-size:10px;">
+          <div style="color:#9ca3af; font-size:8px; font-weight:600; margin-bottom:4px;">CONFIGURATION</div>
+          <div style="color:#111; background:#fff; padding:3px 6px; border-radius:3px; border-left:2px solid #3b82f6; margin-bottom:2px; font-weight:500;">Schema Manager</div>
+          <div style="color:#6b7280; padding:3px 6px; margin-bottom:2px;">Candidates</div>
+          <div style="color:#6b7280; padding:3px 6px;">Key Bindings</div>
+        </div>
+        <div style="flex:1; padding:12px;">
+          <div style="font-size:8px; color:#9ca3af; margin-bottom:6px;">Configuration / Schema Manager</div>
+          <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:8px;">Input Schema Management</div>
+          <div style="font-size:10px; color:#374151; line-height:1.5;">Content area takes full remaining width. Right-side TOC is hidden but accessible via a floating "On this page" button.</div>
+          <div style="margin-top:12px; background:#f3f4f6; border-radius:4px; padding:6px; text-align:center; font-size:9px; color:#6b7280;">📑 On this page (floating button)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Mobile (<768px): Sidebar → hamburger menu</div>
+    <div class="mockup-body" style="padding:0; background:#fff; font-family:system-ui; max-width:280px; margin:0 auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #e5e7eb;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="font-size:14px; cursor:pointer;">☰</div>
+          <span style="font-size:12px; font-weight:700;">Rime Craft</span>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <div style="font-size:10px;">🔍</div>
+          <div style="font-size:10px;">🌙</div>
+        </div>
+      </div>
+      <div style="padding:12px;">
+        <div style="font-size:8px; color:#9ca3af; margin-bottom:6px;">Configuration / Schema Manager</div>
+        <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:8px;">Input Schema Management</div>
+        <div style="font-size:10px; color:#374151; line-height:1.5; margin-bottom:8px;">Full-width content. Sidebar opens as an overlay from the left hamburger button.</div>
+        <div style="background:#1e293b; border-radius:6px; padding:8px; margin-bottom:8px;">
+          <div style="font-size:8px; color:#94a3b8; margin-bottom:4px;">default.custom.yaml</div>
+          <div style="font-size:9px; color:#e2e8f0; font-family:monospace;">patch:<br>&nbsp;&nbsp;schema_list:<br>&nbsp;&nbsp;&nbsp;&nbsp;- schema: rime_ice</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid #e5e7eb; font-size:9px;">
+          <span style="color:#3b82f6;">← Config Structure</span>
+          <span style="color:#3b82f6;">Candidates →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Layout Summary</h3>
+  <table style="width:100%; font-size:13px; border-collapse:collapse;">
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Desktop (≥1280px)</td>
+      <td style="padding:6px 8px;">Left sidebar (220px) + Content (flex) + Right TOC (180px)</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Tablet (768–1279px)</td>
+      <td style="padding:6px 8px;">Left sidebar (180px) + Content (flex). TOC → floating button</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Mobile (<768px)</td>
+      <td style="padding:6px 8px;">Full-width content. Sidebar → hamburger overlay. Search → icon</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 8px; font-weight:600;">Content features</td>
+      <td style="padding:6px 8px;">Breadcrumbs, prev/next navigation, "Go to Editor" button, dark code blocks</td>
+    </tr>
+  </table>
+</div>

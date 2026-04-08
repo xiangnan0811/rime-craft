@@ -114,7 +114,7 @@ export type SwitchItem = SimpleSwitchItem | MultiStateSwitchItem;
 export interface SimpleSwitchItem {
   name: string;
   reset: number;
-  states: [string, string];
+  states?: [string, string];
 }
 
 export interface MultiStateSwitchItem {

@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { ModuleWrapper } from './ModuleWrapper'
-import { MODULE_COMPONENTS, MODULE_REGISTRY } from '@/data/module-registry'
+import { MODULE_COMPONENTS } from '@/data/module-registry'
 
 export function EditorContent() {
   const activeModule = useConfigStore((s) => s.activeModule)

@@ -1,0 +1,4 @@
+{"type":"server-started","port":54173,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:54173","screen_dir":"/Users/weibo/Code/rime-craft/.superpowers/brainstorm/86246-1775612283/content","state_dir":"/Users/weibo/Code/rime-craft/.superpowers/brainstorm/86246-1775612283/state"}
+{"type":"screen-added","file":"/Users/weibo/Code/rime-craft/.superpowers/brainstorm/86246-1775612283/content/approaches.html"}
+{"type":"screen-added","file":"/Users/weibo/Code/rime-craft/.superpowers/brainstorm/86246-1775612283/content/layout-mockup.html"}
+{"type":"server-stopped","reason":"idle timeout"}

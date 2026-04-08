@@ -1,0 +1,227 @@
+<h2>Section 2: Visual Design System</h2>
+<p class="subtitle">Colors, typography, and light/dark mode</p>
+
+<!-- Light vs Dark side by side -->
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Light Mode</div>
+    <div class="mockup-body" style="padding:0; background:#ffffff; font-family:system-ui;">
+      <!-- Color palette -->
+      <div style="padding:16px;">
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Color Palette</div>
+        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#ffffff; border:1px solid #e5e7eb; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">bg</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#fafafa; border:1px solid #e5e7eb; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">sidebar</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#111827; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">text</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#6b7280; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">muted</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#3b82f6; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">accent</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#e5e7eb; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#9ca3af; margin-top:2px;">border</div>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Typography</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:22px; font-weight:700; color:#111827; margin-bottom:2px;">Heading 1</div>
+          <div style="font-size:17px; font-weight:600; color:#111827; margin-bottom:2px;">Heading 2</div>
+          <div style="font-size:14px; font-weight:600; color:#111827; margin-bottom:2px;">Heading 3</div>
+          <div style="font-size:12px; color:#374151; line-height:1.7;">Body text with <span style="color:#3b82f6; text-decoration:underline; text-decoration-color:#bfdbfe;">inline links</span> and <code style="background:#f3f4f6; padding:1px 5px; border-radius:3px; font-size:11px; color:#111827;">inline code</code> styling.</div>
+        </div>
+
+        <!-- Callout variants -->
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Callouts</div>
+        <div style="background:#eff6ff; border-left:3px solid #3b82f6; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#1d4ed8; font-weight:600;">💡 Tip</div>
+          <div style="font-size:10px; color:#1e40af;">Helpful suggestion for the user.</div>
+        </div>
+        <div style="background:#fefce8; border-left:3px solid #eab308; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#a16207; font-weight:600;">⚠️ Warning</div>
+          <div style="font-size:10px; color:#854d0e;">Something to be careful about.</div>
+        </div>
+        <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#15803d; font-weight:600;">✅ Note</div>
+          <div style="font-size:10px; color:#166534;">Additional information.</div>
+        </div>
+        <div style="background:#fef2f2; border-left:3px solid #ef4444; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#b91c1c; font-weight:600;">🚨 Caution</div>
+          <div style="font-size:10px; color:#991b1b;">Critical warning — data loss possible.</div>
+        </div>
+
+        <!-- Code block -->
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:8px; margin-bottom:8px;">Code Block</div>
+        <div style="background:#1e293b; border-radius:8px; overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#0f172a;">
+            <span style="font-size:9px; color:#94a3b8;">default.custom.yaml</span>
+            <span style="font-size:9px; color:#64748b;">📋 Copy</span>
+          </div>
+          <div style="padding:10px 12px; font-size:10px; font-family:'SF Mono',Monaco,monospace; color:#e2e8f0; line-height:1.6;">
+            <span style="color:#7dd3fc;">patch</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;<span style="color:#7dd3fc;">schema_list</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- <span style="color:#7dd3fc;">schema</span><span style="color:#94a3b8;">:</span> <span style="color:#a5f3fc;">rime_ice</span> &nbsp;<span style="color:#475569;"># Main schema</span>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div style="font-size:9px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:12px; margin-bottom:8px;">Table</div>
+        <div style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; font-size:10px;">
+          <div style="display:flex; background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#374151;">Platform</div>
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#374151;">Distribution</div>
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#374151;">Install</div>
+          </div>
+          <div style="display:flex; border-bottom:1px solid #f3f4f6;">
+            <div style="flex:1; padding:6px 10px; color:#374151;">macOS</div>
+            <div style="flex:1; padding:6px 10px; color:#374151;">Squirrel</div>
+            <div style="flex:1; padding:6px 10px; color:#374151;">brew</div>
+          </div>
+          <div style="display:flex;">
+            <div style="flex:1; padding:6px 10px; color:#374151;">Windows</div>
+            <div style="flex:1; padding:6px 10px; color:#374151;">Weasel</div>
+            <div style="flex:1; padding:6px 10px; color:#374151;">rime.im</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Dark Mode</div>
+    <div class="mockup-body" style="padding:0; background:#0f172a; font-family:system-ui;">
+      <!-- Color palette -->
+      <div style="padding:16px;">
+        <div style="font-size:9px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Color Palette</div>
+        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#0f172a; border:1px solid #1e293b; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">bg</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#1e293b; border:1px solid #334155; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">sidebar</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#f1f5f9; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">text</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#94a3b8; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">muted</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#60a5fa; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">accent</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:36px; height:36px; background:#1e293b; border:1px solid #334155; border-radius:6px;"></div>
+            <div style="font-size:7px; color:#64748b; margin-top:2px;">border</div>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div style="font-size:9px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Typography</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:22px; font-weight:700; color:#f1f5f9; margin-bottom:2px;">Heading 1</div>
+          <div style="font-size:17px; font-weight:600; color:#f1f5f9; margin-bottom:2px;">Heading 2</div>
+          <div style="font-size:14px; font-weight:600; color:#f1f5f9; margin-bottom:2px;">Heading 3</div>
+          <div style="font-size:12px; color:#cbd5e1; line-height:1.7;">Body text with <span style="color:#60a5fa; text-decoration:underline; text-decoration-color:#1e40af;">inline links</span> and <code style="background:#1e293b; border:1px solid #334155; padding:1px 5px; border-radius:3px; font-size:11px; color:#e2e8f0;">inline code</code> styling.</div>
+        </div>
+
+        <!-- Callout variants -->
+        <div style="font-size:9px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Callouts</div>
+        <div style="background:#172554; border-left:3px solid #3b82f6; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#60a5fa; font-weight:600;">💡 Tip</div>
+          <div style="font-size:10px; color:#93c5fd;">Helpful suggestion for the user.</div>
+        </div>
+        <div style="background:#422006; border-left:3px solid #eab308; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#facc15; font-weight:600;">⚠️ Warning</div>
+          <div style="font-size:10px; color:#fde68a;">Something to be careful about.</div>
+        </div>
+        <div style="background:#052e16; border-left:3px solid #22c55e; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#4ade80; font-weight:600;">✅ Note</div>
+          <div style="font-size:10px; color:#86efac;">Additional information.</div>
+        </div>
+        <div style="background:#450a0a; border-left:3px solid #ef4444; border-radius:0 6px 6px 0; padding:8px 10px; margin-bottom:6px;">
+          <div style="font-size:9px; color:#f87171; font-weight:600;">🚨 Caution</div>
+          <div style="font-size:10px; color:#fca5a5;">Critical warning — data loss possible.</div>
+        </div>
+
+        <!-- Code block -->
+        <div style="font-size:9px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:8px; margin-bottom:8px;">Code Block</div>
+        <div style="background:#020617; border:1px solid #1e293b; border-radius:8px; overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#020617; border-bottom:1px solid #1e293b;">
+            <span style="font-size:9px; color:#64748b;">default.custom.yaml</span>
+            <span style="font-size:9px; color:#475569;">📋 Copy</span>
+          </div>
+          <div style="padding:10px 12px; font-size:10px; font-family:'SF Mono',Monaco,monospace; color:#e2e8f0; line-height:1.6;">
+            <span style="color:#7dd3fc;">patch</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;<span style="color:#7dd3fc;">schema_list</span><span style="color:#94a3b8;">:</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;- <span style="color:#7dd3fc;">schema</span><span style="color:#94a3b8;">:</span> <span style="color:#a5f3fc;">rime_ice</span> &nbsp;<span style="color:#475569;"># Main schema</span>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div style="font-size:9px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:12px; margin-bottom:8px;">Table</div>
+        <div style="border:1px solid #1e293b; border-radius:8px; overflow:hidden; font-size:10px;">
+          <div style="display:flex; background:#1e293b; border-bottom:1px solid #334155;">
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#e2e8f0;">Platform</div>
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#e2e8f0;">Distribution</div>
+            <div style="flex:1; padding:6px 10px; font-weight:600; color:#e2e8f0;">Install</div>
+          </div>
+          <div style="display:flex; border-bottom:1px solid #1e293b;">
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">macOS</div>
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">Squirrel</div>
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">brew</div>
+          </div>
+          <div style="display:flex;">
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">Windows</div>
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">Weasel</div>
+            <div style="flex:1; padding:6px 10px; color:#cbd5e1;">rime.im</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Design Tokens Summary</h3>
+  <table style="width:100%; font-size:13px; border-collapse:collapse;">
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Accent</td>
+      <td style="padding:6px 8px;">Blue-500 (light) / Blue-400 (dark) — consistent with existing app theme</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Font</td>
+      <td style="padding:6px 8px;">System font stack for prose, SF Mono/Monaco/monospace for code</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Code blocks</td>
+      <td style="padding:6px 8px;">Always dark (slate-800/900), both modes. Syntax highlighting via shiki or rehype-pretty-code</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+      <td style="padding:6px 8px; font-weight:600;">Callouts</td>
+      <td style="padding:6px 8px;">4 types: Tip (blue), Warning (yellow), Note (green), Caution (red). Using remark-directive in MDX</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 8px; font-weight:600;">Toggle</td>
+      <td style="padding:6px 8px;">Respects existing Tailwind dark: class + user preference via localStorage</td>
+    </tr>
+  </table>
+</div>
