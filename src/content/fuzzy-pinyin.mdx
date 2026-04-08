@@ -1,112 +1,119 @@
-# 模糊音配置
+# 模糊音规则
 
-模糊音（Fuzzy Pinyin）是一种让 Rime 容忍特定发音混淆的功能。开启后，即使输入了方言习惯的"错误"拼音，Rime 也能正确识别并给出候选词。
+模糊音是为方言用户和发音习惯不同的用户准备的「容错机制」——如果你分不清前后鼻音或平翘舌音，开启对应的模糊音规则后，Rime 会把它们视为等价，让你不需要纠结发音就能打出正确的字。
 
-## 概念解释
+## 这是什么
 
-普通话中有一些发音区别，对许多地区的用户来说是难以区分的：
+普通话中有一些发音非常接近的声母和韵母对，很多地区的方言不区分它们。例如：
 
-- **平翘舌**：z/zh、c/ch、s/sh 不分——南方大部分地区
-- **前后鼻音**：an/ang、en/eng、in/ing 不分——广泛分布
-- **n/l 混淆**：n、l 不分——华南、西南部分地区
-- **f/h 混淆**：f、h 不分——部分方言区
+- 南方很多地区不区分 `n` 和 `l`（「你」和「里」同音）
+- 部分地区不区分 `z/zh`、`c/ch`、`s/sh`（平舌和翘舌不分）
+- 大量用户分不清 `an/ang`、`en/eng`、`in/ing`（前后鼻音不分）
 
-没有模糊音时，输入「zi」只能找到「自、字、紫……」；输入「zhi」只能找到「之、知、只……」。开启 z↔zh 模糊音后，输入「zi」也能候选出「之、知、只」。
+模糊音规则告诉 Rime：当用户输入 `niao` 时，也同时搜索 `liao` 的候选词；输入 `fen` 时也搜索 `feng`。这样你不需要记住每个字的精确发音，也能正确输入。
 
-## 支持的模糊音对
+<warning>
+模糊音的代价是**重码增加**。每开启一组模糊音，候选词列表会变长，因为原本不同音的字现在被视为同音了。建议只开启你**确实需要**的模糊音组合，而不是全部开启。
+</warning>
+
+## 配置项详解
 
 ### 声母模糊音
 
-| 模糊对 | 配置写法 | 说明 |
-|--------|---------|------|
-| z ↔ zh | `derive/^([zcs])h/$1/` | 平翘舌（z/zh） |
-| c ↔ ch | （同上，一条规则覆盖） | 平翘舌（c/ch） |
-| s ↔ sh | （同上，一条规则覆盖） | 平翘舌（s/sh） |
-| n ↔ l | `derive/^n/l/` 和 `derive/^l/n/` | 鼻音边音 |
-| f ↔ h | `derive/^f/h/` 和 `derive/^h/f/` | f/h 混淆 |
-| r ↔ l | `derive/^r/l/` 和 `derive/^l/r/` | r/l 混淆 |
+| 模糊组 | 说明 | 常见地区 |
+|--------|------|---------|
+| `z` ↔ `zh` | 平舌/翘舌 | 湖南、四川、广东等 |
+| `c` ↔ `ch` | 平舌/翘舌 | 同上 |
+| `s` ↔ `sh` | 平舌/翘舌 | 同上 |
+| `l` ↔ `n` | 边音/鼻音 | 湖南、湖北、江西等 |
+| `f` ↔ `h` | 唇音/喉音 | 广东、广西等 |
+| `r` ↔ `l` | 卷舌/边音 | 部分南方地区 |
 
 ### 韵母模糊音
 
-| 模糊对 | 配置写法 |
-|--------|---------|
-| an ↔ ang | `derive/an$/ang/` 和 `derive/ang$/an/` |
-| en ↔ eng | `derive/en$/eng/` 和 `derive/eng$/en/` |
-| in ↔ ing | `derive/in$/ing/` 和 `derive/ing$/in/` |
-| ian ↔ iang | `derive/ian$/iang/` 和 `derive/iang$/ian/` |
-| uan ↔ uang | `derive/uan$/uang/` 和 `derive/uang$/uan/` |
-
-## 技术原理
-
-模糊音通过 `speller/algebra`（拼写运算）中的 `derive` 规则实现。`derive` 的作用是**在不删除原始拼音的基础上，额外生成一条派生拼音**。
-
-例如规则 `derive/^([zcs])h/$1/` 的含义：
-
-- 正则匹配：以 z/c/s 开头后跟 h 的音节（即 zh/ch/sh）
-- 替换结果：去掉 h，派生出 z/c/s 对应的拼音
-- 效果：输入 `zi` 也能匹配 `zhi` 的词
-
-## 配置方法
-
-在方案的 `.custom.yaml` 中（以朙月拼音简体为例）：
+| 模糊组 | 说明 | 影响范围 |
+|--------|------|---------|
+| `an` ↔ `ang` | 前/后鼻音 | 影响最广，全国很多地区 |
+| `en` ↔ `eng` | 前/后鼻音 | 同上 |
+| `in` ↔ `ing` | 前/后鼻音 | 同上 |
+| `ian` ↔ `iang` | 前/后鼻音 | 部分地区 |
+| `uan` ↔ `uang` | 前/后鼻音 | 部分地区 |
 
 ```yaml
-# luna_pinyin_simp.custom.yaml
 patch:
   speller/algebra:
-    - erase/^xx$/
-    - abbrev/^([a-z]).+$/$1/
-    - abbrev/^([zcs]h).+$/$1/
-    # --- 模糊音规则 ---
-    - derive/^([zcs])h/$1/        # zh→z, ch→c, sh→s
+    # 声母模糊
+    - derive/^([zcs])h/$1/       # zh→z, ch→c, sh→s
     - derive/^([zcs])([^h])/$1h$2/  # z→zh, c→ch, s→sh
-    - derive/^n/l/                # n→l
-    - derive/^l/n/                # l→n
-    - derive/an$/ang/             # an→ang
-    - derive/ang$/an/             # ang→an
+    - derive/^l/n/               # l→n
+    - derive/^n/l/               # n→l
+    # 韵母模糊
+    - derive/an$/ang/            # an→ang
+    - derive/ang$/an/            # ang→an
+    - derive/en$/eng/            # en→eng
+    - derive/eng$/en/            # eng→en
+    - derive/in$/ing/            # in→ing
+    - derive/ing$/in/            # ing→in
+```
+
+<ConfigSlot module="fuzzy-pinyin" />
+
+## 常见场景与推荐搭配
+
+**南方用户（最常见需求）**：
+
+```yaml
+patch:
+  speller/algebra:
+    - derive/^l/n/
+    - derive/^n/l/
+    - derive/^([zcs])h/$1/
+    - derive/^([zcs])([^h])/$1h$2/
+    - derive/an$/ang/
+    - derive/ang$/an/
     - derive/en$/eng/
     - derive/eng$/en/
     - derive/in$/ing/
     - derive/ing$/in/
 ```
 
-> **注意**：粘贴上述配置时，需要保留方案原有的 `erase` 和 `abbrev` 规则，仅在其后追加模糊音规则。完整的 `algebra` 列表因方案不同而异。
+**只开前后鼻音（最保守策略）**：
 
-## 常见地区推荐组合
-
-:::tip
-不确定该开启哪些模糊音？大多数用户只需开启「前后鼻音」（an/ang、en/eng、in/ing），这是覆盖面最广、误触率最低的选择。
-:::
-
-**南方用户（平翘舌 + 前后鼻音）：**
+大多数人最常犯的错误是前后鼻音，只开这三组影响最小：
 
 ```yaml
-- derive/^([zcs])h/$1/
-- derive/^([zcs])([^h])/$1h$2/
-- derive/an$/ang/
-- derive/ang$/an/
-- derive/en$/eng/
-- derive/eng$/en/
+patch:
+  speller/algebra:
+    - derive/an$/ang/
+    - derive/ang$/an/
+    - derive/en$/eng/
+    - derive/eng$/en/
+    - derive/in$/ing/
+    - derive/ing$/in/
 ```
 
-**华南 / 西南用户（额外加 n/l 不分）：**
+**北方用户**：
 
-在上述基础上再加：
+大多数北方用户不需要开启模糊音。如果偶尔分不清个别字的发音，建议通过[反查](./reverse-lookup)来查找，而不是开启模糊音增加重码。
 
-```yaml
-- derive/^n/l/
-- derive/^l/n/
-```
+## 进阶技巧
 
-**只需前后鼻音的用户：**
+<tip>
+如果你不确定自己需要哪些模糊音，可以先不开启，在日常输入中记录哪些字经常打不出来（因为拼音输错了），然后只针对性地开启对应的模糊组。这样可以最小化重码增加。
+</tip>
 
-```yaml
-- derive/an$/ang/
-- derive/ang$/an/
-- derive/in$/ing/
-- derive/ing$/in/
-```
+<note>
+模糊音规则使用 Rime 的 `derive` 指令，它会在原有编码基础上**额外生成**模糊编码，而不是替换原编码。这意味着正确拼音和模糊拼音都能匹配，不会影响已经记住正确发音的字。
+</note>
 
-在编辑器中可以直观地勾选需要的模糊音对，无需手动编写正则规则。
+## 学习路径
 
-<GoToConfigButton module="fuzzy-pinyin" label="在编辑器中配置模糊音" />
+1. **起步**：先不开启任何模糊音，用标准拼音输入
+2. **发现问题**：记录日常输入中因为发音不准导致打不出来的字
+3. **针对性开启**：只开启你确实需要的 1-2 组模糊音
+
+## 相关模块
+
+- [拼写方案](./spelling-scheme) — 双拼模式下模糊音的行为可能不同
+
+<ConfigSlot module="fuzzy-pinyin" />
