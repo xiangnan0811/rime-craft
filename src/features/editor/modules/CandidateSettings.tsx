@@ -4,9 +4,12 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
 import { getModifiedFields } from '@/lib/config/diff'
+import type { TranslatorConfig } from '@/types/config'
 
 const PAGE_SIZE_OPTIONS = [3, 4, 5, 6, 7, 8, 9]
 const SELECT_KEY_PRESETS: { label: string; value: string }[] = [
@@ -21,6 +24,30 @@ export function CandidateSettings() {
   const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
   const defaultConfig = useConfigStore((s) => s.project.defaultConfig)
   const modified = getModifiedFields(defaultConfig)
+
+  const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
+  const schemaConfigs = useConfigStore((s) => s.project.schemaConfigs)
+  const updateSchemaConfig = useConfigStore((s) => s.updateSchemaConfig)
+  const primarySchemaId = schemaList[0]?.schema ?? ''
+
+  const DEFAULT_TRANSLATOR: TranslatorConfig = {
+    enableCompletion: true,
+    enableUserDict: true,
+    coreWordLength: 4,
+    maxWordLength: 7,
+    maxHomophones: 8,
+    maxHomographs: 8,
+    spellingHints: 30,
+    alwaysShowComments: true,
+  }
+
+  const translator = schemaConfigs[primarySchemaId]?.translator ?? DEFAULT_TRANSLATOR
+
+  function updateTranslator(partial: Partial<TranslatorConfig>) {
+    updateSchemaConfig(primarySchemaId, {
+      translator: { ...translator, ...partial },
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -71,6 +98,68 @@ export function CandidateSettings() {
           )}
         </div>
       </div>
+      <Separator className="my-4" />
+      <details className="group">
+        <summary className="cursor-pointer font-medium text-gray-700">
+          高级设置
+          <span className="ml-1 text-xs text-gray-400">（翻译器参数）</span>
+        </summary>
+        <div className="mt-3 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>输入补全</Label>
+              <p className="text-sm text-gray-500">打部分拼音时是否显示完整词</p>
+            </div>
+            <Switch
+              checked={translator.enableCompletion}
+              onCheckedChange={(v) => updateTranslator({ enableCompletion: v })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>用户词典</Label>
+              <p className="text-sm text-gray-500">启用自动调频和用户词典记忆</p>
+            </div>
+            <Switch
+              checked={translator.enableUserDict}
+              onCheckedChange={(v) => updateTranslator({ enableUserDict: v })}
+            />
+          </div>
+          <div>
+            <Label>核心词最大长度</Label>
+            <Input
+              type="number" min={1} max={10} className="mt-1 w-24"
+              value={translator.coreWordLength}
+              onChange={(e) => updateTranslator({ coreWordLength: Number(e.target.value) })}
+            />
+            <p className="mt-1 text-sm text-gray-500">影响造句质量，默认 4</p>
+          </div>
+          <div>
+            <Label>候选词最大长度</Label>
+            <Input
+              type="number" min={1} max={20} className="mt-1 w-24"
+              value={translator.maxWordLength}
+              onChange={(e) => updateTranslator({ maxWordLength: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label>同音词上限</Label>
+            <Input
+              type="number" min={1} max={20} className="mt-1 w-24"
+              value={translator.maxHomophones}
+              onChange={(e) => updateTranslator({ maxHomophones: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label>同形词上限</Label>
+            <Input
+              type="number" min={1} max={20} className="mt-1 w-24"
+              value={translator.maxHomographs}
+              onChange={(e) => updateTranslator({ maxHomographs: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+      </details>
     </div>
   )
 }
