@@ -9,4 +9,11 @@ export const MDX_LOADERS: Record<string, () => Promise<{ default: ComponentType 
   'punctuation': () => import('@/content/punctuation.mdx'),
   'dictionary': () => import('@/content/dictionary.mdx'),
   'switches': () => import('@/content/switches.mdx'),
+  'spelling-scheme': () => import('@/content/spelling-scheme.mdx'),
+  'auxiliary-code-config': () => import('@/content/auxiliary-code-config.mdx'),
+  'reverse-lookup': () => import('@/content/reverse-lookup.mdx'),
+  'special-input': () => import('@/content/special-input.mdx'),
+  'lua-extensions': () => import('@/content/lua-extensions.mdx'),
+  'candidate-display': () => import('@/content/candidate-display.mdx'),
+  'comment-hints': () => import('@/content/comment-hints.mdx'),
 }
