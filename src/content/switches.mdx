@@ -1,122 +1,165 @@
 # 开关与杂项
 
-Rime 的「开关」（Switches）是一套状态切换机制，允许用户在输入过程中动态切换某些功能——比如简繁转换、Emoji 显示、全半角标点等。
+开关是 Rime 最灵活的功能切换机制——不需要编辑配置文件，只需一个快捷键或菜单操作，就能在输入过程中动态切换 Emoji 显示、简繁转换、标点模式等功能。
 
-## 概念解释
+## 这是什么
 
-开关本质上是一组带有名字的**状态变量**，每个开关可以处于若干状态之一（通常是 0 或 1）。用户按 `Ctrl+~` 进入方案菜单后可以切换各开关状态，部分开关也绑定了快捷键。
+Rime 的「开关」（Switches）本质上是一组带有名字的**状态变量**。每个开关可以处于若干状态之一，用户通过 `Ctrl+~`（macOS 为 `Control+~`）进入方案菜单来切换状态，部分开关也支持快捷键直接切换。
 
-每个开关的行为由方案文件中的 `switches` 段定义：
+开关的行为由方案文件中的 `switches` 段定义。Rime 中有两种开关类型：
+
+**二值开关**：只有开/关两种状态，用 `name` 字段标识：
 
 ```yaml
 switches:
-  - name: ascii_mode        # 开关名称（引擎识别）
-    reset: 0                # 部署后默认状态（0=关闭）
-    states: [中文, 西文]    # 两种状态的显示标签
-  - name: simplification
+  - name: emoji          # 开关名称（引擎识别）
+    reset: 1             # 部署后默认状态（0=关, 1=开）
+    states: [关, 开]     # 两种状态的显示标签
+```
+
+**多状态开关**：有 3 个或更多状态，用 `options` 数组标识：
+
+```yaml
+switches:
+  - options: [s2s, s2t, s2hk, s2tw]   # 各状态的内部名称
+    reset: 0                            # 默认选中第 0 个
+    states: [简体, 通繁, 港繁, 臺繁]    # 各状态的显示标签
+```
+
+`reset` 字段指定**每次部署后**开关的默认状态索引。
+
+## 配置项详解
+
+### 基础开关
+
+| 开关 | 名称 | 默认 | 说明 |
+|------|------|------|------|
+| Emoji | `emoji` | 开 | 候选词中是否显示 Emoji 表情 |
+| 全角/半角 | `full_shape` | 半角 | 字母和数字输出全角还是半角字符 |
+| 中英标点 | `ascii_punct` | 中文 | 中文模式下输出中文标点还是英文标点 |
+
+### 简繁转换（多状态）
+
+万象拼音的简繁转换支持 4 种输出字形，而非传统方案的简单二值切换：
+
+| 状态 | 内部值 | 说明 |
+|------|--------|------|
+| 简体 | `s2s` | 标准简体中文（默认） |
+| 通繁 | `s2t` | 通用繁体（OpenCC 标准转换） |
+| 港繁 | `s2hk` | 香港繁体用字习惯 |
+| 臺繁 | `s2tw` | 台湾繁体用字习惯 |
+
+```yaml
+patch:
+  switches/@3:   # 假设简繁转换是第 4 个开关
+    options: [s2s, s2t, s2hk, s2tw]
     reset: 0
-    states: [漢字, 汉字]
+    states: [简体, 通繁, 港繁, 臺繁]
 ```
 
-`reset` 字段指定**每次部署后**（或切换到该方案时）开关的默认状态。`0` 表示第一个状态（通常是关闭），`1` 表示第二个状态（通常是开启）。
+### 输入增强
 
-## 常用开关详解
+| 开关 | 名称 | 默认 | 说明 |
+|------|------|------|------|
+| 预测输入 | `prediction` | 关 | 根据上下文预测下一个词 |
+| 简码 | `abbrev` | 开 | 启用首字母简码输入（如 `bj` → 北京） |
+| 翻译模式 | `chinese_english` | 关 | 输入中文时显示对应英文翻译 |
 
-### Emoji 开关
+### 显示控制
 
-控制候选词中是否出现 Emoji 表情符号。需要方案支持（如雾凇拼音内置 Emoji 词库）。
+| 开关 | 名称 | 默认 | 说明 |
+|------|------|------|------|
+| 字集过滤 | `charset_filter` | 大字集 | 限制候选词的字符集范围 |
+| 候选排序 | `char_priority` | 词组先 | 优先显示单字还是词组 |
+| Tips 提示 | `super_tips` | 关 | 显示扩展提示信息 |
+
+### 编码显示（多状态）
+
+控制候选栏中编码的显示格式，3 种状态：
+
+| 状态 | 内部值 | 显示效果 |
+|------|--------|---------|
+| 原编码 | `raw_input` | 显示你实际输入的按键，如 `nihk` |
+| 有声调 | `tone_display` | 转换为带声调的拼音，如 `nǐ hǎo` |
+| 无声调 | `full_pinyin` | 转换为无声调拼音，如 `ni hao` |
+
+### 注释模式（多状态）
+
+控制候选词旁注释的显示方式，3 种状态：
+
+| 状态 | 内部值 | 说明 |
+|------|--------|------|
+| 注释关 | `comment_off` | 不显示任何注释 |
+| 有声调 | `tone_hint` | 显示带声调标记的拼音注释 |
+| 无声调 | `toneless_hint` | 显示不带声调的拼音注释 |
+
+<ConfigSlot module="switches" />
+
+## 常见场景与推荐搭配
+
+**日常简体用户**：保持大部分默认值，开启 Emoji，简繁设为简体：
 
 ```yaml
 patch:
   switches:
-    - name: emoji_suggestion
-      reset: 1              # 默认开启 Emoji
-      states: [💀 关闭, 😄 开启]
+    - name: emoji
+      reset: 1
+    - options: [s2s, s2t, s2hk, s2tw]
+      reset: 0        # 简体
 ```
 
-设置 `reset: 0` 可以默认关闭 Emoji，减少干扰；设置 `reset: 1` 则默认开启。
-
-### 简繁转换开关
-
-控制候选词是以简体还是繁体输出。此功能依赖 OpenCC 转换库，Rime 内置。
+**繁体用户（台湾）**：将简繁转换默认设为臺繁：
 
 ```yaml
 patch:
   switches:
-    - name: simplification
-      reset: 0              # 0=输出繁体（原始），1=转换为简体
-      states: [繁體, 简体]
+    - options: [s2s, s2t, s2hk, s2tw]
+      reset: 3        # 臺繁
 ```
 
-> **注意**：大多数面向简体用户的现代方案（如雾凇拼音）词库本身就是简体，`simplification` 开关此时无实际效果。该开关主要用于繁体方案（如朙月拼音原版）转换为简体输出。
-
-### 全角 / 半角字符开关
-
-控制字母和数字是输出全角（如 `Ａ`、`１`）还是半角（`A`、`1`）。
+**效率追求者**：开启预测输入、保持简码，关闭 Emoji 减少候选干扰：
 
 ```yaml
 patch:
   switches:
-    - name: full_shape
-      reset: 0              # 默认半角
-      states: [半角, 全角]
+    - name: emoji
+      reset: 0
+    - name: prediction
+      reset: 1
+    - name: char_priority
+      reset: 1        # 单字先，配合辅助码使用
 ```
 
-绝大多数用户应将此开关保持在半角（`reset: 0`），全角字符在现代排版中用途有限。
+## 进阶技巧
 
-### 中英标点开关（`ascii_punct`）
+<tip>
+多状态开关在方案菜单（`Ctrl+~`）中会显示为一个带箭头的选项，每次选择会循环切换到下一个状态。你也可以通过快捷键绑定来快速切换。
+</tip>
 
-控制中文输入模式下是否输出中文标点。
+<warning>
+修改 `switches` 段时，注意保持开关的**顺序**不变。Rime 通过开关在数组中的位置来匹配用户的历史选择。如果你插入或删除了开关，已有的用户状态可能会错位。
+</warning>
 
-```yaml
-patch:
-  switches:
-    - name: ascii_punct
-      reset: 0              # 0=中文标点，1=英文标点
-      states: [中文标点, 英文标点]
-```
-
-开启后（`reset: 1`），即便在中文输入模式下，逗号、句号等也输出半角形式（`,`、`.`），适合需要中英混排且不希望打出中文标点的用户。如需更精细地自定义每个标点的映射行为，请参阅[标点符号映射](./punctuation)。
-
-## 开关的工作原理
-
-Rime 中开关的切换通过 `key_binder` 中的按键绑定触发，或通过方案选单（`Ctrl+~`）手动切换。
-
-以为 `simplification` 绑定 `Ctrl+Shift+F` 为例：
+可以为任意开关绑定快捷键实现一键切换：
 
 ```yaml
 patch:
   key_binder/bindings:
+    - { when: always, accept: Control+Shift+E, toggle: emoji }
     - { when: always, accept: Control+Shift+F, toggle: simplification }
 ```
 
-`toggle` 动作会在当前状态和下一个状态之间循环切换。
+## 学习路径
 
-## 完整示例配置
+1. **起步**：先使用默认配置体验所有开关，通过 `Ctrl+~` 菜单了解有哪些可切换的选项
+2. **调整**：根据使用习惯修改最常用的开关默认值（Emoji、简繁、标点）
+3. **进阶**：为高频操作绑定快捷键，探索多状态开关的不同状态
 
-以下是一个常见的开关配置，适用于大多数简体用户：
+## 相关模块
 
-```yaml
-# luna_pinyin_simp.custom.yaml 或 rime_ice.custom.yaml
-patch:
-  switches:
-    - name: ascii_mode
-      reset: 0
-      states: [中文, 西文]
-    - name: full_shape
-      reset: 0
-      states: [半角, 全角]
-    - name: simplification
-      reset: 1              # 简体方案保持简体输出
-      states: [漢字, 汉字]
-    - name: ascii_punct
-      reset: 0
-      states: [中文标点, 英文标点]
-    - name: emoji_suggestion
-      reset: 1
-      states: [💀 无Emoji, 😄 有Emoji]
-```
+- [按键绑定](./key-bindings) — 为开关绑定快捷键
+- [注释与提示](./comment-hints) — 注释模式开关的详细配置
+- [候选词设置](./candidate-settings) — 部分开关影响候选行为
+- [标点符号映射](./punctuation) — `ascii_punct` 开关的详细说明
 
-在编辑器中可以直观地修改这些设置，每个开关都有清晰的说明和默认值选项。
-
-<GoToConfigButton module="switches" label="在编辑器中配置开关" />
+<ConfigSlot module="switches" />
