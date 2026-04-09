@@ -1,0 +1,786 @@
+{
+  "schemas": [
+    {
+      "id": "rime_ice",
+      "name": "雾凇拼音",
+      "type": "full_pinyin",
+      "description": "功能齐全的全拼方案，词库丰富，社区活跃",
+      "introduction": "雾凇拼音是目前最受欢迎的 Rime 全拼输入方案之一，由 Dvel 开发维护。它拥有超过 200 万条词库，涵盖日常用语、网络热词、专业术语等，能满足绝大多数用户的输入需求。\n\n方案内置了丰富的功能，包括 Emoji 表情输入、特殊符号输入、反查功能、日期时间输入、计算器等实用工具，并通过 Lua 扩展提供了更多高级功能。社区活跃，更新频繁，是新手入门 Rime 的首选方案。\n\n雾凇拼音支持所有主流平台，配置简单，开箱即用，同时也为进阶用户提供了丰富的自定义选项。",
+      "author": "Dvel",
+      "links": {
+        "official": "https://dvel.me/posts/rime-ice/",
+        "repository": "https://github.com/iDvel/rime-ice",
+        "documentation": "https://dvel.me/posts/rime-ice/",
+        "community": [
+          {
+            "label": "GitHub Discussions",
+            "url": "https://github.com/iDvel/rime-ice/discussions"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "200万+",
+        "smartLevel": "高",
+        "auxiliaryCode": "不支持",
+        "features": ["Emoji", "符号输入", "反查", "日期时间", "计算器", "Lua 扩展"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "简单",
+        "recommendation": "功能最全的全拼方案，新手首选"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "每周更新",
+        "stars": "10k+",
+        "reputation": "最受欢迎的 Rime 全拼方案"
+      },
+      "learningResources": [
+        {
+          "title": "雾凇拼音官方文档",
+          "url": "https://dvel.me/posts/rime-ice/"
+        },
+        {
+          "title": "GitHub 仓库",
+          "url": "https://github.com/iDvel/rime-ice"
+        }
+      ],
+      "integration": {
+        "presetId": "rime-ice",
+        "capabilities": ["special-input"],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "wanxiang",
+      "name": "万象拼音",
+      "type": "full_pinyin",
+      "description": "新一代拼音方案，支持直接辅助码",
+      "introduction": "万象拼音是由 amz 开发的新一代 Rime 拼音输入方案，最大的特色是支持直接辅助码功能。用户可以在拼音输入的同时，通过辅助码快速筛选候选字，大幅提升输入效率和准确性。\n\n万象拼音支持多种双拼方案作为拼写方案（小鹤、自然码、微软、搜狗等），同时提供了墨奇、鹤形、自然码辅助码、虎码、五笔、仓颉等多种辅助码方案供用户选择。方案还内置了反查、Emoji、符号输入等常用功能。\n\n得益于灵活的架构设计和丰富的 Lua 扩展，万象拼音能够适配不同用户的输入习惯，是追求高效输入体验的用户的理想选择。",
+      "author": "amz",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/amzxyz/rime-wanxiang-pinyin",
+        "documentation": null,
+        "community": [
+          {
+            "label": "GitHub Issues",
+            "url": "https://github.com/amzxyz/rime-wanxiang-pinyin/issues"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "150万+",
+        "smartLevel": "高",
+        "auxiliaryCode": "直接辅助码",
+        "features": ["Emoji", "符号输入", "反查", "辅助码筛选"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "支持辅助码的现代拼音方案"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "活跃更新",
+        "stars": "1k+",
+        "reputation": "支持辅助码的现代拼音方案"
+      },
+      "learningResources": [
+        {
+          "title": "万象拼音 GitHub 仓库",
+          "url": "https://github.com/amzxyz/rime-wanxiang-pinyin"
+        }
+      ],
+      "integration": {
+        "presetId": "wanxiang",
+        "capabilities": [
+          "multi-spelling",
+          "auxiliary-code",
+          "reverse-lookup",
+          "special-input",
+          "lua-extensions",
+          "super-comment"
+        ],
+        "availableSpellingSchemes": ["full_pinyin", "flypy", "zrm", "mspy", "sogou", "abc", "ziguang"],
+        "availableAuxiliaryCodes": ["moqi", "hexing", "zrm", "tiger", "wubi", "cangjie", "simple_he", "hanxin"],
+        "customSwitchNames": [
+          "chinese_english",
+          "prediction",
+          "abbrev",
+          "charset_filter",
+          "char_priority",
+          "super_tips"
+        ]
+      }
+    },
+    {
+      "id": "wanxiang_pro",
+      "name": "万象拼音 PRO",
+      "type": "full_pinyin",
+      "description": "万象拼音的增强版，更多辅助码选项",
+      "introduction": "万象拼音 PRO 是万象拼音的增强版本，在原版基础上增加了引导辅助码功能和整句输入模式。相比标准版，PRO 版提供了更丰富的辅助码触发方式，用户可以根据自己的习惯选择直接辅助码或引导辅助码。\n\n整句输入功能让用户可以连续输入一整句话，系统会自动进行分词和候选排序，适合需要快速输入长句的场景。结合辅助码筛选功能，即使在整句模式下也能精确选择目标汉字。\n\n万象拼音 PRO 继承了标准版的所有优点，包括多拼写方案支持、多种辅助码方案、以及丰富的 Lua 扩展功能，是追求极致输入效率的用户的进阶选择。",
+      "author": "amz",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/amzxyz/rime-wanxiang-pinyin",
+        "documentation": null,
+        "community": [
+          {
+            "label": "GitHub Issues",
+            "url": "https://github.com/amzxyz/rime-wanxiang-pinyin/issues"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "150万+",
+        "smartLevel": "高",
+        "auxiliaryCode": "直接辅助码 + 引导辅助码",
+        "features": ["Emoji", "符号输入", "反查", "辅助码筛选", "整句输入"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "万象拼音的增强版，更多辅助码选项"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "活跃更新",
+        "stars": "1k+",
+        "reputation": "万象拼音的高级版本"
+      },
+      "learningResources": [
+        {
+          "title": "万象拼音 GitHub 仓库",
+          "url": "https://github.com/amzxyz/rime-wanxiang-pinyin"
+        }
+      ],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "double_pinyin_flypy",
+      "name": "小鹤双拼",
+      "type": "double_pinyin",
+      "description": "最流行的双拼方案之一，键位分布合理",
+      "introduction": "小鹤双拼是由何海峰设计的双拼方案，是目前国内最流行的双拼方案之一。其键位设计充分考虑了手指负荷均衡和常用韵母的便捷性，学习曲线相对平缓，被广泛推荐给双拼初学者。\n\n小鹤双拼的核心思路是将声母和韵母各映射到一个按键上，每个汉字只需两次击键即可完成输入。方案还可以搭配小鹤音形辅助码，通过在双拼编码后追加形码来进一步提升选字效率。\n\n作为 Rime 内置的双拼方案之一，小鹤双拼可以与各种全拼词库搭配使用，兼容性好，社区资源丰富，是从全拼转向双拼的理想过渡方案。",
+      "author": "何海峰",
+      "links": {
+        "official": "https://flypy.com/",
+        "repository": null,
+        "documentation": "https://flypy.com/",
+        "community": [
+          {
+            "label": "小鹤双拼官网",
+            "url": "https://flypy.com/"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "取决于基础方案",
+        "smartLevel": "中等",
+        "auxiliaryCode": "小鹤音形（可选）",
+        "features": ["双拼输入", "可搭配音形"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "最流行的双拼方案，键位分布合理"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": {
+          "name": "小鹤双拼",
+          "rows": [
+            [
+              { "key": "Q", "initial": "q", "final": "iu" },
+              { "key": "W", "initial": "w", "final": "ei" },
+              { "key": "E", "initial": null, "final": "e" },
+              { "key": "R", "initial": "r", "final": "uan" },
+              { "key": "T", "initial": "t", "final": "ue/ve" },
+              { "key": "Y", "initial": "y", "final": "un" },
+              { "key": "U", "initial": "sh", "final": "u", "isDualRole": true },
+              { "key": "I", "initial": "ch", "final": "i", "isDualRole": true },
+              { "key": "O", "initial": null, "final": "o/uo" },
+              { "key": "P", "initial": "p", "final": "ie" }
+            ],
+            [
+              { "key": "A", "initial": null, "final": "a" },
+              { "key": "S", "initial": "s", "final": "iong/ong" },
+              { "key": "D", "initial": "d", "final": "ai" },
+              { "key": "F", "initial": "f", "final": "en" },
+              { "key": "G", "initial": "g", "final": "eng" },
+              { "key": "H", "initial": "h", "final": "ang" },
+              { "key": "J", "initial": "j", "final": "an" },
+              { "key": "K", "initial": "k", "final": "ing/uai" },
+              { "key": "L", "initial": "l", "final": "iang/uang" }
+            ],
+            [
+              { "key": "Z", "initial": "z", "final": "ou" },
+              { "key": "X", "initial": "x", "final": "ia/ua" },
+              { "key": "C", "initial": "c", "final": "ao" },
+              { "key": "V", "initial": "zh", "final": "ui/v", "isDualRole": true },
+              { "key": "B", "initial": "b", "final": "in" },
+              { "key": "N", "initial": "n", "final": "iao" },
+              { "key": "M", "initial": "m", "final": "ian" }
+            ]
+          ]
+        }
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "最流行的双拼方案"
+      },
+      "learningResources": [
+        {
+          "title": "小鹤双拼官网",
+          "url": "https://flypy.com/"
+        },
+        {
+          "title": "小鹤入门指南",
+          "url": "https://flypy.com/pin.html"
+        }
+      ],
+      "integration": {
+        "presetId": "double-pinyin",
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "double_pinyin",
+      "name": "自然码双拼",
+      "type": "double_pinyin",
+      "description": "经典双拼方案",
+      "introduction": "自然码双拼是由周志农于 1988 年发明的双拼方案，是中国最早的双拼输入法之一，也是许多后来双拼方案的设计基础。自然码的键位布局经过精心设计，注重韵母的逻辑分组和记忆便利性。\n\n自然码双拼将所有声母和韵母映射到标准键盘的 26 个字母键上，不使用符号键。其中 Y 键同时映射 ing 和 uai 两个韵母。方案的键位设计强调直觉性，许多韵母的位置与其拼音首字母对应，降低了学习难度。\n\n作为历史最悠久的双拼方案之一，自然码拥有深厚的用户基础和丰富的学习资源。虽然近年来小鹤双拼更受新用户欢迎，但自然码依然是许多老用户的首选。",
+      "author": "周志农",
+      "links": {
+        "official": null,
+        "repository": null,
+        "documentation": null,
+        "community": []
+      },
+      "compare": {
+        "dictSize": "取决于基础方案",
+        "smartLevel": "中等",
+        "auxiliaryCode": "不支持",
+        "features": ["双拼输入"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "经典双拼方案，历史悠久"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": {
+          "name": "自然码双拼",
+          "rows": [
+            [
+              { "key": "Q", "initial": "q", "final": "iu" },
+              { "key": "W", "initial": "w", "final": "ia/ua" },
+              { "key": "E", "initial": null, "final": "e" },
+              { "key": "R", "initial": "r", "final": "uan" },
+              { "key": "T", "initial": "t", "final": "ue/ve" },
+              { "key": "Y", "initial": "y", "final": "ing/uai" },
+              { "key": "U", "initial": "sh", "final": "u", "isDualRole": true },
+              { "key": "I", "initial": "ch", "final": "i", "isDualRole": true },
+              { "key": "O", "initial": null, "final": "o/uo" },
+              { "key": "P", "initial": "p", "final": "un" }
+            ],
+            [
+              { "key": "A", "initial": null, "final": "a" },
+              { "key": "S", "initial": "s", "final": "iong/ong" },
+              { "key": "D", "initial": "d", "final": "iang/uang" },
+              { "key": "F", "initial": "f", "final": "en" },
+              { "key": "G", "initial": "g", "final": "eng" },
+              { "key": "H", "initial": "h", "final": "ang" },
+              { "key": "J", "initial": "j", "final": "an" },
+              { "key": "K", "initial": "k", "final": "ao" },
+              { "key": "L", "initial": "l", "final": "ai" }
+            ],
+            [
+              { "key": "Z", "initial": "z", "final": "ei" },
+              { "key": "X", "initial": "x", "final": "ie" },
+              { "key": "C", "initial": "c", "final": "iao" },
+              { "key": "V", "initial": "zh", "final": "ui/v", "isDualRole": true },
+              { "key": "B", "initial": "b", "final": "ou" },
+              { "key": "N", "initial": "n", "final": "in" },
+              { "key": "M", "initial": "m", "final": "ian" }
+            ]
+          ]
+        }
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "历史最悠久的双拼方案之一"
+      },
+      "learningResources": [],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "double_pinyin_mspy",
+      "name": "微软双拼",
+      "type": "double_pinyin",
+      "description": "微软拼音使用的双拼方案",
+      "introduction": "微软双拼是微软拼音输入法内置的双拼方案，随 Windows 操作系统预装，拥有庞大的用户基础。由于 Windows 系统的广泛普及，微软双拼成为许多用户接触双拼的第一个方案。\n\n微软双拼的键位设计与自然码有一定相似性，但在部分韵母的映射上有所不同。最显著的区别是 ing 韵母映射到分号键（;），而 Y 键映射 v/uai。方案整体键位布局合理，学习难度适中，适合从微软拼音迁移到 Rime 的用户。\n\n对于长期使用 Windows 自带微软拼音双拼模式的用户，在 Rime 中选择微软双拼方案可以实现无缝切换，无需重新学习键位映射。",
+      "author": "Microsoft",
+      "links": {
+        "official": null,
+        "repository": null,
+        "documentation": null,
+        "community": []
+      },
+      "compare": {
+        "dictSize": "取决于基础方案",
+        "smartLevel": "中等",
+        "auxiliaryCode": "不支持",
+        "features": ["双拼输入"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "微软拼音用户迁移首选"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": {
+          "name": "微软双拼",
+          "rows": [
+            [
+              { "key": "Q", "initial": "q", "final": "iu" },
+              { "key": "W", "initial": "w", "final": "ia/ua" },
+              { "key": "E", "initial": null, "final": "e" },
+              { "key": "R", "initial": "r", "final": "er/uan" },
+              { "key": "T", "initial": "t", "final": "ue/ve" },
+              { "key": "Y", "initial": "y", "final": "v/uai" },
+              { "key": "U", "initial": "sh", "final": "u", "isDualRole": true },
+              { "key": "I", "initial": "ch", "final": "i", "isDualRole": true },
+              { "key": "O", "initial": null, "final": "o/uo" },
+              { "key": "P", "initial": "p", "final": "un" }
+            ],
+            [
+              { "key": "A", "initial": null, "final": "a" },
+              { "key": "S", "initial": "s", "final": "iong/ong" },
+              { "key": "D", "initial": "d", "final": "iang/uang" },
+              { "key": "F", "initial": "f", "final": "en" },
+              { "key": "G", "initial": "g", "final": "eng" },
+              { "key": "H", "initial": "h", "final": "ang" },
+              { "key": "J", "initial": "j", "final": "an" },
+              { "key": "K", "initial": "k", "final": "ao" },
+              { "key": "L", "initial": "l", "final": "ai" },
+              { "key": ";", "initial": null, "final": "ing", "isSpecial": true }
+            ],
+            [
+              { "key": "Z", "initial": "z", "final": "ei" },
+              { "key": "X", "initial": "x", "final": "ie" },
+              { "key": "C", "initial": "c", "final": "iao" },
+              { "key": "V", "initial": "zh", "final": "ui", "isDualRole": true },
+              { "key": "B", "initial": "b", "final": "ou" },
+              { "key": "N", "initial": "n", "final": "in" },
+              { "key": "M", "initial": "m", "final": "ian" }
+            ]
+          ]
+        }
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "Windows 用户最熟悉的双拼方案"
+      },
+      "learningResources": [],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "double_pinyin_sogou",
+      "name": "搜狗双拼",
+      "type": "double_pinyin",
+      "description": "搜狗输入法使用的双拼方案",
+      "introduction": "搜狗双拼是搜狗输入法内置的双拼方案，随搜狗拼音输入法广泛传播。作为国内市场占有率最高的输入法之一，搜狗拼音的双拼模式培养了大量双拼用户。\n\n搜狗双拼的键位布局与微软双拼完全一致，ing 韵母映射到分号键（;），Y 键映射 v/uai。两者的用户可以无缝切换，不需要重新适应键位。\n\n对于习惯使用搜狗输入法双拼模式的用户，在 Rime 中选择搜狗双拼方案可以保持一致的键位习惯，降低迁移成本。搜狗双拼在 Rime 中可以搭配各种高质量词库使用，获得更好的输入体验。",
+      "author": "搜狗",
+      "links": {
+        "official": null,
+        "repository": null,
+        "documentation": null,
+        "community": []
+      },
+      "compare": {
+        "dictSize": "取决于基础方案",
+        "smartLevel": "中等",
+        "auxiliaryCode": "不支持",
+        "features": ["双拼输入"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "搜狗输入法用户迁移首选"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": {
+          "name": "搜狗双拼",
+          "rows": [
+            [
+              { "key": "Q", "initial": "q", "final": "iu" },
+              { "key": "W", "initial": "w", "final": "ia/ua" },
+              { "key": "E", "initial": null, "final": "e" },
+              { "key": "R", "initial": "r", "final": "er/uan" },
+              { "key": "T", "initial": "t", "final": "ue/ve" },
+              { "key": "Y", "initial": "y", "final": "v/uai" },
+              { "key": "U", "initial": "sh", "final": "u", "isDualRole": true },
+              { "key": "I", "initial": "ch", "final": "i", "isDualRole": true },
+              { "key": "O", "initial": null, "final": "o/uo" },
+              { "key": "P", "initial": "p", "final": "un" }
+            ],
+            [
+              { "key": "A", "initial": null, "final": "a" },
+              { "key": "S", "initial": "s", "final": "iong/ong" },
+              { "key": "D", "initial": "d", "final": "iang/uang" },
+              { "key": "F", "initial": "f", "final": "en" },
+              { "key": "G", "initial": "g", "final": "eng" },
+              { "key": "H", "initial": "h", "final": "ang" },
+              { "key": "J", "initial": "j", "final": "an" },
+              { "key": "K", "initial": "k", "final": "ao" },
+              { "key": "L", "initial": "l", "final": "ai" },
+              { "key": ";", "initial": null, "final": "ing", "isSpecial": true }
+            ],
+            [
+              { "key": "Z", "initial": "z", "final": "ei" },
+              { "key": "X", "initial": "x", "final": "ie" },
+              { "key": "C", "initial": "c", "final": "iao" },
+              { "key": "V", "initial": "zh", "final": "ui", "isDualRole": true },
+              { "key": "B", "initial": "b", "final": "ou" },
+              { "key": "N", "initial": "n", "final": "in" },
+              { "key": "M", "initial": "m", "final": "ian" }
+            ]
+          ]
+        }
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "搜狗用户熟悉的双拼方案"
+      },
+      "learningResources": [],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "luna_pinyin",
+      "name": "朙月拼音",
+      "type": "full_pinyin",
+      "description": "Rime 内置全拼方案，轻量稳定",
+      "introduction": "朙月拼音（Luna Pinyin）是 Rime 输入法引擎的内置全拼方案，由 Rime 项目团队开发维护。作为 Rime 的默认方案之一，朙月拼音以轻量、稳定著称，是了解 Rime 工作原理的最佳起点。\n\n朙月拼音的词库规模约 50 万条，虽然不如雾凇拼音等第三方方案丰富，但覆盖了日常输入的基本需求。方案支持反查功能，可以通过笔画等方式查询不认识的字。\n\n作为 Rime 官方维护的方案，朙月拼音的代码质量和稳定性有保障，适合追求简洁稳定的用户，也是其他拼音方案开发的参考基础。",
+      "author": "Rime",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/rime/rime-luna-pinyin",
+        "documentation": null,
+        "community": [
+          {
+            "label": "Rime GitHub",
+            "url": "https://github.com/rime"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "50万+",
+        "smartLevel": "中等",
+        "auxiliaryCode": "不支持",
+        "features": ["反查"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "简单",
+        "recommendation": "Rime 内置方案，轻量稳定"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定维护",
+        "stars": "N/A",
+        "reputation": "Rime 官方内置方案"
+      },
+      "learningResources": [
+        {
+          "title": "Rime 官方文档",
+          "url": "https://github.com/rime/home/wiki"
+        },
+        {
+          "title": "朙月拼音仓库",
+          "url": "https://github.com/rime/rime-luna-pinyin"
+        }
+      ],
+      "integration": {
+        "presetId": "minimal-pinyin",
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "terra_pinyin",
+      "name": "地球拼音",
+      "type": "full_pinyin",
+      "description": "支持声调标注的拼音方案",
+      "introduction": "地球拼音（Terra Pinyin）是 Rime 内置的一个特色全拼方案，最大的特点是支持声调输入。用户可以在拼音后附加声调数字（1-4 分别对应阴平、阳平、上声、去声），系统会据此精确筛选候选字，大幅减少同音字的干扰。\n\n声调输入功能对于需要精确输入的场景尤为有用，例如输入生僻字、专业术语或人名地名时，通过声调可以快速定位目标字。方案同时支持不带声调的普通拼音输入，用户可以根据需要灵活切换。\n\n地球拼音适合对拼音声调敏感的用户，以及语言学习者和教育工作者。方案由 Rime 团队维护，稳定可靠。",
+      "author": "Rime",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/rime/rime-terra-pinyin",
+        "documentation": null,
+        "community": [
+          {
+            "label": "Rime GitHub",
+            "url": "https://github.com/rime"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "50万+",
+        "smartLevel": "中等",
+        "auxiliaryCode": "不支持",
+        "features": ["声调输入", "反查"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "中等",
+        "recommendation": "支持声调标注的拼音方案"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定维护",
+        "stars": "N/A",
+        "reputation": "唯一支持声调输入的 Rime 方案"
+      },
+      "learningResources": [
+        {
+          "title": "地球拼音仓库",
+          "url": "https://github.com/rime/rime-terra-pinyin"
+        }
+      ],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "wubi86",
+      "name": "五笔86",
+      "type": "shape",
+      "description": "经典五笔字型方案",
+      "introduction": "五笔86 是由王永民于 1983 年发明的五笔字型输入法的 86 版本（1986 年标准化），是中国最具影响力的形码输入法。五笔字型通过将汉字拆分为基本字根，按照字根在键盘上的位置编码来输入汉字，完全不依赖拼音。\n\n五笔86 的优势在于重码率极低，熟练用户可以实现极高的输入速度，且不受方言和口音的影响。方案将 200 多个字根分布在 25 个字母键上，按照笔画（横竖撇捺折）和字根形态进行分区排列。\n\n虽然五笔86 的学习门槛较高，需要记忆字根分布和拆字规则，但一旦掌握，输入效率远超拼音输入法。作为经典的形码方案，五笔86 在专业打字员和文字工作者中仍有广泛使用。",
+      "author": "王永民",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/rime/rime-wubi",
+        "documentation": null,
+        "community": [
+          {
+            "label": "Rime 五笔仓库",
+            "url": "https://github.com/rime/rime-wubi"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "10万+",
+        "smartLevel": "基础",
+        "auxiliaryCode": "不适用",
+        "features": ["形码输入", "反查"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "困难",
+        "recommendation": "经典五笔方案，打字速度快"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "最经典的形码输入方案"
+      },
+      "learningResources": [
+        {
+          "title": "Rime 五笔仓库",
+          "url": "https://github.com/rime/rime-wubi"
+        }
+      ],
+      "integration": {
+        "presetId": "wubi",
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "wubi98",
+      "name": "五笔98",
+      "type": "shape",
+      "description": "五笔86 的改进版，字根更合理",
+      "introduction": "五笔98 是王永民在五笔86 基础上于 1998 年推出的改进版本。相比 86 版，98 版对部分字根的键位分布进行了优化调整，使字根排列更加符合逻辑，降低了部分汉字的拆字难度。\n\n五笔98 保持了五笔字型的核心设计理念，即通过字根编码实现汉字输入，同时在细节上进行了改良。部分在 86 版中拆分不够直观的汉字，在 98 版中有了更合理的编码方案。\n\n对于已经熟练掌握五笔86 的用户，迁移到 98 版需要重新适应部分字根的变化。新学五笔的用户可以根据个人偏好选择 86 版或 98 版，两者的核心逻辑一致。",
+      "author": "王永民",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/rime/rime-wubi",
+        "documentation": null,
+        "community": [
+          {
+            "label": "Rime 五笔仓库",
+            "url": "https://github.com/rime/rime-wubi"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "10万+",
+        "smartLevel": "基础",
+        "auxiliaryCode": "不适用",
+        "features": ["形码输入", "反查"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "困难",
+        "recommendation": "五笔86的改进版，字根更合理"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "改进版五笔字型方案"
+      },
+      "learningResources": [
+        {
+          "title": "Rime 五笔仓库",
+          "url": "https://github.com/rime/rime-wubi"
+        }
+      ],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "cangjie5",
+      "name": "仓颉五代",
+      "type": "shape",
+      "description": "经典形码方案",
+      "introduction": "仓颉输入法是由朱邦复于 1976 年发明的形码输入法，是最早的中文电脑输入法之一。仓颉五代是其第五个版本，经过多年迭代优化，编码规则更加完善。仓颉输入法在港澳台地区广泛使用，是繁体中文输入的主流选择之一。\n\n仓颉输入法将汉字拆分为基本字形（称为「字根」或「辅助字形」），每个字根对应一个英文字母键。输入时按照汉字的书写顺序依次输入字根编码。仓颉的编码规则相对规范，拆字方法有明确的优先级规则。\n\n仓颉五代默认以繁体字优先排列候选，特别适合需要输入繁体中文的用户。方案同时支持简体字输入，通过反查功能还可以查询不熟悉的字的编码。",
+      "author": "朱邦复",
+      "links": {
+        "official": null,
+        "repository": "https://github.com/rime/rime-cangjie",
+        "documentation": null,
+        "community": [
+          {
+            "label": "Rime 仓颉仓库",
+            "url": "https://github.com/rime/rime-cangjie"
+          }
+        ]
+      },
+      "compare": {
+        "dictSize": "8万+",
+        "smartLevel": "基础",
+        "auxiliaryCode": "不适用",
+        "features": ["形码输入", "繁体优先"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "困难",
+        "recommendation": "繁体中文用户的经典选择"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "繁体中文形码输入的经典选择"
+      },
+      "learningResources": [
+        {
+          "title": "Rime 仓颉仓库",
+          "url": "https://github.com/rime/rime-cangjie"
+        }
+      ],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    },
+    {
+      "id": "zhengma",
+      "name": "郑码",
+      "type": "shape",
+      "description": "国标编码的形码方案",
+      "introduction": "郑码是由郑易里和郑珑父女共同发明的形码输入法，于 1989 年被收录为国家标准（GB/T 18031）。郑码的设计理念是基于汉字的笔画和结构进行编码，字根分类科学，拆字规则严谨。\n\n郑码将汉字字根分为五大类（横类、竖类、撇类、捺类、折类），每类再细分小类，分布在键盘的不同区域。编码时按照汉字的书写顺序取字根，最多取四个字根编码。郑码的重码率较低，编码规则逻辑性强。\n\n作为国标编码方案，郑码在政府机关和部分企业中有一定应用基础。虽然用户规模不如五笔，但郑码的编码设计在学术界获得了较高评价，适合追求规范化形码输入的用户。",
+      "author": "郑易里",
+      "links": {
+        "official": null,
+        "repository": null,
+        "documentation": null,
+        "community": []
+      },
+      "compare": {
+        "dictSize": "8万+",
+        "smartLevel": "基础",
+        "auxiliaryCode": "不适用",
+        "features": ["形码输入", "反查"],
+        "platforms": ["macOS", "Windows", "Linux", "Android", "iOS"],
+        "difficulty": "困难",
+        "recommendation": "另一种形码方案，国标编码"
+      },
+      "visuals": {
+        "screenshots": [],
+        "keyboardLayout": null
+      },
+      "community": {
+        "updateFrequency": "稳定",
+        "stars": "N/A",
+        "reputation": "国家标准形码输入方案"
+      },
+      "learningResources": [],
+      "integration": {
+        "presetId": null,
+        "capabilities": [],
+        "availableSpellingSchemes": null,
+        "availableAuxiliaryCodes": null,
+        "customSwitchNames": null
+      }
+    }
+  ]
+}
