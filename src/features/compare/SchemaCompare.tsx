@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ExternalLink, Github } from 'lucide-react'
+import { ExternalLink, Code } from 'lucide-react'
 import { useConfigStore } from '@/stores/config-store'
 import { createEmptyProject } from '@/lib/config/defaults'
 import { PRESETS } from '@/data/presets'
@@ -82,7 +82,7 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
                   <div className="mt-1 flex justify-center gap-2">
                     {detail?.links.repository && (
                       <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600" title="GitHub">
-                        <Github className="h-3.5 w-3.5" />
+                        <Code className="h-3.5 w-3.5" />
                       </a>
                     )}
                     {detail?.links.official && (

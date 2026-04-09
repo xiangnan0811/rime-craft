@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, Github, Info } from 'lucide-react'
+import { ExternalLink, Code, Info } from 'lucide-react'
 import { useConfigStore } from '@/stores/config-store'
 import { ALL_SCHEMAS } from '@/data/schema-data'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
@@ -75,7 +75,7 @@ export function SchemaManager() {
                   )}
                   {detail?.links.repository && (
                     <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-gray-600" title="GitHub">
-                      <Github className="h-3.5 w-3.5" />
+                      <Code className="h-3.5 w-3.5" />
                     </a>
                   )}
                   {detail?.links.official && (
