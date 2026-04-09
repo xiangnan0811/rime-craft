@@ -54,19 +54,14 @@ describe('APP_DATABASE', () => {
 })
 
 describe('CATEGORY_LABELS', () => {
-  it('has Chinese labels for all categories', () => {
-    const allCategories: AppCategory[] = [
-      'terminal',
-      'editor',
-      'ide',
-      'browser',
-      'communication',
-      'office',
-      'other',
-    ]
-    for (const cat of allCategories) {
-      expect(CATEGORY_LABELS[cat]).toBeTruthy()
-    }
+  it('has exact labels for all categories', () => {
+    expect(CATEGORY_LABELS.terminal).toBe('终端工具')
+    expect(CATEGORY_LABELS.editor).toBe('编辑器')
+    expect(CATEGORY_LABELS.ide).toBe('IDE')
+    expect(CATEGORY_LABELS.browser).toBe('浏览器')
+    expect(CATEGORY_LABELS.communication).toBe('通讯')
+    expect(CATEGORY_LABELS.office).toBe('办公')
+    expect(CATEGORY_LABELS.other).toBe('其他')
   })
 })
 

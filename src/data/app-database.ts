@@ -212,9 +212,9 @@ export const APP_DATABASE: AppEntry[] = [
 ]
 
 export const CATEGORY_LABELS: Record<AppCategory, string> = {
-  terminal: '终端',
+  terminal: '终端工具',
   editor: '编辑器',
-  ide: '集成开发环境',
+  ide: 'IDE',
   browser: '浏览器',
   communication: '通讯',
   office: '办公',
