@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { ExternalLink, Github } from 'lucide-react'
 import { useConfigStore } from '@/stores/config-store'
 import { createEmptyProject } from '@/lib/config/defaults'
 import { PRESETS } from '@/data/presets'
+import { ALL_SCHEMAS } from '@/data/schema-data'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -26,6 +28,20 @@ const COMPARE_ROWS: CompareRow[] = [
   { label: '平台支持', getValue: (s) => s.platforms },
   { label: '上手难度', getValue: (s) => s.difficulty },
   { label: '推荐人群', getValue: (s) => s.recommendation },
+  {
+    label: '更新活跃度',
+    getValue: (s) => {
+      const detail = ALL_SCHEMAS.find((d) => d.id === s.id)
+      return detail?.community.updateFrequency ?? '未知'
+    },
+  },
+  {
+    label: '社区规模',
+    getValue: (s) => {
+      const detail = ALL_SCHEMAS.find((d) => d.id === s.id)
+      return detail?.community.stars ?? 'N/A'
+    },
+  },
 ]
 
 export function SchemaCompare({ schemas }: SchemaCompareProps) {
@@ -33,12 +49,10 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
   const loadProject = useConfigStore((s) => s.loadProject)
 
   function handleUseSchema(schema: SchemaCompareData) {
-    // Try to find a matching preset
     const preset = schema.presetId ? PRESETS.find((p) => p.id === schema.presetId) : undefined
     if (preset) {
       loadProject(preset.createProject())
     } else {
-      // Create minimal project with just this schema
       const project = createEmptyProject()
       project.defaultConfig.schemaList = [{ schema: schema.id }]
       loadProject(project)
@@ -58,11 +72,28 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
         <thead>
           <tr>
             <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left font-medium" />
-            {schemas.map((s) => (
-              <th key={s.id} className="min-w-[200px] px-4 py-3 text-center font-semibold">
-                {s.name}
-              </th>
-            ))}
+            {schemas.map((s) => {
+              const detail = ALL_SCHEMAS.find((d) => d.id === s.id)
+              return (
+                <th key={s.id} className="min-w-[200px] px-4 py-3 text-center">
+                  <Link to={`/schema/${s.id}`} className="font-semibold text-blue-600 hover:underline">
+                    {s.name}
+                  </Link>
+                  <div className="mt-1 flex justify-center gap-2">
+                    {detail?.links.repository && (
+                      <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600" title="GitHub">
+                        <Github className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    {detail?.links.official && (
+                      <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600" title="官网">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                </th>
+              )
+            })}
           </tr>
         </thead>
         <tbody>
@@ -70,24 +101,16 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
             const diff = isDifferent(row)
             return (
               <tr key={row.label} className={cn(diff && 'bg-yellow-50')}>
-                <td className="sticky left-0 bg-inherit px-4 py-2 font-medium text-gray-600">
-                  {row.label}
-                </td>
+                <td className="sticky left-0 bg-inherit px-4 py-2 font-medium text-gray-600">{row.label}</td>
                 {schemas.map((s) => {
                   const value = row.getValue(s)
                   return (
                     <td key={s.id} className="px-4 py-2 text-center">
                       {Array.isArray(value) ? (
                         <div className="flex flex-wrap justify-center gap-1">
-                          {value.map((v) => (
-                            <Badge key={v} variant="secondary" className="text-xs">
-                              {v}
-                            </Badge>
-                          ))}
+                          {value.map((v) => (<Badge key={v} variant="secondary" className="text-xs">{v}</Badge>))}
                         </div>
-                      ) : (
-                        value
-                      )}
+                      ) : value}
                     </td>
                   )
                 })}
@@ -98,9 +121,12 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
             <td className="sticky left-0 px-4 py-3" />
             {schemas.map((s) => (
               <td key={s.id} className="px-4 py-3 text-center">
-                <Button size="sm" onClick={() => handleUseSchema(s)}>
-                  使用这个方案
-                </Button>
+                <div className="flex justify-center gap-2">
+                  <Button size="sm" onClick={() => handleUseSchema(s)}>使用这个方案</Button>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to={`/schema/${s.id}`}>查看详情</Link>
+                  </Button>
+                </div>
               </td>
             ))}
           </tr>
