@@ -10,6 +10,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import type { SwitchItem, SimpleSwitchItem, MultiStateSwitchItem } from '@/types/config'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { SettingHelp } from '@/components/shared/SettingHelp'
 
 export function Switches() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -82,22 +83,41 @@ export function Switches() {
                 if (isBinarySwitch(def)) {
                   return (
                     <div key={def.name} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{def.label}</p>
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-x-1.5">
+                          <p className="font-medium">{def.label}</p>
+                          {def.help && (
+                            <SettingHelp>
+                              <p>{def.help}</p>
+                            </SettingHelp>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500">{def.description}</p>
                       </div>
-                      <Switch
-                        checked={reset === 1}
-                        onCheckedChange={(checked) => handleBinaryToggle(def.name, checked)}
-                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">
+                          {reset === 1 ? def.states[1] : def.states[0]}
+                        </span>
+                        <Switch
+                          checked={reset === 1}
+                          onCheckedChange={(checked) => handleBinaryToggle(def.name, checked)}
+                        />
+                      </div>
                     </div>
                   )
                 }
 
                 return (
                   <div key={def.options.join(',')} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{def.label}</p>
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-x-1.5">
+                        <p className="font-medium">{def.label}</p>
+                        {def.help && (
+                          <SettingHelp>
+                            <p>{def.help}</p>
+                          </SettingHelp>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500">{def.description}</p>
                     </div>
                     <Select
