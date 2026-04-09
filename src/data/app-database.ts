@@ -229,13 +229,12 @@ type Platform = 'macos' | 'windows' | 'linux'
  */
 export function getAppsForPlatform(
   platform: Platform,
-  configuredAppOptions?: string[]
+  configuredAppOptions?: Record<string, unknown>,
 ): AppEntry[] {
-  const configured = new Set(configuredAppOptions ?? [])
   return APP_DATABASE.filter((app) => {
     const identifier = app.platforms[platform]
     if (identifier === undefined) return false
-    if (configured.has(identifier)) return false
+    if (configuredAppOptions && identifier in configuredAppOptions) return false
     return true
   })
 }

@@ -91,7 +91,10 @@ describe('getAppsForPlatform', () => {
   })
 
   it('excludes already configured apps by option key', () => {
-    const configured = ['com.microsoft.VSCode', 'com.google.Chrome']
+    const configured: Record<string, unknown> = {
+      'com.microsoft.VSCode': { asciiMode: true },
+      'com.google.Chrome': { asciiMode: true },
+    }
     const result = getAppsForPlatform('macos', configured)
     const ids = result.map((app) => app.id)
     expect(ids).not.toContain('vscode')
@@ -100,12 +103,12 @@ describe('getAppsForPlatform', () => {
 
   it('returns all apps when no configured list is provided', () => {
     const all = getAppsForPlatform('macos')
-    const withEmpty = getAppsForPlatform('macos', [])
+    const withEmpty = getAppsForPlatform('macos', {})
     expect(all.length).toBe(withEmpty.length)
   })
 
   it('does not exclude apps whose identifier does not match configured list', () => {
-    const configured = ['com.nonexistent.app']
+    const configured: Record<string, unknown> = { 'com.nonexistent.app': { asciiMode: true } }
     const result = getAppsForPlatform('macos', configured)
     const allMac = getAppsForPlatform('macos')
     expect(result.length).toBe(allMac.length)
