@@ -1,12 +1,20 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ExternalLink, Github, Info } from 'lucide-react'
 import { useConfigStore } from '@/stores/config-store'
+import { ALL_SCHEMAS } from '@/data/schema-data'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { useState } from 'react'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import type { SchemaDetail } from '@/types/schema'
+
+function getDetail(id: string): SchemaDetail | undefined {
+  return ALL_SCHEMAS.find((s) => s.id === id)
+}
 
 export function SchemaManager() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -53,14 +61,32 @@ export function SchemaManager() {
       </div>
       <div className="space-y-2">
         {schemaList.map((item, index) => {
+          const detail = getDetail(item.schema)
           const info = SCHEMA_REGISTRY.find((s) => s.id === item.schema)
           return (
             <Card key={item.schema} className="flex items-center justify-between p-3">
-              <div>
-                <p className="font-medium">{info?.name ?? item.schema}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{info?.name ?? item.schema}</p>
+                  {detail && (
+                    <Link to={`/schema/${item.schema}`} className="text-gray-400 hover:text-blue-600" title="查看详情">
+                      <Info className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                  {detail?.links.repository && (
+                    <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-gray-600" title="GitHub">
+                      <Github className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {detail?.links.official && (
+                    <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-gray-600" title="官网">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
                 {info && <p className="text-sm text-gray-500">{info.description}</p>}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={() => handleMoveUp(index)} disabled={index === 0}>↑</Button>
                 <Button variant="ghost" size="sm" onClick={() => handleMoveDown(index)} disabled={index === schemaList.length - 1}>↓</Button>
                 <Button variant="ghost" size="sm" onClick={() => handleRemove(item.schema)}>删除</Button>
@@ -76,15 +102,32 @@ export function SchemaManager() {
             <Select value={addingSchema} onValueChange={setAddingSchema}>
               <SelectTrigger><SelectValue placeholder="选择方案..." /></SelectTrigger>
               <SelectContent>
-                {availableSchemas.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
+                {availableSchemas.map((s) => {
+                  const detail = getDetail(s.id)
+                  return (
+                    <SelectItem key={s.id} value={s.id}>
+                      <div>
+                        <span>{s.name}</span>
+                        {detail && (
+                          <span className="ml-2 text-xs text-gray-400">
+                            {detail.compare.difficulty} · {detail.compare.recommendation}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
           <Button onClick={handleAdd} disabled={!addingSchema}>添加</Button>
         </div>
       )}
+      <div className="text-center">
+        <Link to="/compare" className="text-sm text-blue-600 hover:underline">
+          浏览所有方案 →
+        </Link>
+      </div>
     </div>
   )
 }
