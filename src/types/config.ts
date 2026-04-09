@@ -63,7 +63,7 @@ export interface KeyBinderConfig {
 // ─── Platform config (squirrel / weasel) ─────────────────
 
 export interface PlatformConfig {
-  platform: 'macos' | 'windows';
+  platform: 'macos' | 'windows' | 'linux';
   style?: ThemeStyle;
   appOptions: Record<string, AppOption>;
 }
@@ -154,7 +154,9 @@ export interface ThemeStyle {
 // ─── Translator config ─────────────────────────────────
 export interface TranslatorConfig {
   enableCompletion: boolean;
+  enableSentence: boolean;
   enableUserDict: boolean;
+  initialQuality: number;
   coreWordLength: number;
   maxWordLength: number;
   maxHomophones: number;
