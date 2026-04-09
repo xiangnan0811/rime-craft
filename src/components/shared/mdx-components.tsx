@@ -1,8 +1,16 @@
 import type { ComponentPropsWithoutRef } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useConfigStore } from '@/stores/config-store'
+import { MODULE_REGISTRY } from '@/data/module-registry'
 import { GoToConfigButton } from './GoToConfigButton'
 import { ConfigSlot } from './ConfigSlot'
 import { Pre, InlineCode } from './CodeBlock'
 import { Callout } from './Callout'
+
+/** Map tutorial slug (used in MDX links) → editor module ID */
+function findModuleByTutorialSlug(slug: string): string | undefined {
+  return MODULE_REGISTRY.find((m) => (m.tutorialSlug ?? m.id) === slug)?.id
+}
 
 function slugify(text: string): string {
   return text
@@ -47,9 +55,42 @@ export const mdxComponents = {
     <li className="leading-[1.7]" {...props} />
   ),
 
-  a: (props: ComponentPropsWithoutRef<'a'>) => (
-    <a className="text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:decoration-blue-700 dark:hover:text-blue-300" {...props} />
-  ),
+  a: function MdxLink({ href, ...rest }: ComponentPropsWithoutRef<'a'>) {
+    const location = useLocation()
+    const setActiveModule = useConfigStore((s) => s.setActiveModule)
+    const className = "text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:decoration-blue-700 dark:hover:text-blue-300"
+
+    // Relative tutorial links (./slug)
+    if (href?.startsWith('./')) {
+      const slug = href.slice(2)
+
+      // In editor: switch to corresponding module if it exists
+      if (location.pathname === '/editor') {
+        const moduleId = findModuleByTutorialSlug(slug)
+        if (moduleId) {
+          return (
+            <a
+              className={className}
+              role="button"
+              onClick={(e) => { e.preventDefault(); setActiveModule(moduleId) }}
+              {...rest}
+            />
+          )
+        }
+      }
+
+      // Otherwise (docs page, or slug has no editor module): navigate to docs
+      return <Link to={`/docs/${slug}`} className={className} {...rest} />
+    }
+
+    // Absolute internal links → use React Router
+    if (href?.startsWith('/')) {
+      return <Link to={href} className={className} {...rest} />
+    }
+
+    // External links, anchors, etc. → plain <a>
+    return <a className={className} href={href} {...rest} />
+  },
 
   pre: Pre,
   code: InlineCode,
