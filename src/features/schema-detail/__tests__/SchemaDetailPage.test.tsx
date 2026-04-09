@@ -1,0 +1,45 @@
+import { describe, it, expect, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { SchemaDetailPage } from '../SchemaDetailPage'
+
+afterEach(cleanup)
+
+function renderWithRouter(schemaId: string) {
+  return render(
+    <MemoryRouter initialEntries={[`/schema/${schemaId}`]}>
+      <Routes>
+        <Route path="/schema/:id" element={<SchemaDetailPage />} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
+describe('SchemaDetailPage', () => {
+  it('renders schema name for a valid schema', () => {
+    renderWithRouter('rime_ice')
+    expect(screen.getByText('雾凇拼音')).toBeInTheDocument()
+  })
+
+  it('shows not-found message for an invalid schema', () => {
+    renderWithRouter('nonexistent_schema')
+    expect(screen.getByText(/找不到该方案/)).toBeInTheDocument()
+  })
+
+  it('renders tab navigation', () => {
+    renderWithRouter('rime_ice')
+    expect(screen.getByRole('tab', { name: '方案介绍' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '功能特性' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '学习资源' })).toBeInTheDocument()
+  })
+
+  it('renders keyboard layout tab for double-pinyin schemas', () => {
+    renderWithRouter('double_pinyin_flypy')
+    expect(screen.getByRole('tab', { name: '键位图' })).toBeInTheDocument()
+  })
+
+  it('does not render keyboard layout tab for non-double-pinyin schemas', () => {
+    renderWithRouter('rime_ice')
+    expect(screen.queryByRole('tab', { name: '键位图' })).not.toBeInTheDocument()
+  })
+})

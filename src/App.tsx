@@ -23,6 +23,11 @@ const GalleryPage = lazy(() =>
 const WizardPage = lazy(() =>
   import('@/features/wizard/WizardPage').then((m) => ({ default: m.WizardPage }))
 )
+const SchemaDetailPage = lazy(() =>
+  import('@/features/schema-detail/SchemaDetailPage').then((m) => ({
+    default: m.SchemaDetailPage,
+  }))
+)
 
 export function App() {
   useShareUrl()
@@ -62,6 +67,14 @@ export function App() {
             element={
               <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
                 <GalleryPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="schema/:id"
+            element={
+              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+                <SchemaDetailPage />
               </Suspense>
             }
           />
