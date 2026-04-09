@@ -20,22 +20,31 @@ export function SchemaSelector({ schemas, selected, onToggle, maxSelections = 4 
           const isSelected = selected.includes(schema.id)
           const isDisabled = !isSelected && selected.length >= maxSelections
           return (
-            <button
+            <div
               key={schema.id}
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-disabled={isDisabled}
+              tabIndex={isDisabled ? -1 : 0}
               onClick={() => !isDisabled && onToggle(schema.id)}
-              disabled={isDisabled}
+              onKeyDown={(e) => {
+                if ((e.key === ' ' || e.key === 'Enter') && !isDisabled) {
+                  e.preventDefault()
+                  onToggle(schema.id)
+                }
+              }}
               className={cn(
-                'flex items-start gap-2 rounded-lg border p-3 text-left transition-colors',
+                'flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-left transition-colors',
                 isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300',
                 isDisabled && 'cursor-not-allowed opacity-50',
               )}
             >
-              <Checkbox checked={isSelected} className="mt-0.5" />
+              <Checkbox checked={isSelected} className="mt-0.5" tabIndex={-1} />
               <div>
                 <p className="text-sm font-medium">{schema.name}</p>
                 <p className="text-xs text-gray-500">{schema.inputMethod}</p>
               </div>
-            </button>
+            </div>
           )
         })}
       </div>
