@@ -233,6 +233,74 @@ describe('buildCustomYaml', () => {
   })
 })
 
+describe('serializeSchemaConfig — custom triggers and lua scripts', () => {
+  it('emits recognizer patterns for custom triggers', () => {
+    const cfg: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      specialInput: {
+        enabledTriggers: [],
+        customTriggers: [{
+          id: 'uuid-1',
+          name: 'IP 查询',
+          triggerCode: '/ip',
+          description: '',
+          scriptId: 'script-1',
+        }],
+      },
+      luaScripts: [{
+        id: 'script-1',
+        fileName: 'ip_query.lua',
+        scriptType: 'translator',
+        description: '',
+        code: '-- lua',
+      }],
+    }
+    const out = serializeSchemaConfig(cfg)
+    const recognizerKey = Object.keys(out).find((k) =>
+      k.startsWith('recognizer/patterns/') && k.endsWith('ip_query'),
+    )
+    expect(recognizerKey).toBeDefined()
+    expect(out[recognizerKey!]).toBe('^/ip$')
+  })
+
+  it('emits lua_translator registration under engine/translators/+', () => {
+    const cfg: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      luaScripts: [{
+        id: 'script-1',
+        fileName: 'my_t.lua',
+        scriptType: 'translator',
+        description: '',
+        code: '',
+      }],
+    }
+    const out = serializeSchemaConfig(cfg)
+    const translatorsKey = Object.keys(out).find((k) => k.startsWith('engine/translators'))
+    expect(translatorsKey).toBeDefined()
+    const list = out[translatorsKey!] as string[]
+    expect(list).toContain('lua_translator@my_t')
+  })
+
+  it('uses the correct engine key per script type', () => {
+    const cfg: SchemaConfig = {
+      schemaId: 'test',
+      fuzzyRules: [],
+      luaScripts: [
+        { id: '1', fileName: 't.lua', scriptType: 'translator', description: '', code: '' },
+        { id: '2', fileName: 'f.lua', scriptType: 'filter', description: '', code: '' },
+        { id: '3', fileName: 'p.lua', scriptType: 'processor', description: '', code: '' },
+      ],
+    }
+    const out = serializeSchemaConfig(cfg)
+    const keys = Object.keys(out)
+    expect(keys.some((k) => k.startsWith('engine/translators') && (out[k] as string[]).includes('lua_translator@t'))).toBe(true)
+    expect(keys.some((k) => k.startsWith('engine/filters') && (out[k] as string[]).includes('lua_filter@f'))).toBe(true)
+    expect(keys.some((k) => k.startsWith('engine/processors') && (out[k] as string[]).includes('lua_processor@p'))).toBe(true)
+  })
+})
+
 describe('round-trip: serialize → yaml → parse', () => {
   it('preserves config through round-trip', () => {
     const original = {
