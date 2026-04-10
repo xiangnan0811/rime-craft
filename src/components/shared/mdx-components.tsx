@@ -6,6 +6,9 @@ import { GoToConfigButton } from './GoToConfigButton'
 import { ConfigSlot } from './ConfigSlot'
 import { Pre, InlineCode } from './CodeBlock'
 import { Callout } from './Callout'
+import { Details } from './Details'
+import { StepGuide, Step } from './StepGuide'
+import { YamlPreview } from './YamlPreview'
 
 /** Map tutorial slug (used in MDX links) → editor module ID */
 function findModuleByTutorialSlug(slug: string): string | undefined {
@@ -22,6 +25,10 @@ function slugify(text: string): string {
 export const mdxComponents = {
   GoToConfigButton,
   ConfigSlot,
+  Details,
+  StepGuide,
+  Step,
+  YamlPreview,
 
   tip: (props: Record<string, unknown>) => <Callout calloutType="tip" {...props} />,
   warning: (props: Record<string, unknown>) => <Callout calloutType="warning" {...props} />,
