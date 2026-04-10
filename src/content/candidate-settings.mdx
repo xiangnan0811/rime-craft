@@ -1,245 +1,253 @@
 # 候选词设置
 
-候选词面板是输入法最核心的交互界面。合理设置候选词数量、选择方式和高级翻译参数，能显著降低选词次数，提升输入效率。
+候选词面板是输入法最核心的交互界面。候选词设置控制候选的生成策略、排序逻辑与显示数量，直接决定你每次输入的选词效率。
 
 ## 这是什么
 
-当你输入一段拼音时，Rime 会显示一列候选词供你选择。候选词设置控制三个层面：
+当你输入拼音时，RIME 会把编码交给 **Translator（翻译器）** 组件，翻译器查询词典并输出候选词列表，再由 Filter 过滤排序后呈现在面板上。
 
-- **基础显示**：每页显示多少个候选词、用什么键来选词
-- **翻页行为**：如何在候选词页面之间导航
-- **翻译引擎**：控制候选词的生成策略（输入补全、整句模式、词组长度、排序权重等）
+「候选词设置」控制三个层面：
+
+- **基础显示**：每页候选词数量（`page_size`）和选词键（`select_keys`）
+- **翻译行为**：是否开启输入补全、整句模式、用户词典
+- **词组策略**：词长上限、同音/同形字上限、排序初始权重
+
+`page_size` 与 `select_keys` 存储在 `DefaultConfig`（全局生效）；翻译器参数存储在各方案的 `TranslatorConfig` 下。
+
+## 快速上手
+
+:::tip
+如果你只想调整候选词数量和选词键，完成前三步即可。翻译器参数保持默认对大多数用户已经足够好。
+:::
+
+<StepGuide>
+  <Step title="打开候选词设置">
+    在编辑器左侧导航找到「候选词设置」模块。页面分为两部分：上方是基础显示设置，下方「高级设置」折叠区包含翻译器参数。
+  </Step>
+  <Step title="设置每页候选词数量">
+    「每页候选词数量」下拉选择 5–9 之间的值。建议：
+    - **全拼用户**：5 个，精准选词翻页少
+    - **双拼用户**：7–9 个，字母键选词配合更多候选
+    - **配合辅助码**：5 个即够，辅助码会把候选缩减到 1–3 个
+  </Step>
+  <Step title="设置选词键">
+    「选词按键」默认为数字键 1–5（或更多）。双拼用户推荐切换为「字母键 ASDFGHJKL」，手指始终停留在主键盘区。
+  </Step>
+  <Step title="按需调整翻译器开关">
+    展开「高级设置」，根据你的输入习惯调整：
+    - **整句模式**：习惯连续输入整句的用户保持开启；逐词选字、配合辅助码的用户建议关闭
+    - **输入补全**：保持开启（输入未完成音节时显示候选）
+    - **用户词典**：保持开启（记录常用词，自动调频）
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 每页候选词数（page_size）
+### 基础显示（DefaultConfig）
 
-```yaml
-patch:
-  menu/page_size: 7
-```
+| 编辑器字段 | YAML 键 | 默认值 | 说明 |
+|-----------|---------|--------|------|
+| 每页候选词数量 | `menu/page_size` | `5` | 每页显示多少个候选词 |
+| 选词按键 | `menu/alternative_select_keys` | `"12345"` | 数字或字母键选词 |
 
-| 值 | 适用场景 |
-|----|---------|
-| 3-4 | 竖排候选词、屏幕空间紧张、配合精准词库 |
-| 5 | 平衡选项，适合大多数全拼用户 |
-| 7-9 | 减少翻页、配合字母键选词、双拼用户推荐 |
+### 翻译器参数（TranslatorConfig → `translator/` 前缀）
 
-### 选词键（alternative_select_keys）
-
-除了默认的数字键 1-9，你可以配置字母键来选词：
-
-```yaml
-patch:
-  menu/alternative_select_keys: "ASDFGHJKL"
-  # 按 A 选第1个，S 选第2个，D 选第3个……
-```
-
-字母键选词的优势：手指不需要离开主键盘区移动到数字行。特别适合双拼用户——双拼本身用字母键输入，选词也用字母键，手指始终在主键盘区。
-
-### 翻页键
-
-候选词翻页默认使用 `Page_Up` / `Page_Down`，万象拼音额外配置了 `-` / `=` 翻页：
-
-```yaml
-patch:
-  key_binder/bindings:
-    - { when: has_menu, accept: minus, send: Page_Up }
-    - { when: has_menu, accept: equal, send: Page_Down }
-```
-
-也可以配置方括号翻页：
-
-```yaml
-patch:
-  key_binder/bindings:
-    - { when: paging, accept: bracketleft, send: Page_Up }
-    - { when: has_menu, accept: bracketright, send: Page_Down }
-```
-
-### 翻译引擎高级设置
-
-以下参数控制候选词的生成策略。在编辑器中点击「高级设置」展开可以看到这些选项。
-
-#### 输入补全（enable_completion）
-
-```yaml
-patch:
-  translator/enable_completion: true
-```
-
-开启后，输入不完整的拼音也会显示候选词。例如输入 `n` 就会出现「你、那、能……」。关闭后必须输入完整音节（如 `ni`）才会有候选。
-
-大多数用户应保持开启。仅在使用辅助码且希望减少干扰时才考虑关闭。
-
-#### 整句模式（enable_sentence）
-
-```yaml
-patch:
-  translator/enable_sentence: true
-```
-
-开启后，Rime 会尝试将多个音节组合成完整的句子候选。例如输入 `jintiandianqihenhao` 可能直接出现「今天天气很好」。
-
-关闭后每次只匹配单个词组，需要逐词选择。
-
-| 场景 | 建议 |
-|------|------|
-| 习惯整句输入 | 开启 |
-| 逐词输入、搭配辅助码 | 关闭 |
-
-#### 用户词典（enable_user_dict）
-
-```yaml
-patch:
-  translator/enable_user_dict: true
-```
-
-开启后，Rime 会根据你的使用习惯自动调整候选词排序（常用词排前面），并记住你选过的自造词组。
-
-关闭后，候选词排序完全由词典决定，不会学习你的输入习惯。适合不希望输入法「记住」自己输入内容的场景。
-
-#### 核心词最大长度（core_word_length）
-
-```yaml
-patch:
-  translator/core_word_length: 4
-```
-
-控制造句引擎在组合候选句子时，最多使用多长的词组。
-
-| 值 | 效果 |
-|----|------|
-| 2-3 | 造句速度更快，但可能把长词拆开 |
-| **4（推荐）** | 平衡速度和质量 |
-| 5-7 | 更多长词组参与造句，计算量增加 |
-
-对于单字输入为主的用户，这个值影响不大。
-
-#### 候选词最大长度（max_word_length）
-
-```yaml
-patch:
-  translator/max_word_length: 7
-```
-
-限制候选列表中显示的最长词组。超过此长度的词组不会出现在候选中。
-
-| 值 | 效果 |
-|----|------|
-| 3-4 | 候选列表更紧凑，适合偏好短词的用户 |
-| **7（推荐）** | 覆盖绝大多数常用词组 |
-| 10-20 | 允许显示长成语、诗句等，适合整句输入 |
-
-#### 同音词上限（max_homophones）
-
-```yaml
-patch:
-  translator/max_homophones: 8
-```
-
-限制同一个拼音下显示的候选词数量。例如拼音 `shi` 对应的汉字非常多（是、时、十、事……），此值控制最多列出多少个。
-
-| 值 | 效果 |
-|----|------|
-| 3-5 | 候选更精简，翻页更少，但可能漏掉需要的字 |
-| **8（推荐）** | 适合大多数场景 |
-| 10-20 | 候选更全面，但需要更多翻页 |
-
-#### 同形词上限（max_homographs）
-
-```yaml
-patch:
-  translator/max_homographs: 8
-```
-
-限制同一个字形但不同读音的变体数量。例如「行」有 háng 和 xíng 两个读音，此值控制这类多音字变体的显示上限。
-
-通常不需要调整，默认值 8 足够。如果候选中出现太多生僻读音的变体，可以适当调小。
-
-#### 翻译器优先级（initial_quality）
-
-```yaml
-patch:
-  translator/initial_quality: 1.2
-```
-
-控制翻译器生成的候选词的初始权重。数值越高，该翻译器的候选词排名越靠前。
-
-- 默认值 1.2，通常不需要修改
-- 当你同时使用多个翻译器（如拼音 + 英文）时，可以通过调整此值来控制优先级
-- 对于只使用单个输入方案的用户，此设置没有影响
+| 编辑器字段 | YAML 键 | 默认值 | 说明 |
+|-----------|---------|--------|------|
+| 输入补全 | `translator/enable_completion` | `true` | 未完成音节也显示候选 |
+| 整句模式 | `translator/enable_sentence` | `true` | 多音节自动组合成句 |
+| 用户词典 | `translator/enable_user_dict` | `true` | 学习使用习惯、自动调频 |
+| 翻译器优先级 | `translator/initial_quality` | `1.2` | 候选词初始排序权重 |
+| 核心词最大长度 | `translator/core_word_length` | `4` | 造句时使用的最长词组 |
+| 候选词最大长度 | `translator/max_word_length` | `7` | 候选列表中词组字数上限 |
+| 同音词上限 | `translator/max_homophones` | `8` | 同一拼音下的候选词数量上限 |
+| 同形词上限 | `translator/max_homographs` | `8` | 同字形多音字的变体数量上限 |
+| 拼音提示 | `translator/spelling_hints` | `30` | 注释栏显示拼音提示的候选词长度阈值 |
+| 始终显示注释 | `translator/always_show_comments` | `true` | 强制在候选词旁显示注释（辅助码等） |
 
 <ConfigSlot module="candidate-settings" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**全拼用户的典型配置**：
+### Translator 在 RIME 引擎中的位置
 
-```yaml
-patch:
-  menu/page_size: 5
-  translator/enable_completion: true
-  translator/enable_sentence: true
-  translator/enable_user_dict: true
+RIME 处理一次输入的流程：
+
+```
+按键输入 → Processor → Segmentor → Translator → Filter → 候选列表呈现
 ```
 
-数字键选词、5 个候选词，整句模式开启，用户词典学习使用习惯。
+`script_translator`（拼音）和 `table_translator`（码表）是 RIME 内置的两类主要翻译器。`TranslatorConfig` 的参数直接作用于方案使用的 `translator` 组件。
 
-**双拼用户推荐配置**：
+### 用户词典（user_dict）
+
+用户词典文件（`<schema_id>.userdb/`）独立于主词典存储，记录：
+
+1. **调频数据**：每次上屏都更新候选权重，常用词自动靠前
+2. **自造词**：连续选字后自动生成的自定义词组
+
+关闭 `enable_user_dict` 后词典文件仍保留，重新开启即恢复历史调频数据。
+
+### `initial_quality` 与多翻译器排序
+
+当方案同时挂载多个翻译器（例如 `script_translator` + 英文 `table_translator`），每个翻译器产生的候选带有各自的质量分（`quality`）。最终候选合并时按质量分降序排列：
+
+```
+最终质量分 = initial_quality × 词典权重 × 用户调频系数
+```
+
+调高某个翻译器的 `initial_quality` 可让其候选整体靠前。单翻译器方案中此值对排序无实质影响。
+
+### `core_word_length` 与 prism 索引
+
+`core_word_length` 控制造句引擎在 **prism**（前缀索引树）中检索词条时的最长前缀长度。值越大，能匹配的长词组越多，但每次击键触发的词典查询量也线性增加。默认值 4 对应绝大多数 2–4 字常用词，是速度与质量的平衡点。
+
+## 完整示例
+
+<YamlPreview title="my_schema.custom.yaml" caption="通过 patch 覆盖翻译器参数——仅列出需要修改的字段即可">
 
 ```yaml
 patch:
   menu/page_size: 7
   menu/alternative_select_keys: "ASDFGHJKL"
   translator/enable_completion: true
-  translator/enable_sentence: true
+  translator/enable_sentence: false     # 关闭整句，习惯逐词选字
+  translator/enable_user_dict: true
+  translator/initial_quality: 1.2
+  translator/core_word_length: 4
+  translator/max_word_length: 7
+  translator/max_homophones: 8
+  translator/max_homographs: 8
+  translator/spelling_hints: 30
+  translator/always_show_comments: true
 ```
 
-7 个候选词减少翻页，字母键选词让手指保持在主键盘区。
+</YamlPreview>
 
-**单字输入为主（配合辅助码）**：
-
-```yaml
-patch:
-  menu/page_size: 5
-  translator/enable_sentence: false     # 关闭整句，专注单字
-  translator/enable_completion: true
-  translator/core_word_length: 3        # 造句用短词即可
-  translator/max_homophones: 5          # 减少同音候选
-```
-
-**追求精简候选列表**：
-
-```yaml
-patch:
-  menu/page_size: 5
-  translator/max_word_length: 5         # 只显示短词
-  translator/max_homophones: 5          # 限制同音词
-  translator/max_homographs: 3          # 限制多音字变体
-```
-
-## 进阶技巧
-
-:::tip
-如果你使用辅助码，`page_size` 的重要性会降低——因为辅助码可以将候选词精确缩减到 1-3 个，几乎不需要翻页。此时 5 个候选词就足够了。
+:::note
+`patch` 是追加/覆盖语义，只需填写需要更改的字段。未列出的字段保持方案默认值，不会被清空。
 :::
+
+## 常见场景
+
+- **全拼用户（整句输入）**：`page_size: 5`，整句模式开启，用户词典开启，依赖调频让常用词靠前。
+- **双拼用户**：`page_size: 7` + `alternative_select_keys: "ASDFGHJKL"`，手指不离主键盘区，7 个候选减少翻页。
+- **配合辅助码精准选字**：关闭 `enable_sentence`，减小 `max_homophones` 到 5，辅助码已精确过滤，候选列表无需太多。
+- **禁止输入法学习记录**：关闭 `enable_user_dict`，候选排序完全由词典决定，不记录任何上屏行为。
+- **多翻译器混合方案（拼音 + 英文）**：调高主翻译器 `initial_quality`（如 `1.5`），确保中文候选整体优先于英文候选。
+
+---
+
+<Details title="core_word_length 与 max_word_length 深入辨析" level="intermediate">
+
+这两个参数常被混淆，但作用层次不同：
+
+| 参数 | 作用阶段 | 影响对象 |
+|------|---------|---------|
+| `core_word_length` | **造句阶段**（Translator 内部） | 造句引擎检索词条时的最长词组，影响造句质量和速度 |
+| `max_word_length` | **输出阶段**（候选列表） | 最终呈现给用户的候选词最大字数，超过此值的候选被丢弃 |
+
+**典型案例**：
+
+- `core_word_length: 6, max_word_length: 4`：造句时会检索 6 字词组（保证句子连贯），但候选列表只展示 4 字以内的词——适合偏好短候选但又希望整句质量好的用户。
+- `core_word_length: 3, max_word_length: 10`：造句用短词（速度快），但允许长候选出现——适合手动选词为主、偶尔需要长词组的用户。
+
+通常两者保持接近或相同（`core_word_length ≤ max_word_length`）效果最自然。
+
+</Details>
+
+<Details title="排错：翻译器配置不生效" level="advanced">
+
+按以下顺序排查：
+
+1. **确认已重新部署**：RIME 配置修改后必须「重新部署」才生效。macOS 点击菜单栏图标 → 重新部署；Windows/Linux 使用对应客户端的部署按钮。
+
+2. **检查 patch 语法**：`translator/enable_sentence: false` 中的 `/` 是 patch 的路径分隔符，不是 YAML 嵌套。如果误写成：
+   ```yaml
+   # 错误写法——这会替换整个 translator 节点
+   patch:
+     translator:
+       enable_sentence: false
+   ```
+   会导致其他翻译器字段被清空。正确做法是用 `/` 路径写法逐字段覆盖。
+
+3. **确认作用于正确的方案**：`TranslatorConfig` 参数作用于 `schemaConfigs[primarySchemaId]`，即方案列表第一个方案。如果你修改的是次级方案，需要对应方案的 `custom.yaml`。
+
+4. **用户词典锁定**：如果 RIME 异常退出，`.userdb/` 目录下可能残留 `.lock` 文件，导致用户词典无法写入。手动删除锁文件后重新部署。
+
+5. **查看部署日志**：RIME 用户目录下的 `rime.log` 会记录加载错误。搜索 `[ERROR]` 或 `translator` 定位问题行。
+
+</Details>
+
+<Details title="原理：多 translator 链协同" level="advanced">
+
+RIME schema 的翻译器链通过 `engine/translators` 数组配置。万象拼音典型配置类似：
+
+```yaml
+engine:
+  translators:
+    - punct_translator          # 标点直出
+    - script_translator         # 拼音翻译器（TranslatorConfig 作用于此）
+    - table_translator@english  # 英文词典
+    - lua_translator@date_time  # Lua 特殊输入
+```
+
+每个翻译器**独立**产出候选列表，`initial_quality` 是该翻译器产出候选的基础分。RIME 的 `merge_translators` 逻辑将所有候选按 `quality` 归并排序后交给 Filter 链。
+
+用 `+` 追加翻译器（不替换原有列表）：
+
+```yaml
+patch:
+  engine/translators/+:
+    - lua_translator@my_tool    # 追加，不覆盖原有翻译器
+```
+
+如果需要调整某个翻译器在链中的位置，使用 `@before` / `@after` 修饰符（需 RIME 0.15+）：
+
+```yaml
+patch:
+  engine/translators/+:
+    - lua_translator@my_tool@before script_translator
+```
+
+</Details>
+
+<Details title="维护：用户词典升级与迁移" level="advanced">
+
+**用户词典文件位置**
+
+RIME 用户目录下的 `<schema_id>.userdb/` 文件夹（LevelDB 格式）存储调频和自造词数据。
+
+**跨设备同步**
+
+将用户目录整体纳入 iCloud / Syncthing / Git 同步。注意：
+
+- `.userdb/` 目录下有 LevelDB 的 `LOCK` 文件，同步工具可能产生冲突。推荐在 RIME 未运行时同步，或使用支持「不同步锁文件」规则的同步方案。
+- 不同平台（macOS / Windows / Linux）的用户目录路径不同，参考 [多设备同步](./multi-device-sync)。
+
+**用户词典损坏修复**
+
+若词典损坏（表现为部署报错或调频数据丢失）：
+
+1. 关闭所有 RIME 进程
+2. 备份 `<schema_id>.userdb/` 文件夹
+3. 删除该文件夹，重新部署——RIME 会自动创建空白词典
+4. 如果有 `.txt` 格式的词典导出备份（通过 `rime_dict_manager` 导出），可重新导入
+
+**升级方案版本**
+
+升级万象拼音等方案时，主词典（`.dict.yaml`）可能新增词条，但不会影响用户词典中已有的调频数据。若新版本调整了词库结构，建议通过 `rime_dict_manager` 导出旧词典，升级后重新导入。
 
 :::warning
-`alternative_select_keys` 设置的字母会「占用」这些键位。例如设置了 `ASDFGHJKL` 后，输入过程中按大写 A 会选择第一个候选词而不是输入字母。这在输入英文缩写时可能造成误操作。
+直接删除 `.userdb/` 目录会永久清空调频和自造词数据，操作前请务必备份。
 :::
 
-## 学习路径
-
-1. **起步**：使用默认配置（5 个候选词、数字键选词）
-2. **优化**：根据选词习惯调整 `page_size`（翻页太多就加大，扫描太慢就减小）
-3. **进阶**：双拼用户尝试字母键选词，调整整句模式和用户词典
-4. **精调**：根据使用场景微调核心词长度、同音词上限等高级参数
+</Details>
 
 ## 相关模块
 
-- [候选词显示](./candidate-display) — 控制候选词的排列方向、拼音提示和注释显示
-- [词典管理](./dictionary) — 词典质量直接影响候选词排序准确度
-- [开关与杂项](./switches) — 部分开关（如候选排序）影响候选行为
+- [开关与杂项](./switches) — 部分开关（如繁简转换）会影响候选词的最终呈现
+- [词典管理](./dictionary) — 词典质量直接决定候选词的准确度和覆盖范围
+- [反查与筛选](./reverse-lookup) — 通过笔画、部首等方式辅助选字
 
 <ConfigSlot module="candidate-settings" />
