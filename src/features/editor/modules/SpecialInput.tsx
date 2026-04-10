@@ -2,6 +2,7 @@ import { useConfigStore } from '@/stores/config-store'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { SettingHelp } from '@/components/shared/SettingHelp'
 import { SPECIAL_TRIGGER_DEFINITIONS, TRIGGER_CATEGORIES } from '@/data/special-trigger-definitions'
 import type { SpecialInputConfig, SpecialTrigger } from '@/types/config'
 
@@ -42,7 +43,13 @@ export function SpecialInput() {
           <h3 className="text-lg font-semibold">特殊输入</h3>
           <LearnMoreLink module="special-input" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">管理日期、时间、计算器等特殊输入触发器。</p>
+        <div className="mt-1 flex flex-wrap items-start gap-x-1.5">
+          <p className="text-sm text-gray-500">管理日期、时间、计算器等特殊输入触发器。</p>
+          <SettingHelp>
+            <p>触发码是在输入过程中输入特定字符序列来启动特殊功能。例如输入 /rq 可以插入当前日期。</p>
+            <p>每个触发器可以单独开关，也可以自定义触发码。触发码在拼音编码之外独立工作，不会干扰正常输入。</p>
+          </SettingHelp>
+        </div>
       </div>
       {TRIGGER_CATEGORIES.map((cat) => {
         const defs = SPECIAL_TRIGGER_DEFINITIONS.filter((d) => d.category === cat.id)

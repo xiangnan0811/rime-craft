@@ -191,7 +191,9 @@ describe('serializeSchemaConfig', () => {
       fuzzyRules: [],
       translator: {
         enableCompletion: true,
+        enableSentence: false,
         enableUserDict: false,
+        initialQuality: 2.0,
         coreWordLength: 4,
         maxWordLength: 7,
         maxHomophones: 8,
@@ -202,7 +204,9 @@ describe('serializeSchemaConfig', () => {
     }
     const result = serializeSchemaConfig(config)
     expect(result['translator/enable_completion']).toBe(true)
+    expect(result['translator/enable_sentence']).toBe(false)
     expect(result['translator/enable_user_dict']).toBe(false)
+    expect(result['translator/initial_quality']).toBe(2.0)
     expect(result['translator/core_word_length']).toBe(4)
   })
 

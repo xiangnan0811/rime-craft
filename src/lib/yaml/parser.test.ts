@@ -147,7 +147,9 @@ describe('mapToSchemaConfig', () => {
     const patch = {
       translator: {
         enable_completion: true,
+        enable_sentence: false,
         enable_user_dict: false,
+        initial_quality: 2.0,
         core_word_length: 4,
         max_word_length: 7,
         max_homophones: 8,
@@ -159,7 +161,9 @@ describe('mapToSchemaConfig', () => {
     const config = mapToSchemaConfig(patch, 'wanxiang')
     expect(config.translator).toBeDefined()
     expect(config.translator!.enableCompletion).toBe(true)
+    expect(config.translator!.enableSentence).toBe(false)
     expect(config.translator!.enableUserDict).toBe(false)
+    expect(config.translator!.initialQuality).toBe(2.0)
     expect(config.translator!.coreWordLength).toBe(4)
     expect(config.translator!.spellingHints).toBe(30)
   })

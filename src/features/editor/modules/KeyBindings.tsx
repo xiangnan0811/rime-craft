@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import type { SwitchKeyAction } from '@/types/config'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { SettingHelp } from '@/components/shared/SettingHelp'
 import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
 import { getModifiedFields } from '@/lib/config/diff'
 import { FUNCTION_KEY_DEFINITIONS, FUNCTION_KEY_CATEGORIES } from '@/data/key-binding-definitions'
@@ -77,12 +78,24 @@ export function KeyBindings() {
           <h3 className="text-lg font-semibold">按键绑定</h3>
           <LearnMoreLink module="key-bindings" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">配置修饰键的中英文切换行为。</p>
+        <div className="mt-1 flex flex-wrap items-center gap-x-1.5">
+          <p className="text-sm text-gray-500">配置修饰键的中英文切换行为。</p>
+          <SettingHelp>
+            <p>每个修饰键可配置五种切换动作：</p>
+            <ul>
+              <li><strong>行内切换英文</strong>：已输入的编码保留，直接切换到英文继续输入</li>
+              <li><strong>提交编码并切换</strong>：提交当前编码（原始按键）后切换到英文</li>
+              <li><strong>提交文本并切换</strong>：提交当前已选候选文本后切换到英文</li>
+              <li><strong>清除编码并切换</strong>：清除当前输入的编码后切换到英文</li>
+              <li><strong>无操作</strong>：按下该键不执行任何切换操作</li>
+            </ul>
+          </SettingHelp>
+        </div>
       </div>
       <div className="space-y-4">
         {KEY_NAMES.map(({ key, label, description }) => (
           <div key={key}>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-1.5">
               <Label>{label}</Label>
               <ModifiedBadge show={modified.has(`asciiComposer.switchKey.${key}`)} />
             </div>
@@ -101,7 +114,13 @@ export function KeyBindings() {
           <Switch checked={asciiComposer.goodOldCapsLock}
             onCheckedChange={(checked) => updateDefaultConfig({ asciiComposer: { ...asciiComposer, goodOldCapsLock: checked } })} />
           <div>
-            <Label>传统 Caps Lock 行为</Label>
+            <div className="flex flex-wrap items-center gap-x-1.5">
+              <Label>传统 Caps Lock 行为</Label>
+              <SettingHelp>
+                <p>开启后，Caps Lock 键直接切换大写锁定状态，与系统默认行为一致。</p>
+                <p>关闭后，Caps Lock 键按照上方配置的 Caps Lock 行为执行中英切换，而非切换大写锁定。</p>
+              </SettingHelp>
+            </div>
             <p className="text-sm text-gray-500">启用后 Caps Lock 切换大写锁定而非中英切换</p>
           </div>
         </div>

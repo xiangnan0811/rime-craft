@@ -5,6 +5,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
+import { SettingHelp } from '@/components/shared/SettingHelp'
 import type { SpellingScheme as SpellingSchemeType } from '@/types/config'
 
 const SPELLING_SCHEME_LABELS: Record<SpellingSchemeType, string> = {
@@ -43,7 +44,22 @@ export function SpellingScheme() {
         </p>
       </div>
       <div>
-        <Label>拼写方案</Label>
+        <div className="flex flex-wrap items-center gap-x-1.5">
+          <Label>拼写方案</Label>
+          <SettingHelp>
+            <p>选择输入使用的拼写规则：</p>
+            <ul>
+              <li><strong>全拼</strong>：标准拼音输入，不需要额外学习</li>
+              <li><strong>小鹤双拼</strong>：最流行的双拼方案，社区资源丰富</li>
+              <li><strong>自然码双拼</strong>：经典双拼方案，与自然码辅助码同源</li>
+              <li><strong>微软双拼</strong>：Windows 系统内置的双拼方案</li>
+              <li><strong>搜狗双拼</strong>：搜狗输入法内置方案</li>
+              <li><strong>智能ABC双拼</strong>：经典方案，用户群体较小</li>
+              <li><strong>紫光双拼</strong>：紫光输入法方案</li>
+            </ul>
+            <p>万象拼音支持在方案内无缝切换，也可通过 /flypy、/zrm 等命令快速切换。</p>
+          </SettingHelp>
+        </div>
         <Select
           value={current}
           onValueChange={(v) => updateSchemaConfig(primarySchemaId, { spellingScheme: v as SpellingSchemeType })}

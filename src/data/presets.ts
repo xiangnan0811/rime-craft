@@ -77,7 +77,9 @@ export const PRESETS: Preset[] = [
         fuzzyRules: [],
         translator: {
           enableCompletion: true,
+          enableSentence: true,
           enableUserDict: false,
+          initialQuality: 1.2,
           coreWordLength: 4,
           maxWordLength: 7,
           maxHomophones: 8,

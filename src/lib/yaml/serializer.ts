@@ -105,7 +105,9 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
   if (config.translator) {
     const t = config.translator
     patch['translator/enable_completion'] = t.enableCompletion
+    patch['translator/enable_sentence'] = t.enableSentence
     patch['translator/enable_user_dict'] = t.enableUserDict
+    patch['translator/initial_quality'] = t.initialQuality
     patch['translator/core_word_length'] = t.coreWordLength
     patch['translator/max_word_length'] = t.maxWordLength
     patch['translator/max_homophones'] = t.maxHomophones
@@ -120,11 +122,26 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
     patch['super_comment/candidate_length'] = sc.candidateLength
     patch['super_comment/corrector_type'] = sc.correctorType
   }
+  if (config.luaExtensions?.superProcessor) {
+    const sp = config.luaExtensions.superProcessor
+    patch['super_processor/backspace_limit'] = sp.backspaceLimit
+    patch['super_processor/seg_loop'] = sp.segLoop
+    patch['super_processor/tone_fallback'] = sp.toneFallback
+    patch['super_processor/limit_repeated'] = sp.limitRepeated
+  }
   if (config.luaExtensions?.userPredict) {
     const up = config.luaExtensions.userPredict
     patch['user_predict/max_candidates'] = up.maxCandidates
     patch['user_predict/expiry_days'] = up.expiryDays
     patch['user_predict/activation_days'] = up.activationDays
+  }
+  if (config.luaExtensions?.superReplacer) {
+    const sr = config.luaExtensions.superReplacer
+    patch['super_replacer/chain'] = sr.chain
+    patch['super_replacer/delimiter'] = sr.delimiter
+  }
+  if (config.luaExtensions?.inputStatistics) {
+    patch['input_statistics/enabled'] = config.luaExtensions.inputStatistics.enabled
   }
 
   return patch

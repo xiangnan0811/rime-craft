@@ -270,7 +270,9 @@ export function mapToSchemaConfig(
   if (rawTranslator) {
     result.translator = {
       enableCompletion: (rawTranslator.enable_completion as boolean) ?? false,
+      enableSentence: (rawTranslator.enable_sentence as boolean) ?? true,
       enableUserDict: (rawTranslator.enable_user_dict as boolean) ?? true,
+      initialQuality: (rawTranslator.initial_quality as number) ?? 1.2,
       coreWordLength: (rawTranslator.core_word_length as number) ?? 4,
       maxWordLength: (rawTranslator.max_word_length as number) ?? 7,
       maxHomophones: (rawTranslator.max_homophones as number) ?? 1,
@@ -280,22 +282,44 @@ export function mapToSchemaConfig(
     }
   }
 
-  // Lua extensions - super_comment
+  // Lua extensions
   const rawSuperComment = expanded.super_comment as Record<string, unknown> | undefined
+  const rawSuperProcessor = expanded.super_processor as Record<string, unknown> | undefined
   const rawUserPredict = expanded.user_predict as Record<string, unknown> | undefined
-  if (rawSuperComment || rawUserPredict) {
+  const rawSuperReplacer = expanded.super_replacer as Record<string, unknown> | undefined
+  const rawInputStatistics = expanded.input_statistics as Record<string, unknown> | undefined
+  if (rawSuperComment || rawSuperProcessor || rawUserPredict || rawSuperReplacer || rawInputStatistics) {
     result.luaExtensions = {}
     if (rawSuperComment) {
       result.luaExtensions.superComment = {
-        candidateLength: (rawSuperComment.candidate_length as number) ?? 5,
-        correctorType: (rawSuperComment.corrector_type as string) ?? 'none',
+        candidateLength: (rawSuperComment.candidate_length as number) ?? 2,
+        correctorType: (rawSuperComment.corrector_type as string) ?? '〔纠错〕',
+      }
+    }
+    if (rawSuperProcessor) {
+      result.luaExtensions.superProcessor = {
+        backspaceLimit: (rawSuperProcessor.backspace_limit as boolean) ?? true,
+        segLoop: (rawSuperProcessor.seg_loop as boolean) ?? true,
+        toneFallback: (rawSuperProcessor.tone_fallback as boolean) ?? true,
+        limitRepeated: (rawSuperProcessor.limit_repeated as string) ?? '8,40',
       }
     }
     if (rawUserPredict) {
       result.luaExtensions.userPredict = {
-        maxCandidates: (rawUserPredict.max_candidates as number) ?? 3,
-        expiryDays: (rawUserPredict.expiry_days as number) ?? 30,
-        activationDays: (rawUserPredict.activation_days as number) ?? 3,
+        maxCandidates: (rawUserPredict.max_candidates as number) ?? 10,
+        expiryDays: (rawUserPredict.expiry_days as number) ?? 90,
+        activationDays: (rawUserPredict.activation_days as number) ?? 7,
+      }
+    }
+    if (rawSuperReplacer) {
+      result.luaExtensions.superReplacer = {
+        chain: (rawSuperReplacer.chain as boolean) ?? true,
+        delimiter: (rawSuperReplacer.delimiter as string) ?? '|',
+      }
+    }
+    if (rawInputStatistics) {
+      result.luaExtensions.inputStatistics = {
+        enabled: (rawInputStatistics.enabled as boolean) ?? true,
       }
     }
   }
@@ -303,4 +327,4 @@ export function mapToSchemaConfig(
   return result
 }
 
-export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'user_predict']
+export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics']
