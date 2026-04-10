@@ -79,7 +79,7 @@ patch:
 
 ### 输入统计（input_stats）
 
-自动记录输入字数、词数等统计数据，可通过[特殊输入](./special-input)的触发码查看：
+自动记录输入字数、词数等统计数据，可通过[特殊输入](./lua-extensions)的触发码查看：
 
 - `/tj`：查看累计输入统计
 - `/rtj`：查看今日输入统计
@@ -158,7 +158,7 @@ tail -f $TMPDIR/rime.squirrel.INFO
 ## 相关模块
 
 - [注释与提示](./comment-hints) — 注释模式开关控制超级注释的显示/隐藏
-- [特殊输入](./special-input) — 日期、计算器等特殊输入由 Lua Translator 实现
+- [特殊输入](./lua-extensions) — 日期、计算器等特殊输入由 Lua Translator 实现
 - [开关与杂项](./switches) — `super_comment` 开关与超级注释功能联动
 
 <ConfigSlot module="lua-extensions" />
