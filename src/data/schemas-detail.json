@@ -48,7 +48,7 @@
       ],
       "integration": {
         "presetId": "rime-ice",
-        "capabilities": ["special-input"],
+        "capabilities": ["special-input", "lua-extensions"],
         "availableSpellingSchemes": null,
         "availableAuxiliaryCodes": null,
         "customSwitchNames": null
