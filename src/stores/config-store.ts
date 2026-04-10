@@ -352,13 +352,66 @@ export const useConfigStore = create<ConfigState>((set) => ({
       }
     }),
 
-  addLuaScript: () => {
-    throw new Error('addLuaScript not yet implemented (Task 10)')
-  },
-  updateLuaScript: () => {
-    throw new Error('updateLuaScript not yet implemented (Task 10)')
-  },
-  deleteLuaScript: () => {
-    throw new Error('deleteLuaScript not yet implemented (Task 10)')
-  },
+  addLuaScript: (schemaId, script) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      const currentScripts = existing?.luaScripts ?? []
+      const newScript: LuaScript = {
+        ...script,
+        id: crypto.randomUUID(),
+      }
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...(existing ?? { schemaId, fuzzyRules: [] }),
+              luaScripts: [...currentScripts, newScript],
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  updateLuaScript: (schemaId, id, partial) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.luaScripts) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              luaScripts: existing.luaScripts.map((sc) =>
+                sc.id === id ? { ...sc, ...partial } : sc,
+              ),
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  deleteLuaScript: (schemaId, id) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.luaScripts) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              luaScripts: existing.luaScripts.filter((sc) => sc.id !== id),
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
 }))
