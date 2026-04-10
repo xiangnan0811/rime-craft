@@ -1,86 +1,198 @@
 # 按键绑定
 
-按键绑定控制着 Rime 最核心的操作体验——中英文怎么切换、Caps Lock 怎么用、哪些快捷键触发哪些功能。合理的按键配置能让 Rime 完全适应你的操作习惯。
+**按键绑定**是 RIME 输入法的键盘行为控制层。它决定了 Shift / CapsLock 如何切换中英文、Tab 和方向键如何在候选菜单中导航、以及你可以为任意按键绑定任意功能开关。合理的按键配置能让输入法完全适应你的操作习惯。
 
 ## 这是什么
 
-Rime 中按键相关的配置集中在两个地方：
+RIME 中按键相关的配置集中在两个独立模块：
 
-- **`ascii_composer`**：控制中英文切换行为——哪些键可以触发切换，以及切换时对当前输入做什么处理
-- **`key_binder`**：控制功能快捷键——翻页、以词定字、开关切换等
+- **`ascii_composer`**：控制**中英文切换**行为——Shift、Control、CapsLock 各自触发什么动作（上屏编码、上屏候选、行内切换、清空输入，或不响应）
+- **`key_binder`**：控制**功能快捷键**——翻页、开关切换、候选导航等自定义按键映射
 
-这些配置作用于**全局**，影响所有方案。在 `default.custom.yaml` 中修改。
+两者分工明确：`ascii_composer` 专责切换语言模式，`key_binder` 负责其他一切快捷键。两个模块都写在 `default.custom.yaml` 中，作用于所有方案。
+
+:::note
+`key_binder` 是 RIME 引擎的 Processor 组件之一，和 `ascii_composer` 一起挂载在 Processor 链上，在翻译器之前运行。
+:::
+
+## 快速上手
+
+:::tip
+最常见的需求是调整 Shift 键切换行为。如果只改这一项，完成前三步即可。
+:::
+
+<StepGuide>
+  <Step title="打开按键绑定模块">
+    在编辑器左侧导航找到「按键绑定」模块。页面分为两部分：上方是**中英文切换键**设置（`ascii_composer`），下方是**功能快捷键**列表（`key_binder`）。
+  </Step>
+  <Step title="设置 Shift 键切换行为">
+    找到「左 Shift」和「右 Shift」下拉菜单，按需选择：
+    - **提交编码并切换**（`commit_code`）：按下 Shift 时，输入框里的拼音字母原样上屏，再切到英文。适合频繁输入英文变量名的程序员。
+    - **提交文本并切换**（`commit_text`）：按下 Shift 时，当前候选词上屏，再切到英文。适合选词后顺手切英文的场景。
+    - **行内切换英文**（`inline_ascii`）：按住 Shift 输入英文，松开后自动回到中文。不切换模式，只是临时借用英文。
+    - **无操作**（`noop`）：禁用此键的切换功能，防止误触。
+  </Step>
+  <Step title="确认 CapsLock 行为">
+    找到「传统 CapsLock 行为」开关：
+    - **开启**（推荐）：CapsLock 直接切换大写锁定，行为与系统一致，不触发任何 RIME 操作。
+    - **关闭**：CapsLock 按上方 `Caps Lock` 下拉菜单的设置执行中英切换。
+  </Step>
+  <Step title="开启常用功能快捷键">
+    在「功能快捷键」区域，按需开启预设绑定：
+    - **Tab 音节跳转**：在多音节输入时按 Tab 循环切换焦点音节
+    - **减号 / 等号翻页**：用 `-` 和 `=` 键在候选词页间翻页
+    - **Ctrl+A / Ctrl+S**：切换辅助码注释和声调显示
+  </Step>
+  <Step title="保存并部署">
+    点击「保存」，然后重新部署 RIME（macOS 菜单栏图标 → 重新部署；Windows 任务栏图标 → 重新部署）。部署完成后立即生效。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 中英文切换（ascii_composer）
+### 中英文切换（AsciiComposerConfig）
 
-`switch_key` 定义了 5 个可用于切换的键位，每个键可以配置为以下 5 种行为之一：
+| 编辑器字段 | YAML 键 | 默认值 | 说明 |
+|-----------|---------|--------|------|
+| 传统 CapsLock 行为 | `ascii_composer/good_old_caps_lock` | `true` | 开启时 CapsLock 直接切换大写锁定，不经过 RIME 处理 |
+| 左 Shift | `ascii_composer/switch_key/Shift_L` | `commit_code` | 按下左 Shift 键时的切换动作 |
+| 右 Shift | `ascii_composer/switch_key/Shift_R` | `commit_text` | 按下右 Shift 键时的切换动作 |
+| 左 Control | `ascii_composer/switch_key/Control_L` | `noop` | 按下左 Control 键时的切换动作 |
+| 右 Control | `ascii_composer/switch_key/Control_R` | `noop` | 按下右 Control 键时的切换动作 |
+| Caps Lock | `ascii_composer/switch_key/Caps_Lock` | `clear` | 仅在 `good_old_caps_lock: false` 时生效 |
 
-| 行为 | 说明 | 输入 `nihao` 候选「你好」时的效果 |
-|------|------|------|
+**SwitchKeyAction 取值说明**：
+
+| 值 | 行为 | 输入 `nihao` 有候选「你好」时的效果 |
+|----|------|--------------------------------------|
 | `commit_code` | 上屏原始字母，切换到英文 | 上屏 `nihao`，切英文 |
 | `commit_text` | 上屏当前候选词，切换到英文 | 上屏「你好」，切英文 |
-| `inline_ascii` | 临时英文模式，松开后回到中文 | 进入临时英文，不上屏 |
+| `inline_ascii` | 临时英文模式，不切换状态 | 进入临时英文，不上屏，松开后回中文 |
 | `clear` | 清空输入，切换到英文 | 丢弃输入，切英文 |
 | `noop` | 不做任何操作（禁用此键） | 无反应 |
 
-```yaml
-patch:
-  ascii_composer/switch_key:
-    Shift_L: commit_code      # 左 Shift
-    Shift_R: commit_text      # 右 Shift
-    Control_L: noop            # 左 Control（禁用）
-    Control_R: noop            # 右 Control（禁用）
-    Caps_Lock: clear           # Caps Lock
-```
+### 功能快捷键（KeyBinding）
 
-### Caps Lock 行为
+每条 `key_binder` 绑定的字段含义：
 
-`good_old_caps_lock` 控制 Caps Lock 是否保持传统键盘行为：
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `when` | 字符串 | 触发条件：`always`（始终）、`composing`（有输入中）、`has_menu`（候选菜单展开中）、`paging`（翻页状态）、`composing_no_menu`（输入中但无候选） |
+| `accept` | 字符串 | 触发按键，如 `Tab`、`Control+p`、`minus`、`F1`、`Shift+space` |
+| `send` | 字符串 | 模拟发送另一个按键，如 `Page_Up`、`Down`、`Escape` |
+| `toggle` | 字符串 | 切换指定开关名称，如 `ascii_mode`、`full_shape`、`tone_hint` |
+| `category` | 字符串 | 分类标签：`function`、`navigation`、`editing`、`switch`（仅供编辑器展示用） |
 
-- `true`（推荐）：Caps Lock 直接切换大写状态，不经过 Rime 处理，行为与系统一致
-- `false`：Caps Lock 按照 `switch_key/Caps_Lock` 中配置的行为执行
+:::note
+`send` 和 `toggle` 二选一：`send` 模拟按键转发，`toggle` 切换布尔开关。两者不能同时使用。
+:::
 
-```yaml
-patch:
-  ascii_composer/good_old_caps_lock: true
-```
+**预设功能快捷键**（来自 `key-binding-definitions.ts`）：
 
-### 功能快捷键（key_binder）
-
-万象拼音提供了一系列功能快捷键，可以快速切换开关或执行操作：
-
-**功能切换类**：
-
-| 快捷键 | 功能 | 说明 |
-|--------|------|------|
-| `Ctrl+A` | 注释切换 | 切换辅助码/声调注释显示 |
-| `Ctrl+S` | 声调显示 | 在编码中显示声调标记 |
-| `Ctrl+E` | 翻译模式 | 切换中英翻译 |
-| `Ctrl+T` | Tips 提示 | 切换扩展提示信息 |
-| `Ctrl+G` | 字集切换 | 切换大字集/小字集 |
-
-**导航类**：
-
-| 快捷键 | 功能 | 说明 |
-|--------|------|------|
-| `Tab` | 音节跳转 | 在多音节输入中循环切换焦点 |
-| `-` | 向上翻页 | 候选词向上翻页 |
-| `=` | 向下翻页 | 候选词向下翻页 |
-
-**编辑类**：
-
-| 快捷键 | 功能 | 说明 |
-|--------|------|------|
-| `Ctrl+J` | 左移排序 | 手动将候选词向左移动 |
-| `Ctrl+K` | 右移排序 | 手动将候选词向右移动 |
+| 快捷键 | 触发条件 | 动作 | 说明 |
+|--------|---------|------|------|
+| `Tab` | `composing` | `send: Shift+Right` | 音节跳转 |
+| `Control+a` | `always` | `toggle: tone_hint` | 切换注释显示 |
+| `Control+s` | `always` | `toggle: tone_display` | 切换声调显示 |
+| `Control+e` | `always` | `toggle: chinese_english` | 切换中英翻译模式 |
+| `Control+t` | `always` | `toggle: super_tips` | 切换 Tips 提示 |
+| `Control+g` | `always` | `toggle: charset_filter` | 切换大/小字集 |
+| `Control+j` | `has_menu` | `send: Shift+Left` | 候选词左移排序 |
+| `Control+k` | `has_menu` | `send: Shift+Right` | 候选词右移排序 |
+| `minus` | `has_menu` | `send: Page_Up` | 减号翻页向上 |
+| `equal` | `has_menu` | `send: Page_Down` | 等号翻页向下 |
 
 <ConfigSlot module="key-bindings" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**macOS 用户经典配置**（左 Shift 上屏字母，右 Shift 上屏候选词）：
+### 按键流入引擎的过程
+
+RIME 处理每次按键的完整流程：
+
+```
+物理按键
+  ↓
+Processor 链（依次调用每个处理器）
+  ├─ ascii_composer   ← 先判断是否触发中英切换
+  ├─ key_binder       ← 检查是否匹配绑定规则
+  ├─ selector         ← 数字/字母选词
+  └─ ...其他 Processor
+  ↓
+Segmentor / Translator / Filter
+  ↓
+候选列表呈现
+```
+
+`key_binder` 在 Processor 链中位于 `ascii_composer` 之后、`selector` 之前。这意味着：
+
+1. 如果 `ascii_composer` 已经消费了一个按键（如 Shift 触发切换），`key_binder` 就不会再看到这个按键
+2. 如果 `key_binder` 匹配了一条规则并消费了按键，`selector` 就不会再处理它
+
+### `when` 条件如何判断
+
+`key_binder` 在尝试匹配每条规则前，先检查当前输入状态是否满足 `when` 条件：
+
+| `when` 值 | 生效状态 |
+|-----------|---------|
+| `always` | 任何时候都生效，包括空闲状态 |
+| `composing` | 输入框中有正在输入的编码（有或无候选） |
+| `has_menu` | 候选菜单已展开（有候选可选） |
+| `paging` | 候选列表不止一页（可翻页） |
+| `composing_no_menu` | 有输入但还没有候选（如拼音不完整） |
+
+### `accept` 按键语法
+
+按键名称遵循 RIME 键名规范：
+
+- **单键**：`Tab`、`Escape`、`Return`、`space`、`minus`、`equal`、`period`
+- **功能键**：`F1`–`F12`、`Page_Up`、`Page_Down`、`Home`、`End`
+- **修饰键组合**：`Control+p`、`Shift+space`、`Alt+Return`
+- **字母**：直接写字母，如 `a`（注意区分大小写）
+
+### `switchKey` 动作的内部机制
+
+`ascii_composer` 收到 Shift/Control/CapsLock 按键后，按以下逻辑处理：
+
+1. 当前如果在**英文模式**：任何 `switch_key` 配置的键都只是切回中文，不执行 `commit_*` 或 `clear` 动作
+2. 当前在**中文模式**且有输入中：按配置的动作执行（`commit_code` / `commit_text` / `clear` / `inline_ascii`）
+3. `good_old_caps_lock: true` 时，CapsLock 完全绕过 RIME，由操作系统处理
+
+## 完整示例
+
+<YamlPreview title="default.custom.yaml" caption="一份包含中英切换 + 功能快捷键的完整 key_binder 配置">
+
+```yaml
+patch:
+  # 中英文切换键行为
+  ascii_composer/good_old_caps_lock: true
+  ascii_composer/switch_key:
+    Shift_L: commit_code      # 左 Shift：上屏字母，切英文
+    Shift_R: commit_text      # 右 Shift：上屏候选词，切英文
+    Control_L: noop           # 左 Control：禁用
+    Control_R: noop           # 右 Control：禁用
+    Caps_Lock: clear          # CapsLock：清空输入，切英文（good_old_caps_lock:false 时生效）
+
+  # 功能快捷键——追加到现有绑定列表
+  key_binder/bindings/append:
+    - { when: has_menu, accept: "minus", send: "Page_Up" }
+    - { when: has_menu, accept: "equal", send: "Page_Down" }
+    - { when: composing, accept: "Tab", send: "Shift+Right" }
+    - { when: always, accept: "Control+a", toggle: "tone_hint" }
+    - { when: always, accept: "Control+g", toggle: "charset_filter" }
+```
+
+</YamlPreview>
+
+:::tip
+使用 `key_binder/bindings/append` 而不是 `key_binder/bindings` 可以追加到现有绑定列表，而不是替换整个列表。如果你想完全自定义绑定，使用 `key_binder/bindings` 直接覆盖。
+:::
+
+## 常见场景
+
+**场景一：Shift 上屏中文候选（macOS 常见配置）**
+
+左 Shift 上屏字母（适合输入英文单词），右 Shift 上屏当前候选词（适合选词后顺手切英文）：
 
 ```yaml
 patch:
@@ -93,51 +205,172 @@ patch:
     Caps_Lock: clear
 ```
 
-**只用左 Shift 切换（最简配置）**：
+**场景二：Tab 在候选菜单翻页**
+
+将 Tab 键重新绑定为候选向下翻页，适合单手操作或者不想用 `-/=` 的用户：
 
 ```yaml
 patch:
-  ascii_composer/switch_key:
-    Shift_L: inline_ascii
-    Shift_R: noop
-    Control_L: noop
-    Control_R: noop
-    Caps_Lock: noop
+  key_binder/bindings/append:
+    - { when: has_menu, accept: "Tab", send: "Page_Down" }
 ```
 
-**禁用所有 Shift 切换（避免误触，适合双拼用户）**：
+**场景三：Ctrl+; 切换繁简**
 
-双拼用户在连续输入时容易误触 Shift 导致切换到英文，可以完全禁用：
+将 `Ctrl+;` 绑定到 `simplification` 开关：
 
 ```yaml
 patch:
+  key_binder/bindings/append:
+    - { when: always, accept: "Control+semicolon", toggle: "simplification" }
+```
+
+**场景四：禁用 CapsLock 中英切换（避免误触）**
+
+开启传统 CapsLock 行为，让 CapsLock 只切换大写锁定，不触发任何 RIME 动作：
+
+```yaml
+patch:
+  ascii_composer/good_old_caps_lock: true
+```
+
+**场景五：Vim 用户——Esc 切换到英文模式**
+
+Vim 用户频繁按 Esc，可以让 Esc 在有输入时清空并切到英文：
+
+```yaml
+patch:
+  key_binder/bindings/append:
+    - { when: composing, accept: "Escape", send: "Escape" }
   ascii_composer/switch_key:
     Shift_L: noop
     Shift_R: noop
     Control_L: noop
     Control_R: noop
-    Caps_Lock: clear        # 保留 Caps Lock 作为唯一切换键
+    Caps_Lock: clear
 ```
 
-## 进阶技巧
+---
 
-:::tip
-`commit_code` 和 `commit_text` 的区别很微妙但很实用。如果你经常在输入拼音的过程中需要切换到英文（比如输入英文变量名），`commit_code` 会保留你已输入的字母；而如果你经常在选词后顺手切英文，`commit_text` 更合适。
-:::
+<Details title="排错：按键不生效排查清单" level="intermediate">
 
-:::warning
-在 macOS 上，如果你使用系统级的输入法切换（如 `Ctrl+空格`），注意它与 Rime 自己的中英切换是独立的两套机制。推荐使用 Rime 的 Shift 切换来切换中英文，用系统快捷键来切换不同输入法。
-:::
+按以下顺序逐项排查：
 
-## 学习路径
+1. **是否重新部署？** RIME 修改配置后必须重新部署才生效。macOS 点击菜单栏图标 → 重新部署；Windows 右键任务栏图标 → 重新部署。
 
-1. **起步**：先使用默认按键配置，体验各个快捷键的功能
-2. **调整**：根据习惯修改中英文切换键（最常见的定制需求）
-3. **进阶**：为常用功能绑定自定义快捷键，如 `Ctrl+Shift+F` 切换简繁
+2. **`when` 条件是否满足？** 比如绑定了 `when: has_menu` 的规则，在没有候选词时按对应键不会生效。检查你按键时的输入状态是否匹配。
+
+3. **是否与系统快捷键冲突？** macOS 的 `Ctrl+Space` 切换输入法、`Ctrl+A` 光标移首行等系统快捷键会在 RIME 之前拦截按键。在系统偏好设置 → 键盘 → 快捷键中关闭冲突项。
+
+4. **是否与方案内部绑定冲突？** 某些方案在 schema YAML 中也定义了 `key_binder/bindings`。`default.custom.yaml` 的 `append` 会追加在方案绑定之后，如果方案绑定已经消费了同一按键，你的绑定不会生效。改用完整路径覆盖或调整方案的绑定。
+
+5. **`accept` 键名是否正确？** RIME 键名区分大小写，且有自己的命名规范。常见错误：
+   - `Ctrl+a` 应为 `Control+a`
+   - `Semicolon` 应为 `semicolon`
+   - `PageDown` 应为 `Page_Down`
+   
+6. **查看部署日志：** RIME 用户目录下的 `rime.log` 会记录配置解析错误。搜索 `[ERROR]` 或 `key_binder` 定位问题行。
+
+</Details>
+
+<Details title="原理：processor 链与 key_binder 的优先级" level="advanced">
+
+RIME schema 默认的 Processor 链顺序（万象拼音典型配置）：
+
+```yaml
+engine:
+  processors:
+    - ascii_composer      # 1. 中英切换（最高优先级）
+    - recognizer          # 2. 识别特殊输入模式（如 /rq 触发器）
+    - key_binder          # 3. 功能快捷键映射
+    - speller             # 4. 拼写处理（字母键输入拼音）
+    - punctuator          # 5. 标点直出
+    - selector            # 6. 数字/字母选词
+    - navigator           # 7. 方向键光标移动
+    - express_editor      # 8. 回车上屏、退格删除等编辑操作
+```
+
+**顺序的含义**：每个 Processor 返回三种状态之一：
+- `kAccepted`：消费此按键，后续 Processor 不再处理
+- `kRejected`：拒绝此按键，后续 Processor 不再处理（通常用于屏蔽键）
+- `kNoop`：不处理，传给下一个 Processor
+
+这意味着：
+- 如果你把一个键绑定到 `key_binder`，但 `speller` 也想消费这个字母键，`key_binder` 先运行，会先消费它
+- `ascii_composer` 在 `key_binder` 之前，Shift 切换在 `key_binder` 规则之前处理
+
+如果需要调整 Processor 顺序，在 schema 的 `custom.yaml` 中用 patch 修改 `engine/processors` 数组。
+
+</Details>
+
+<Details title="进阶：自定义组合键与多步动作" level="advanced">
+
+`key_binder` 的单条规则只能执行一个 `send` 或 `toggle` 动作。如需绑定多步动作（如先上屏再切换），需要结合多条规则或借助 Lua。
+
+**组合键绑定示例**：将 `Ctrl+Shift+F` 绑定到繁简切换：
+
+```yaml
+patch:
+  key_binder/bindings/append:
+    - { when: always, accept: "Control+shift+F", toggle: "simplification" }
+```
+
+注意：`Control+Shift+f`（小写）和 `Control+Shift+F`（大写）在 RIME 中是不同的键名。通常用大写 F 代表「Shift+f」组合。
+
+**先上屏再切换（需要 Lua）**：
+
+如果你需要「按一个键，同时上屏当前候选并切换到英文模式」，纯 `key_binder` 无法实现（它只能 `send` 或 `toggle` 一个动作）。解决方案是写一个 Processor 类型的 Lua 脚本：
+
+```lua
+-- custom_switcher.lua
+local function custom_switcher(key, env)
+  local context = env.engine.context
+  -- 检测 Ctrl+Return 组合
+  if key:repr() == "Control+Return" and context:is_composing() then
+    context:commit()                     -- 上屏当前候选
+    env.engine:process_key(              -- 模拟切换到英文
+      RimeKey("Shift_L"))
+    return 1  -- kAccepted
+  end
+  return 2  -- kNoop，不处理其他键
+end
+return custom_switcher
+```
+
+然后在 schema 的 processors 链中注册此 Lua 脚本（参考 [Lua 扩展](./lua-extensions)）。
+
+</Details>
+
+<Details title="维护：跨平台按键差异" level="advanced">
+
+同一份 `default.custom.yaml` 在不同平台上可能表现不同，主要差异：
+
+**macOS**
+
+- **左右 Shift 可区分**：macOS 上 `Shift_L` 和 `Shift_R` 可以正确区分，建议充分利用（如左 Shift 上屏编码、右 Shift 上屏候选）。
+- **CapsLock 限制**：macOS 对 CapsLock 有系统级处理，即使 `good_old_caps_lock: false`，CapsLock 的行为也可能受系统影响。推荐始终开启 `good_old_caps_lock: true`。
+- **Ctrl+Space 冲突**：macOS 默认将 `Ctrl+Space` 用于切换输入法，与 RIME 的部分绑定冲突，需在系统偏好设置中关闭。
+
+**Windows（小狼毫 Weasel）**
+
+- **左右 Shift 在部分程序中无法区分**：某些 Windows 程序发送的是通用 Shift 键码，无法区分左右。建议不要把左右 Shift 配置成语义差异很大的动作。
+- **CapsLock 行为一致**：Windows 上 `good_old_caps_lock` 的行为与 macOS 一致。
+
+**Linux（iBus / Fcitx 框架）**
+
+- **修饰键处理由输入法框架层完成**：在 iBus 下，RIME 收到的按键事件已经经过框架处理，某些修饰键组合可能无法传递给 RIME。
+- **不同终端模拟器的键名差异**：在终端中使用 RIME 时，`Alt` 键可能被终端捕获，无法传递到 RIME。
+
+**通用建议**：
+
+如果需要维护跨平台一致的配置，优先使用 `Shift` 单键切换（兼容性最好），避免依赖左右键区分，避免绑定容易被系统捕获的 `Ctrl+字母` 组合（如 `Ctrl+C`、`Ctrl+V`）。
+
+</Details>
 
 ## 相关模块
 
-- [中英文切换](./ascii-mode) — 按键配置与中英模式的完整联动关系
-- [开关与杂项](./switches) — 快捷键可以绑定开关切换（toggle 动作）
+- [开关与杂项](./switches) — `toggle` 动作绑定的开关名称在此模块配置
+- [候选词设置](./candidate-settings) — 配合翻页快捷键使用的候选词数量设置
+- [中英文切换](./ascii-mode) — `ascii_composer` 的中英状态切换完整联动关系
 
 <ConfigSlot module="key-bindings" />
