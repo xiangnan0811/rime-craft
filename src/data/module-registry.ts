@@ -111,13 +111,6 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     applicability: { type: 'universal' },
   },
   {
-    id: 'special-input',
-    label: '特殊输入',
-    group: 'auxiliary',
-    tutorialSlug: 'special-input',
-    applicability: { type: 'capability', cap: 'special-input' },
-  },
-  {
     id: 'lua-extensions',
     label: 'Lua 扩展',
     group: 'auxiliary',
@@ -161,7 +154,6 @@ export const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.C
   'reverse-lookup': lazy(() => import('@/features/editor/modules/ReverseLookup').then(m => ({ default: m.ReverseLookup }))),
   'punctuation': lazy(() => import('@/features/editor/modules/Punctuation').then(m => ({ default: m.Punctuation }))),
   'dictionary': lazy(() => import('@/features/editor/modules/Dictionary').then(m => ({ default: m.Dictionary }))),
-  'special-input': lazy(() => import('@/features/editor/modules/SpecialInput').then(m => ({ default: m.SpecialInput }))),
   'lua-extensions': lazy(() => import('@/features/editor/modules/LuaExtensions').then(m => ({ default: m.LuaExtensions }))),
   'ascii-mode': lazy(() => import('@/features/editor/modules/AsciiMode').then(m => ({ default: m.AsciiMode }))),
   'candidate-display': lazy(() => import('@/features/editor/modules/CandidateDisplay').then(m => ({ default: m.CandidateDisplay }))),
