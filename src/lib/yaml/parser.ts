@@ -9,8 +9,10 @@ import type {
   ThemeColors,
   SimpleSwitchItem,
   MultiStateSwitchItem,
+  CustomTrigger,
 } from '@/types/config'
 import { bgrIntToHex } from '@/lib/color/convert'
+import { SPECIAL_TRIGGER_DEFINITIONS } from '@/data/special-trigger-definitions'
 
 // ─── Parse raw YAML ──────────────────────────────────────
 
@@ -323,6 +325,56 @@ export function mapToSchemaConfig(
       }
     }
   }
+
+  // Extract custom triggers from recognizer/patterns entries not matching presets
+  const presetIds = new Set(SPECIAL_TRIGGER_DEFINITIONS.map((d) => d.id))
+  const customTriggers: CustomTrigger[] = []
+
+  // Flat patch-style keys: "recognizer/patterns/my_trigger": "^/xyz$"
+  for (const [key, value] of Object.entries(expanded)) {
+    const match = key.match(/^recognizer\/patterns\/(.+)$/)
+    if (!match) continue
+    const patternId = match[1]!
+    if (presetIds.has(patternId)) continue
+    if (typeof value !== 'string') continue
+    const triggerCode = value.replace(/^\^/, '').replace(/\$$/, '')
+    customTriggers.push({
+      id: crypto.randomUUID(),
+      name: patternId,
+      triggerCode,
+      description: '',
+      scriptId: '',
+    })
+  }
+
+  // Nested style: recognizer: { patterns: { my_trigger: "^/xyz$", ... } }
+  const nestedRecognizer = expanded.recognizer as Record<string, unknown> | undefined
+  const nestedPatterns = nestedRecognizer?.patterns as Record<string, unknown> | undefined
+  if (nestedPatterns) {
+    for (const [patternId, value] of Object.entries(nestedPatterns)) {
+      if (presetIds.has(patternId)) continue
+      if (typeof value !== 'string') continue
+      if (customTriggers.some((t) => t.name === patternId)) continue
+      const triggerCode = value.replace(/^\^/, '').replace(/\$$/, '')
+      customTriggers.push({
+        id: crypto.randomUUID(),
+        name: patternId,
+        triggerCode,
+        description: '',
+        scriptId: '',
+      })
+    }
+  }
+
+  if (customTriggers.length > 0) {
+    result.specialInput = {
+      enabledTriggers: result.specialInput?.enabledTriggers ?? [],
+      customTriggers,
+    }
+  }
+
+  // luaScripts is always an empty array when not populated from YAML
+  result.luaScripts = result.luaScripts ?? []
 
   return result
 }

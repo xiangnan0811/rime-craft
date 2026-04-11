@@ -1,114 +1,387 @@
-# 自定义词库的制作和维护
+# 自定义词典
 
-## custom_phrase.txt 与 dict.yaml 的区别
+RIME 的所有词汇都来自 `.dict.yaml` 词典文件。主方案（如 rime-ice、万象）附带了数十万条通用词汇，但行业术语、方言词汇、个人专属短语往往不在其中。通过制作自己的 `.dict.yaml`，你可以将这些词汇并入输入法，和原有词库无缝合并。
 
-Rime 提供两种方式添加自定义词汇：
+本文专注于**创建和维护 `.dict.yaml` 词典文件**；如果你只是想快速添加少量短语，请先阅读[词典管理](./dictionary)中的 `custom_phrase` 方案，它更轻量。
 
-| 方式 | 文件 | 特点 |
-|------|------|------|
-| 临时短语 | `custom_phrase.txt` | 简单直接，固定优先级，适合少量高频词 |
-| 完整词典 | `*.dict.yaml` | 功能完整，支持权重、排序、批量导入 |
+## 这是什么
 
-`custom_phrase.txt` 适合快速添加几十条个人习惯词（基本用法见[自定义词库](./dictionary)）；`dict.yaml` 适合管理数百至数万条词汇的专业词库。本文重点介绍 `dict.yaml` 的制作方法。
+`.dict.yaml` 是 RIME 词库的原始格式——一个纯文本文件，包含 YAML 头和 TAB 分隔的词条列表。部署时，`rime_deployer` 把它编译成二进制索引（`.table.bin` + `.prism.bin`），输入法运行时从这两个文件中快速查词。
 
-## custom_phrase.txt 格式
+**适合用自定义词典的场景：**
+
+- 专业行业术语（医学、法律、编程、金融）
+- 地方方言词汇、人名地名
+- 从其他输入法（搜狗、百度、Google 拼音）迁移过来的词库
+- 需要与他人共享、纳入版本管理的词库
+- 词条数量超过数千条，`custom_phrase` 性能不够用
+
+:::note
+如果词条不超过几百条，或需要非拼音自定义编码（如缩写），优先考虑 `custom_phrase.txt`——它无需编译，修改即生效。两者的区别详见[词典管理](./dictionary)。
+:::
+
+## 快速上手
+
+<StepGuide>
+  <Step title="创建词典文件">
+    在 RIME 用户目录（macOS: `~/Library/Rime/`，Windows: `%APPDATA%\Rime\`）新建一个文件，命名规则为 `<词典名>.dict.yaml`，例如 `tech_terms.dict.yaml`。
+
+    文件名中的 `<词典名>` 就是后续在 `import_tables` 中引用时用的名称，**只能包含英文字母、数字和下划线**。
+  </Step>
+  <Step title="填写 YAML 头部">
+    文件开头写入必填的头部字段，以 `---` 开始，以 `...` 结束：
+
+    ```yaml
+    ---
+    name: tech_terms
+    version: "1.0"
+    sort: by_weight
+    use_preset_vocabulary: false
+    ...
+    ```
+
+    `name` 必须与文件名保持一致（不含 `.dict.yaml` 后缀）。
+  </Step>
+  <Step title="添加词条">
+    `...` 之后，每行一条词汇，三列用**制表符（Tab）**分隔：
+
+    ```
+    # 格式：词条文字<Tab>编码<Tab>权重
+    人工智能	rgzn	500
+    机器学习	jqxx	500
+    深度学习	sdxx	500
+    神经网络	sjwl	500
+    ```
+
+    权重是可选的整数，数字越大候选越靠前；省略权重则默认为 0。`#` 开头的行是注释。
+  </Step>
+  <Step title="在主词典中引入">
+    打开你正在使用的方案的主词典文件（如 `rime_ice.dict.yaml`），或者创建一个新的「容器词典」，在头部加入 `import_tables`：
+
+    ```yaml
+    ---
+    name: rime_ice_with_tech
+    version: "1.0"
+    sort: by_weight
+    import_tables:
+      - rime_ice          # 原有主词典
+      - tech_terms        # 你的自定义词典
+    ...
+    ```
+
+    然后在方案的 `*.custom.yaml` 中将 `translator/dictionary` 指向这个容器词典。
+  </Step>
+  <Step title="部署生效">
+    保存所有文件，触发重新部署：
+
+    - **macOS**：菜单栏输入法图标 → 重新部署
+    - **Windows**：小狼毫系统托盘 → 重新部署
+
+    部署完成后，`rime_deployer` 会将 `tech_terms.dict.yaml` 编译进索引。在输入框中输入 `rgzn`，应能看到「人工智能」出现在候选列表。
+  </Step>
+</StepGuide>
+
+## 文件格式详解
+
+### 头部字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `name` | 字符串 | 必填 | 词典唯一名称，须与文件名一致（不含后缀） |
+| `version` | 字符串 | 必填 | 版本号，建议用日期格式如 `"2024.01.01"` |
+| `sort` | 枚举 | `by_weight` | 词条排序策略：`by_weight`（按权重降序）或 `original`（保持文件顺序） |
+| `use_preset_vocabulary` | 布尔 | `false` | 是否混入内置 8105 常用字表（`essay.txt`）的词频 |
+| `import_tables` | 列表 | 无 | 引入其他 `.dict.yaml` 的词条，合并后一起编译 |
+| `vocabulary` | 字符串 | 无 | 指定字频表文件名（高级用法，一般不填） |
+| `min_phrase_weight` | 整数 | `0` | 过滤低于此权重的词条 |
+
+### 词条行格式
 
 ```
-# 格式：词条<Tab>编码<Tab>权重（权重越大越靠前）
-姓名	xm	100
-公司名称	gsmc	100
-常用邮箱	cyyxiang	100
+词条文字<Tab>编码<Tab>权重
 ```
 
-启用方法详见[自定义词库](./dictionary)教程中的「启用 custom_phrase」章节。
+- **词条文字**：要输出的文字，支持任意 Unicode
+- **编码**：触发该词条的输入码（拼音用空格分隔多音节，如 `ni hao`）
+- **权重**：可选整数，省略时默认为 0
 
-## 制作 dict.yaml 词典
+:::tip
+字段之间必须是**制表符（`\t`，ASCII 0x09）**，不是空格。用普通文本编辑器时容易混淆，建议用十六进制模式检查，或在 VS Code 中开启「显示空白字符」功能。
+:::
 
-一个完整的词典文件由两部分组成：**文件头**和**词条列表**，以 `---` 分隔。
+## 原理机制
 
-### 文件头
+### 编译流程
+
+RIME 重新部署时，`rime_deployer` 对每个被引用的 `.dict.yaml` 执行以下步骤：
+
+1. **解析头部**：读取 `name`、`sort`、`import_tables` 等字段
+2. **递归合并子词典**：遇到 `import_tables` 中列出的词典，递归读入其词条，合并到当前词典
+3. **应用 `sort` 策略**：
+   - `by_weight`：所有词条按权重数值降序排列，数值越大排越前
+   - `original`：保持词条在文件中出现的顺序，不重新排列
+4. **构建二进制索引**：
+   - `build/<name>.table.bin`：词条正排表，存储完整的词条数据
+   - `build/<name>.prism.bin`：前缀树（trie）索引，支持拼音前缀模糊匹配
+5. **翻译器加载**：方案的 `translator` 组件在启动时 mmap 这两个 `.bin` 文件，查词时直接访问内存映射，不重新读文本
+
+这意味着**修改 `.dict.yaml` 后必须重新部署才能生效**——运行时输入法读取的是 `.bin` 文件，不是原始文本。
+
+### 词典引用关系
+
+`.dict.yaml` 通过方案的 `schema.yaml` 接入翻译器：
 
 ```yaml
-# my_dict.dict.yaml
+# 方案 schema.yaml（节选）
+translator:
+  dictionary: rime_ice_with_tech   # 指向主词典名
+  prism: rime_ice_with_tech        # 通常与 dictionary 相同
+```
+
+`import_tables` 是编译期合并，不是运行时动态加载。所有子词典的词条在编译时就已经合并进主词典的 `.table.bin`，运行时只加载一个二进制文件。
+
+## 完整示例
+
+<YamlPreview title="tech_terms.dict.yaml" caption="行业术语词典：AI/机器学习领域词汇">
+
+```yaml
 ---
-name: my_dict          # 词典名称，需唯一
-version: "2024.01.01"  # 版本号，建议用日期
-sort: by_weight        # 排序方式：by_weight 或 original
-use_preset_vocabulary: false  # 是否使用预置词汇表
-columns:               # 列定义
-  - text               # 词条文字
-  - code               # 编码
-  - weight             # 权重（可选）
+name: tech_terms
+version: "1.0"
+sort: by_weight
+use_preset_vocabulary: false
 ...
+# 文本	编码	权重
+# ── AI / 机器学习 ──
+人工智能	rgzn	500
+机器学习	jqxx	500
+深度学习	sdxx	500
+神经网络	sjwl	500
+卷积神经网络	jjsjwl	300
+自然语言处理	zryyycl	400
+大语言模型	dyyym	400
+生成式人工智能	scsrgzn	300
+强化学习	qhxx	400
+监督学习	jdxx	400
+# ── 工程术语 ──
+微服务	wfw	400
+容器化	rqh	350
+持续集成	cxjc	350
+代码审查	dmsc	300
+重构	cg	300
 ```
 
-### 词条列表
+</YamlPreview>
 
-`---` 之后每行一条词汇，用 Tab 分隔各列：
-
-```
-# 词条	编码	权重
-人工智能	rengongzhineng	1000
-机器学习	jiqixuexi	900
-深度学习	shenduxuexi	900
-自然语言处理	ziranyuyanchuli	800
-```
-
-## 从其他输入法导入词库
-
-大多数主流输入法支持导出词库为文本格式：
-
-1. **搜狗词库**：导出为 `.scel` 格式，使用 `scel2rime` 工具转换
-2. **百度词库**：导出为 `.bdict`，使用社区工具转换
-3. **QQ 词库**：导出为 `.qpyd`，同样有开源转换工具
-
-转换后得到 Tab 分隔的文本文件，整理为 dict.yaml 格式即可使用。
-
-## 在方案中引用词典
-
-在 `*.schema.yaml` 的主词典文件（`*.dict.yaml`）中，通过 `import_tables` 引入外部词典：
+<YamlPreview title="rime_ice_with_tech.dict.yaml" caption="容器词典：把自定义词典注入 rime-ice">
 
 ```yaml
-# luna_pinyin.dict.yaml（主词典）
 ---
-name: luna_pinyin
-version: "2024.01.01"
+name: rime_ice_with_tech
+version: "1.0"
+sort: by_weight
 import_tables:
-  - my_dict          # 引入自定义词典
-  - tech_terms       # 引入技术术语词典
-  - company_names    # 引入公司名词典
+  - rime_ice          # rime-ice 原有主词典（需已安装）
+  - tech_terms        # 本文创建的行业术语词典
 ...
+# 容器词典本身不需要词条，词条全部来自 import_tables
 ```
 
-这样可以将不同主题的词汇分文件管理，结构清晰。
+</YamlPreview>
 
-## 词库维护技巧
+<YamlPreview title="rime_ice.custom.yaml" caption="将方案的翻译器切换到容器词典">
 
-### 调整词语权重
-
-权重数值越大，候选排序越靠前。日常使用时 Rime 会自动学习用词习惯（用户词频），但词典中的初始权重仍会影响冷启动时的排序。
-
-### 定期清理用户词频
-
-Rime 的用户词频数据存储在 `*.userdb/` 目录。若积累了大量错误习惯词，可以：
-
-```bash
-# 在 Rime 用户目录下
-rm -rf luna_pinyin.userdb/   # 清空用户词频（慎用）
+```yaml
+patch:
+  translator/dictionary: rime_ice_with_tech
+  translator/prism: rime_ice_with_tech
 ```
 
-也可通过 Rime 自带的词频调整功能逐条处理。
+</YamlPreview>
 
-### 用 Git 管理词库
+:::note
+上面的方法会替换原有的 `dictionary` 引用。如果你使用的方案自身已有 `import_tables` 机制（如 rime-ice 的 `rime_ice.extended.dict.yaml`），可以直接在那个文件的 `import_tables` 中追加你的词典名，无需创建容器词典。
+:::
 
-词典文件是纯文本，非常适合用 Git 进行版本管理：
+## 常见场景
 
-```bash
-git init ~/Library/Rime/
-echo "*.bin" >> ~/Library/Rime/.gitignore
-echo "*.userdb/" >> ~/Library/Rime/.gitignore
-git add *.dict.yaml *.schema.yaml *.custom.yaml
-git commit -m "add custom dictionary"
+### 行业术语词库
+
+程序员、医生、律师等有大量专业术语，建议按领域分文件维护：
+
+```
+# 创建 medical_terms.dict.yaml、legal_terms.dict.yaml 等
+# 在容器词典中统一引入：
+import_tables:
+  - rime_ice
+  - medical_terms
+  - legal_terms
+  - my_names
 ```
 
-这样词库的增删改都有历史记录，误删时可以回滚。
+分文件管理的优势：可以独立更新某个领域词库而不影响其他词库，也可以在不同方案之间共享同一个专业词库文件。
+
+### 方言和地名词汇
+
+粤语、闽南语、客家话等方言词汇，以及本地地名、景点，可以单独建一个方言词典，按拼音或地方拼写方案编码：
+
+```
+# cantonese_extra.dict.yaml
+靓仔	leng zai	400
+唔该	m goi	500
+搞掂	gao dim	400
+茶餐厅	cha can ting	300
+```
+
+### 从搜狗/百度导入词库
+
+搜狗词库（`.scel`）和百度词库（`.bdict`）是二进制格式，需要先转换：
+
+**推荐工具：**
+
+- **imewlconverter**（开源，跨平台）：支持搜狗 `.scel`、百度 `.bdict`、QQ `.qpyd` → TSV 文本，再整理为 `.dict.yaml` 格式
+- **scel2rime**（Python 脚本）：专门针对搜狗 `.scel` 格式，输出即为 RIME 兼容的 `.dict.yaml`
+
+转换后检查：确认编码字段是拼音格式（空格分隔多音节），权重字段是整数，无多余空格。
+
+### fork rime-ice 词库并定制
+
+rime-ice 的词库本身是开源的 `.dict.yaml` 文件，可以直接下载、修改：
+
+1. 从 [GitHub rime-ice 仓库](https://github.com/iDvel/rime-ice) 下载 `cn_dicts/` 目录中的词典文件
+2. 复制到你的 RIME 用户目录，重命名（如 `rime_ice_custom.dict.yaml`）
+3. 删除不需要的词条，或调高常用词的权重
+4. 在主词典中通过 `import_tables` 引入
+
+---
+
+<Details title="排错：词典加载失败或词条不出现" level="advanced">
+
+按以下顺序排查：
+
+**1. 查看部署日志**
+
+部署失败时 RIME 会在日志文件中记录错误。日志路径：
+
+- macOS：`~/Library/Rime/rime.log`
+- Windows：`%APPDATA%\Rime\rime.log`
+
+搜索 `[ERROR]` 或 `[WARN]` 关键字，常见错误：
+
+- `error loading table` — `.dict.yaml` 解析失败，通常是头部 YAML 格式错误
+- `missing entry` — `import_tables` 中引用的子词典文件不存在
+- `duplicate name` — 两个 `.dict.yaml` 的 `name` 字段相同
+
+**2. 检查 YAML 头部格式**
+
+头部必须是合法 YAML，以 `---` 开头，以 `...` 结束（注意不是 `---`）。常见错误：
+
+```yaml
+# ❌ 错误：name 没有引号也没关系，但 version 必须是字符串
+version: 1.0       # 被解析为浮点数
+
+# ✅ 正确
+version: "1.0"     # 引号确保是字符串
+```
+
+**3. 确认 TAB 分隔符**
+
+词条行必须用制表符（`\t`）分隔，不是空格。用 VS Code 检查方法：
+
+- 打开文件 → 右下角点「空格」或「Tab」→ 选「转换缩进为制表符」
+- 或在终端执行：`cat -A tech_terms.dict.yaml | grep $'\t'` 确认有 `^I`（即 Tab）
+
+**4. 检查 `name` 与文件名一致**
+
+`tech_terms.dict.yaml` 的头部 `name` 必须是 `tech_terms`，大小写和下划线都要完全一致。
+
+**5. 权重太低被淹没**
+
+如果词条存在但排名靠后，把权重调高到 500–1000，观察是否上升。主词典中的常用词权重通常在 100–500 范围内。
+
+**6. 文件编码问题**
+
+`.dict.yaml` 必须是 UTF-8 无 BOM 编码。Windows 上用记事本保存可能产生 BOM（文件开头有隐藏的 `EF BB BF` 字节），导致 YAML 头部解析失败。建议用 VS Code 或 Notepad++ 保存为「UTF-8 without BOM」。
+
+</Details>
+
+<Details title="原理：sort 策略对候选顺序的实际影响" level="advanced">
+
+**`by_weight`（默认）**
+
+编译时按权重数值降序对词条排序：权重 1000 的词条排在权重 500 的前面。运行时翻译器按此顺序产出候选，候选列表中靠前的词条通常排名更高。
+
+适合场景：词库中的词有明确的优先级区分，希望高频词总是优先显示。
+
+**`original`**
+
+完全保持 `.dict.yaml` 文件中词条的出现顺序，编译时不重排。
+
+适合场景：从特定来源导入、顺序本身有意义的词库（如按字母顺序整理的人名词典），不希望 RIME 改变排列。
+
+**重要限制**：`sort` 只影响编译期排列顺序，运行时还受以下因素综合影响：
+
+- 用户词典（userdb）中的个人词频——频繁选择的词会上升
+- 语言模型分（如方案加载了 n-gram 模型）
+- 翻译器的 `initial_quality`
+
+因此 `sort: original` 并不保证候选顺序与文件顺序完全一致，它只是提供了一个初始偏好。
+
+</Details>
+
+<Details title="use_preset_vocabulary 什么时候开启" level="intermediate">
+
+`use_preset_vocabulary: true` 会让 RIME 在编译时混入内置的 `essay.txt` 字频表（包含约 8105 个常用汉字的词频数据）。
+
+**开启后的效果**：词典中出现的汉字，其单字候选会获得来自 `essay.txt` 的词频加权，常用字排名提升，生僻字排名下降。
+
+**什么时候应该开启：**
+
+- 你的词典包含大量**单字或短词**，需要贴近自然语言频率
+- 你的词典是一个完整的「主词典」，不是通过 `import_tables` 引入的子词典
+
+**什么时候应该关闭（默认）：**
+
+- 你的词典是专业术语库，不希望受通用字频影响
+- 你的词典通过 `import_tables` 被引入另一个主词典——主词典通常已经设置了合适的词频
+- 你的词典使用 `sort: original`，希望完全自控顺序
+
+**实践建议**：子词典（通过 `import_tables` 引入的）通常设 `use_preset_vocabulary: false`；作为最终主词典的容器文件，如果词汇覆盖面广，可以考虑设为 `true`。
+
+</Details>
+
+<Details title="词库转换工具参考" level="advanced">
+
+**imewlconverter（推荐）**
+
+开源跨平台工具，支持最多输入法格式：
+
+- 输入：搜狗 `.scel`/`.scel` 分类词库、百度 `.bdict`、QQ `.qpyd`、Google Pinyin `.db`、微软拼音 `.dat` 等
+- 输出：RIME 词典格式（TAB 分隔 TSV），可直接整理为 `.dict.yaml`
+
+GitHub：`https://github.com/studyzy/imewlconverter`
+
+**scel2rime**
+
+Python 脚本，专门处理搜狗 `.scel` → RIME `.dict.yaml`，输出格式直接可用。
+
+**depinyin**
+
+将无拼音的纯汉字词条自动标注拼音，适合从 Excel 整理好词表后批量生成编码字段。
+
+**转换后的清洗步骤：**
+
+1. 用文本编辑器或 `awk` 检查分隔符是否为 TAB
+2. 过滤掉乱码行（通常来自二进制文件解析失败）
+3. 检查权重字段是否为整数（有些工具输出浮点数）
+4. 去重（`sort -u` 或 Python `set`）
+5. 在 `.dict.yaml` 头部填写 `name`、`version` 后即可使用
+
+</Details>
+
+## 下一步
+
+- [词典管理](./dictionary) — `custom_phrase.txt` 与用户词典的用法，与本文互补
+- [候选词设置](./candidate-settings) — 词典质量直接影响候选词排序
+- [首次部署](./first-deploy) — 部署流程详解，以及如何验证词典加载成功
+- [多设备同步](./multi-device-sync) — 将自定义词典纳入同步方案，跨设备共享

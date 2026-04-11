@@ -85,6 +85,7 @@ export interface SchemaConfig {
   reverseLookup?: ReverseLookupConfig;
   specialInput?: SpecialInputConfig;
   luaExtensions?: LuaExtensionsConfig;
+  luaScripts?: LuaScript[];
   displayConfig?: DisplayConfig;
 }
 
@@ -201,8 +202,27 @@ export interface SpecialTrigger {
   triggerCode: string;
 }
 
+/** User-defined special trigger that invokes a custom Lua script. */
+export interface CustomTrigger {
+  id: string;              // UUID
+  name: string;            // User-readable name, e.g. "IP 地址查询"
+  triggerCode: string;     // e.g. "/ip"
+  description: string;
+  scriptId: string;        // FK to LuaScript.id
+}
+
 export interface SpecialInputConfig {
   enabledTriggers: SpecialTrigger[];
+  customTriggers: CustomTrigger[];
+}
+
+/** A user-authored Lua script registered in the schema. */
+export interface LuaScript {
+  id: string;              // UUID
+  fileName: string;        // e.g. "my_translator.lua" (letters, digits, _, -)
+  scriptType: 'translator' | 'filter' | 'processor';
+  description: string;
+  code: string;            // Lua source code
 }
 
 // ─── Lua extensions ────────────────────────────────────

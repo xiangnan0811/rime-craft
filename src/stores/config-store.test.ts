@@ -139,4 +139,79 @@ describe('useConfigStore', () => {
     useConfigStore.getState().updateThemeLayout({ horizontal: true })
     expect(useConfigStore.getState().project.platformConfig.style).toBeUndefined()
   })
+
+  describe('custom triggers', () => {
+    beforeEach(() => {
+      useConfigStore.getState().setSchemaList([{ schema: 'rime_ice' }])
+    })
+
+    it('addCustomTrigger appends a trigger with a generated id', () => {
+      useConfigStore.getState().addCustomTrigger('rime_ice', {
+        name: 'IP 查询',
+        triggerCode: '/ip',
+        description: '查询本机 IP',
+        scriptId: 'script-1',
+      })
+      const triggers = useConfigStore.getState().project.schemaConfigs['rime_ice']?.specialInput?.customTriggers
+      expect(triggers).toHaveLength(1)
+      expect(triggers?.[0]?.name).toBe('IP 查询')
+      expect(triggers?.[0]?.id).toBeTruthy()
+    })
+
+    it('updateCustomTrigger modifies fields', () => {
+      useConfigStore.getState().addCustomTrigger('rime_ice', {
+        name: 'old', triggerCode: '/a', description: '', scriptId: 's',
+      })
+      const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]!.id
+      useConfigStore.getState().updateCustomTrigger('rime_ice', id, { name: 'new' })
+      const updated = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]!
+      expect(updated.name).toBe('new')
+    })
+
+    it('deleteCustomTrigger removes the trigger', () => {
+      useConfigStore.getState().addCustomTrigger('rime_ice', {
+        name: 'x', triggerCode: '/x', description: '', scriptId: 's',
+      })
+      const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]!.id
+      useConfigStore.getState().deleteCustomTrigger('rime_ice', id)
+      expect(useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers).toHaveLength(0)
+    })
+  })
+
+  describe('lua scripts', () => {
+    beforeEach(() => {
+      useConfigStore.getState().setSchemaList([{ schema: 'rime_ice' }])
+    })
+
+    it('addLuaScript appends a script with a generated id', () => {
+      useConfigStore.getState().addLuaScript('rime_ice', {
+        fileName: 'my_translator.lua',
+        scriptType: 'translator',
+        description: 'test script',
+        code: '-- code',
+      })
+      const scripts = useConfigStore.getState().project.schemaConfigs['rime_ice']?.luaScripts
+      expect(scripts).toHaveLength(1)
+      expect(scripts?.[0]?.fileName).toBe('my_translator.lua')
+      expect(scripts?.[0]?.id).toBeTruthy()
+    })
+
+    it('updateLuaScript modifies fields', () => {
+      useConfigStore.getState().addLuaScript('rime_ice', {
+        fileName: 'a.lua', scriptType: 'filter', description: '', code: '-- a',
+      })
+      const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts![0]!.id
+      useConfigStore.getState().updateLuaScript('rime_ice', id, { code: '-- b' })
+      expect(useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts![0]!.code).toBe('-- b')
+    })
+
+    it('deleteLuaScript removes the script', () => {
+      useConfigStore.getState().addLuaScript('rime_ice', {
+        fileName: 'x.lua', scriptType: 'processor', description: '', code: '',
+      })
+      const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts![0]!.id
+      useConfigStore.getState().deleteLuaScript('rime_ice', id)
+      expect(useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts).toHaveLength(0)
+    })
+  })
 })

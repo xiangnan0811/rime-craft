@@ -2,6 +2,10 @@ import { Document, Scalar } from 'yaml'
 import type { DefaultConfig, PlatformConfig, SchemaConfig, SimpleSwitchItem, MultiStateSwitchItem } from '@/types/config'
 import { hexToBgrInt } from '@/lib/color/convert'
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export function serializeDefaultConfig(
   config: DefaultConfig,
 ): Record<string, unknown> {
@@ -142,6 +146,43 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
   }
   if (config.luaExtensions?.inputStatistics) {
     patch['input_statistics/enabled'] = config.luaExtensions.inputStatistics.enabled
+  }
+
+  // Emit recognizer patterns for custom triggers
+  if (config.specialInput?.customTriggers) {
+    for (const trigger of config.specialInput.customTriggers) {
+      const script = config.luaScripts?.find((s) => s.id === trigger.scriptId)
+      const patternId = script
+        ? script.fileName.replace(/\.lua$/, '')
+        : trigger.id
+      patch[`recognizer/patterns/${patternId}`] = `^${escapeRegExp(trigger.triggerCode)}$`
+    }
+  }
+
+  // Emit lua module registrations for custom scripts
+  if (config.luaScripts && config.luaScripts.length > 0) {
+    const translators: string[] = []
+    const filters: string[] = []
+    const processors: string[] = []
+
+    for (const script of config.luaScripts) {
+      const identifier = script.fileName.replace(/\.lua$/, '')
+      switch (script.scriptType) {
+        case 'translator':
+          translators.push(`lua_translator@${identifier}`)
+          break
+        case 'filter':
+          filters.push(`lua_filter@${identifier}`)
+          break
+        case 'processor':
+          processors.push(`lua_processor@${identifier}`)
+          break
+      }
+    }
+
+    if (translators.length > 0) patch['engine/translators/+'] = translators
+    if (filters.length > 0) patch['engine/filters/+'] = filters
+    if (processors.length > 0) patch['engine/processors/+'] = processors
   }
 
   return patch

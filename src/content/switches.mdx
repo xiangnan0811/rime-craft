@@ -1,165 +1,349 @@
-# 开关与杂项
+# 开关（Switches）
 
-开关是 Rime 最灵活的功能切换机制——不需要编辑配置文件，只需一个快捷键或菜单操作，就能在输入过程中动态切换 Emoji 显示、简繁转换、标点模式等功能。
+**开关**是 RIME 方案中的命名状态变量。每个开关绑定一个名字，用户可在不编辑配置文件的情况下，通过快捷键、菜单或 Lua 脚本在运行时动态切换输入法行为——Emoji 显示、简繁字形、标点样式等功能均由此驱动。
+
+与直接修改 `translator/enable_*` 等配置项不同，开关在引擎层作为**持久化选项（option）**存储，引擎各组件可订阅其变化并实时响应，无需重新部署。
 
 ## 这是什么
 
-Rime 的「开关」（Switches）本质上是一组带有名字的**状态变量**。每个开关可以处于若干状态之一，用户通过 `Ctrl+~`（macOS 为 `Control+~`）进入方案菜单来切换状态，部分开关也支持快捷键直接切换。
+RIME 开关声明在方案 YAML 的 `switches:` 列表中。引擎启动时读取此列表，将每个开关名注册到 **Context**（输入上下文）中。开关有两种结构：
 
-开关的行为由方案文件中的 `switches` 段定义。Rime 中有两种开关类型：
-
-**二值开关**：只有开/关两种状态，用 `name` 字段标识：
+**二值开关**（`SimpleSwitchItem`）——有「开」「关」两种状态，由 `name` 字段标识：
 
 ```yaml
 switches:
-  - name: emoji          # 开关名称（引擎识别）
-    reset: 1             # 部署后默认状态（0=关, 1=开）
-    states: [关, 开]     # 两种状态的显示标签
+  - name: ascii_punct      # 引擎识别的选项名
+    reset: 0               # 部署后默认状态索引（0 = 关，1 = 开）
+    states: [中文, 英文]   # 两种状态的显示标签（可选）
 ```
 
-**多状态开关**：有 3 个或更多状态，用 `options` 数组标识：
+**多状态开关**（`MultiStateSwitchItem`）——有 3 个或更多互斥状态，由 `options` 数组标识：
 
 ```yaml
 switches:
-  - options: [s2s, s2t, s2hk, s2tw]   # 各状态的内部名称
-    reset: 0                            # 默认选中第 0 个
-    states: [简体, 通繁, 港繁, 臺繁]    # 各状态的显示标签
+  - options: [s2s, s2t, s2hk, s2tw]   # 各状态的内部选项名
+    reset: 0                            # 默认选中第 0 个状态
+    states: [简体, 通繁, 港繁, 臺繁]   # 各状态的显示标签
 ```
 
-`reset` 字段指定**每次部署后**开关的默认状态索引。
+:::note
+二值开关的 `name` 和多状态开关每个 `options[i]` 都是独立的布尔选项。切换多状态开关时，引擎先将当前激活的选项设为 `false`，再将新状态选项设为 `true`。
+:::
+
+## 快速上手
+
+:::tip
+最常见的需求是调整某个开关的默认状态（如默认关闭 Emoji）。完成前三步即可满足日常需求；步骤 4–5 是按键绑定进阶。
+:::
+
+<StepGuide>
+  <Step title="打开开关模块">
+    在编辑器左侧导航找到「开关」模块。页面按类别列出所有预设开关：基础、繁简转换、输入增强、显示控制、编码显示、注释模式。
+  </Step>
+  <Step title="切换开关默认状态">
+    找到你想调整的开关，点击右侧的拨动按钮（二值开关）或下拉菜单（多状态开关）来修改 `reset` 值。这里设置的是**部署后的初始状态**，不影响用户在会话中已经手动切换的状态。
+  </Step>
+  <Step title="保存并部署">
+    点击「保存」，然后重新部署 RIME（macOS 菜单栏图标 → 重新部署；Windows 任务栏图标 → 重新部署）。部署完成后，新的默认状态立即生效。
+  </Step>
+  <Step title="为开关绑定快捷键（可选）">
+    如果希望用快捷键切换某个开关，前往「按键绑定」模块，添加一条 `toggle: 开关名` 的绑定规则。例如为 `emoji` 开关绑定 `Control+Shift+E`：
+    ```yaml
+    - { when: always, accept: "Control+Shift+E", toggle: "emoji" }
+    ```
+  </Step>
+  <Step title="通过方案菜单切换">
+    在任意输入框中按 `Ctrl+~`（macOS 为 `` Control+` ``）打开方案菜单，菜单中会列出当前方案的所有开关及其当前状态，点击即可切换。这是无需配置即可临时切换的最简方式。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 基础开关
+### 预设开关一览
 
-| 开关 | 名称 | 默认 | 说明 |
+| 开关名 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `emoji` | 二值 | 开（1） | 候选中是否显示 Emoji 表情 |
+| `full_shape` | 二值 | 关（0） | 字母和数字输出全角（开）还是半角（关）字符 |
+| `ascii_punct` | 二值 | 关（0） | 中文模式下输出英文标点（开）还是中文标点（关） |
+| `prediction` | 二值 | 关（0） | 根据上下文预测下一个词 |
+| `abbrev` | 二值 | 开（1） | 启用首字母简码输入（如 `bj` → 北京） |
+| `chinese_english` | 二值 | 关（0） | 输入中文时显示对应英文翻译 |
+| `charset_filter` | 二值 | 关（0） | 开：小字集（约 6000 常用字）；关：大字集（全 Unicode 汉字） |
+| `char_priority` | 二值 | 关（0） | 开：单字优先；关：词组优先 |
+| `super_tips` | 二值 | 关（0） | 显示 Tips 扩展提示信息 |
+
+| 开关 | 类型 | 默认值 | 选项与说明 |
+|------|------|--------|-----------|
+| 简繁转换 | 多状态 | `s2s`（0） | `s2s` 简体 / `s2t` 通繁 / `s2hk` 港繁 / `s2tw` 臺繁 |
+| 编码显示 | 多状态 | `raw_input`（0） | `raw_input` 原编码 / `tone_display` 有声调 / `full_pinyin` 无声调 |
+| 注释模式 | 多状态 | `comment_off`（0） | `comment_off` 注释关 / `tone_hint` 有声调 / `toneless_hint` 无声调 |
+
+### 二值开关字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| Emoji | `emoji` | 开 | 候选词中是否显示 Emoji 表情 |
-| 全角/半角 | `full_shape` | 半角 | 字母和数字输出全角还是半角字符 |
-| 中英标点 | `ascii_punct` | 中文 | 中文模式下输出中文标点还是英文标点 |
+| `name` | 字符串 | 是 | 选项名，引擎和 Lua 脚本通过此名读写状态 |
+| `reset` | 整数 | 是 | 部署后默认状态：`0` 为关，`1` 为开 |
+| `states` | `[string, string]` | 否 | 方案菜单中显示的两种状态标签，缺省不在菜单中显示 |
 
-### 简繁转换（多状态）
+### 多状态开关字段说明
 
-万象拼音的简繁转换支持 4 种输出字形，而非传统方案的简单二值切换：
-
-| 状态 | 内部值 | 说明 |
-|------|--------|------|
-| 简体 | `s2s` | 标准简体中文（默认） |
-| 通繁 | `s2t` | 通用繁体（OpenCC 标准转换） |
-| 港繁 | `s2hk` | 香港繁体用字习惯 |
-| 臺繁 | `s2tw` | 台湾繁体用字习惯 |
-
-```yaml
-patch:
-  switches/@3:   # 假设简繁转换是第 4 个开关
-    options: [s2s, s2t, s2hk, s2tw]
-    reset: 0
-    states: [简体, 通繁, 港繁, 臺繁]
-```
-
-### 输入增强
-
-| 开关 | 名称 | 默认 | 说明 |
+| 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| 预测输入 | `prediction` | 关 | 根据上下文预测下一个词 |
-| 简码 | `abbrev` | 开 | 启用首字母简码输入（如 `bj` → 北京） |
-| 翻译模式 | `chinese_english` | 关 | 输入中文时显示对应英文翻译 |
-
-### 显示控制
-
-| 开关 | 名称 | 默认 | 说明 |
-|------|------|------|------|
-| 字集过滤 | `charset_filter` | 大字集 | 限制候选词的字符集范围 |
-| 候选排序 | `char_priority` | 词组先 | 优先显示单字还是词组 |
-| Tips 提示 | `super_tips` | 关 | 显示扩展提示信息 |
-
-### 编码显示（多状态）
-
-控制候选栏中编码的显示格式，3 种状态：
-
-| 状态 | 内部值 | 显示效果 |
-|------|--------|---------|
-| 原编码 | `raw_input` | 显示你实际输入的按键，如 `nihk` |
-| 有声调 | `tone_display` | 转换为带声调的拼音，如 `nǐ hǎo` |
-| 无声调 | `full_pinyin` | 转换为无声调拼音，如 `ni hao` |
-
-### 注释模式（多状态）
-
-控制候选词旁注释的显示方式，3 种状态：
-
-| 状态 | 内部值 | 说明 |
-|------|--------|------|
-| 注释关 | `comment_off` | 不显示任何注释 |
-| 有声调 | `tone_hint` | 显示带声调标记的拼音注释 |
-| 无声调 | `toneless_hint` | 显示不带声调的拼音注释 |
+| `options` | `string[]` | 是 | 各状态的选项名数组，长度 ≥ 2 |
+| `reset` | 整数 | 是 | 部署后默认选中的状态索引（从 0 开始） |
+| `states` | `string[]` | 是 | 各状态的显示标签，长度须与 `options` 一致 |
 
 <ConfigSlot module="switches" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**日常简体用户**：保持大部分默认值，开启 Emoji，简繁设为简体：
+### 开关的生命周期
 
-```yaml
-patch:
-  switches:
-    - name: emoji
-      reset: 1
-    - options: [s2s, s2t, s2hk, s2tw]
-      reset: 0        # 简体
+RIME 处理每次会话中开关状态变更的完整路径：
+
+```
+方案 YAML switches: 列表
+  ↓ 部署时
+Context 注册所有选项名（初始值由 reset 决定）
+  ↓ 运行时触发（三种方式）
+  ├─ key_binder  toggle: switch_name    ← 快捷键切换
+  ├─ Lua         context:set_option()   ← 脚本切换
+  └─ 方案菜单   用户点击               ← UI 切换
+  ↓
+Context 广播 option_update_notifier
+  ↓
+各 Filter / Translator 订阅并响应（如简繁 Filter 切换字形）
+  ↓
+用户状态文件 user.yaml 持久化当前值
 ```
 
-**繁体用户（台湾）**：将简繁转换默认设为臺繁：
+### reset 字段的作用时机
+
+`reset` 只在**重新部署**时生效，将该开关重置为指定索引对应的状态。部署之后，用户通过快捷键或菜单做的任何切换都会被**持久化**到 `<platform>.userdb/` 或 `user.yaml` 中，下次启动 RIME 时自动恢复用户上次的选择——而不是每次都回到 `reset` 值。
+
+这意味着：如果你把 `emoji` 的 `reset: 0`（关），但用户在会话中手动开启了，下次启动 RIME 仍然是开启状态，直到下次重新部署才会重置。
+
+### 开关与 Filter 的联动
+
+简繁转换等功能的实现依赖 RIME 引擎内置的 `simplification` Filter 或 OpenCC 组件。该 Filter 在初始化时注册对 `s2s` / `s2t` 等选项的监听；用户切换开关时，`option_update_notifier` 通知 Filter 更新内部 OpenCC 转换器实例，后续候选词立即以新字形输出。
+
+## 完整示例
+
+<YamlPreview title="wanxiang.custom.yaml" caption="通过 patch 追加开关或覆盖默认状态">
 
 ```yaml
 patch:
-  switches:
-    - options: [s2s, s2t, s2hk, s2tw]
-      reset: 3        # 臺繁
-```
+  # 覆盖已有开关的 reset 值——只需列出要改变的开关
+  switches/@0/reset: 1          # 第 1 个开关（emoji）默认开启
 
-**效率追求者**：开启预测输入、保持简码，关闭 Emoji 减少候选干扰：
-
-```yaml
-patch:
-  switches:
-    - name: emoji
+  # 追加新开关到列表末尾
+  switches/@append:
+    - name: full_shape
       reset: 0
-    - name: prediction
-      reset: 1
-    - name: char_priority
-      reset: 1        # 单字先，配合辅助码使用
+      states: [半角, 全角]
+    - name: ascii_punct
+      reset: 0
+      states: [中文, 英文]
+    - options: [noop, big5_trad, gb_hant]
+      reset: 0
+      states: [默认, 大五码繁, 国标繁]
 ```
 
-## 进阶技巧
-
-:::tip
-多状态开关在方案菜单（`Ctrl+~`）中会显示为一个带箭头的选项，每次选择会循环切换到下一个状态。你也可以通过快捷键绑定来快速切换。
-:::
+</YamlPreview>
 
 :::warning
-修改 `switches` 段时，注意保持开关的**顺序**不变。Rime 通过开关在数组中的位置来匹配用户的历史选择。如果你插入或删除了开关，已有的用户状态可能会错位。
+使用 `switches/@N` 按索引定位开关时，**索引位置必须与方案原始列表对应**。如果原方案更新后调整了开关顺序，你的 patch 可能会修改到错误的开关。更稳健的做法是用 `@append` 追加，或在 rime-craft 编辑器中通过 UI 修改（编辑器会自动处理索引）。
 :::
 
-可以为任意开关绑定快捷键实现一键切换：
+## 常见场景
+
+**场景一：默认关闭 Emoji（减少候选干扰）**
 
 ```yaml
 patch:
-  key_binder/bindings:
-    - { when: always, accept: Control+Shift+E, toggle: emoji }
-    - { when: always, accept: Control+Shift+F, toggle: simplification }
+  switches/@0/reset: 0    # 假设 emoji 是第 0 个开关
 ```
 
-## 学习路径
+或在编辑器「开关」模块中将 Emoji 拨为关闭状态，保存并部署即可。
 
-1. **起步**：先使用默认配置体验所有开关，通过 `Ctrl+~` 菜单了解有哪些可切换的选项
-2. **调整**：根据使用习惯修改最常用的开关默认值（Emoji、简繁、标点）
-3. **进阶**：为高频操作绑定快捷键，探索多状态开关的不同状态
+**场景二：台湾用户默认使用臺繁**
+
+```yaml
+patch:
+  # 找到简繁转换开关（options: [s2s, s2t, s2hk, s2tw]）并将 reset 设为 3
+  switches/@3/reset: 3    # 3 对应 s2tw（臺繁）
+```
+
+**场景三：为标点切换绑定快捷键**
+
+在「按键绑定」模块添加，或直接写入 `default.custom.yaml`：
+
+```yaml
+patch:
+  key_binder/bindings/@append:
+    - { when: always, accept: "Control+period", toggle: "ascii_punct" }
+```
+
+**场景四：在 Lua 脚本中读写开关状态**
+
+```lua
+-- 在 Filter 或 Processor 类型的 Lua 脚本中
+local function my_filter(input, env)
+  local ctx = env.engine.context
+  -- 读取开关状态
+  local use_ascii_punct = ctx:get_option("ascii_punct")
+  -- 根据状态决定是否处理
+  for cand in input:iter() do
+    if use_ascii_punct then
+      -- 做某些处理
+    end
+    yield(cand)
+  end
+end
+return my_filter
+```
+
+**场景五：动态切换字集过滤（程序员模式）**
+
+配合 `charset_filter` 开关，限制候选只显示常用汉字，避免生僻字误选：
+
+```yaml
+patch:
+  key_binder/bindings/@append:
+    - { when: always, accept: "Control+g", toggle: "charset_filter" }
+```
+
+---
+
+<Details title="reset 字段的三种语义" level="intermediate">
+
+RIME 文档和社区配置中，`reset` 字段有历史遗留的混用写法，容易造成困惑：
+
+**现代写法（推荐）**：`reset` 的值是**状态索引**，整数从 0 开始：
+
+```yaml
+- name: full_shape
+  reset: 0      # 索引 0 = 第一个状态 = 半角（关闭）
+```
+
+```yaml
+- name: full_shape
+  reset: 1      # 索引 1 = 第二个状态 = 全角（开启）
+```
+
+**旧版写法**：部分早期方案用 `initial_quality` 或省略 `reset` 字段，此时开关状态由用户文件决定，如果用户文件中无记录则默认为 `0`（关闭）。
+
+**多状态开关**的 `reset` 含义相同——对应 `options` 数组的索引，而非布尔值：
+
+```yaml
+- options: [s2s, s2t, s2hk, s2tw]
+  reset: 2    # 默认选中索引 2 = s2hk（港繁）
+```
+
+**注意**：`reset` 并非「每次启动后重置」，而是「每次重新部署后重置」。两次部署之间，用户手动切换的状态由 RIME 的用户状态文件持久化，不受 `reset` 影响。
+
+</Details>
+
+<Details title="自定义 Multi-state 开关：超过两种状态" level="advanced">
+
+任何需要在 3 个或以上互斥选项中循环的场景都适合使用多状态开关。以自定义「字体风格」切换为例：
+
+```yaml
+# 在方案 YAML 的 switches: 下添加
+- options: [noop, old_style, new_style, kai_shu]
+  reset: 0
+  states: [默认, 旧字形, 新字形, 楷书]
+```
+
+`noop` 是约定俗成的「不做任何操作」占位选项名，当选中 `noop` 时不会激活任何 Filter。
+
+**通过快捷键循环切换多状态开关**：
+
+`key_binder` 的 `toggle` 动作作用于多状态开关时，会**循环**切换到下一个状态（最后一个状态再切换回索引 0）：
+
+```yaml
+patch:
+  key_binder/bindings/@append:
+    - { when: always, accept: "Control+shift+S", toggle: "old_style" }
+```
+
+注意：`toggle` 的目标是 `options` 中的**某一个选项名**，而不是整个多状态开关的组名（多状态开关没有统一的组名）。`toggle: old_style` 的含义是：将 `old_style` 选项的布尔值取反——当前若未激活则激活（同时关闭同组其他选项），当前若已激活则关闭（回到 `noop`）。
+
+**在 Filter 中监听多状态开关**：
+
+```lua
+-- 在 Filter Lua 脚本中判断当前激活的字形
+local function style_filter(input, env)
+  local ctx = env.engine.context
+  if ctx:get_option("old_style") then
+    -- 应用旧字形转换
+  elseif ctx:get_option("new_style") then
+    -- 应用新字形转换
+  end
+  for cand in input:iter() do
+    yield(cand)
+  end
+end
+return style_filter
+```
+
+</Details>
+
+<Details title="原理：Context.set_option 与切换事件传播" level="advanced">
+
+开关状态的底层存储在 `Context` 对象的 `options_` 映射中（`map<string, bool>`）。每次调用 `set_option(name, value)` 时，引擎执行以下步骤：
+
+1. 更新 `options_[name] = value`
+2. 触发 `option_update_notifier`，将 `(name, value)` 广播给所有已注册的监听器
+3. 如果 `value` 发生了实际变化（旧值 ≠ 新值），同时触发候选列表刷新
+
+**Lua 脚本订阅切换事件**：
+
+```lua
+-- 在 Processor 或 Filter 的 init 函数中注册监听
+local function init(env)
+  env.option_listener = env.engine.context.option_update_notifier:connect(
+    function(ctx, option_name)
+      if option_name == "ascii_punct" then
+        -- 当 ascii_punct 状态改变时执行自定义逻辑
+        local is_ascii = ctx:get_option("ascii_punct")
+        env.use_ascii = is_ascii
+      end
+    end
+  )
+end
+```
+
+**持久化机制**：RIME 在会话结束（或切换方案）时，将当前所有开关状态写入用户目录的 `<schema_id>.userdb/` 或平台对应的状态文件。下次启动时优先读取此持久化值，只有在找不到持久化记录时才回退到方案 YAML 中的 `reset` 值。
+
+这就是为什么「重新部署」会重置开关——部署流程会清除运行时 Context 并重新从方案 YAML 读取 `reset`，而普通重启则会从持久化文件恢复用户状态。
+
+</Details>
+
+<Details title="排错：开关状态不生效或不持久化" level="advanced">
+
+按以下顺序排查：
+
+1. **是否重新部署？** 修改 `switches:` 列表后，必须重新部署才能让新的 `reset` 值生效。仅保存配置文件不够，需要点击「重新部署」。
+
+2. **用户状态文件覆盖了 reset**：如果你把 `reset: 0` 但开关还是开着，说明用户状态文件保存了之前「开启」的记录。解决方法：在方案菜单中手动切换到期望状态（引擎会更新持久化值），或者删除 `<platform>_rime_userdata/` 中对应的状态文件后重新部署。
+
+3. **patch 索引错误**：使用 `switches/@N` 时，N 必须对应方案原始 `switches:` 列表的正确位置。如果原方案更新了，索引可能错位。可在部署日志 `rime.log` 中搜索 `switches` 查看实际加载的配置。
+
+4. **initial_quality 冲突**：`translator/initial_quality` 与开关无关，但部分社区配置混淆了两者。确认你修改的是 `switches:` 下的 `reset`，而非翻译器的质量参数。
+
+5. **Lua 脚本中使用了错误的选项名**：多状态开关的每个 `options[i]` 是独立的布尔选项，不存在「组名」。`context:get_option("s2s")` 和 `context:get_option("s2t")` 是两个独立查询，不能用多状态开关的 `options` 数组名来查询。
+
+6. **查看部署日志**：RIME 用户目录下的 `rime.log` 会记录 `switches` 解析错误。搜索 `[ERROR]` 或 `option` 定位问题行。
+
+</Details>
 
 ## 相关模块
 
-- [按键绑定](./key-bindings) — 为开关绑定快捷键
-- [注释与提示](./comment-hints) — 注释模式开关的详细配置
-- [候选词设置](./candidate-settings) — 部分开关影响候选行为
-- [标点符号映射](./punctuation) — `ascii_punct` 开关的详细说明
+- [按键绑定](./key-bindings) — 用 `toggle: switch_name` 为开关绑定快捷键
+- [中英文切换](./ascii-mode) — `ascii_mode` 开关与 `ascii_composer` 的联动关系
+- [候选词设置](./candidate-settings) — 部分开关（如简繁、字集过滤）影响候选词最终呈现
 
 <ConfigSlot module="switches" />

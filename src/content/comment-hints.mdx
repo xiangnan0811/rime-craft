@@ -1,119 +1,347 @@
-# 注释与提示
+# 候选词注释与提示
 
-注释系统是万象拼音的「学习助手」——通过在候选词旁显示拼音注释和编码信息，帮助你学习辅助码、确认读音、纠正输入错误。
+候选词旁边的那列灰色小字——辅助码编码、带调拼音、纠错标记——统称「超级注释」。它由 RIME 的 `super_comment` Lua filter 生成，再由前端按注释模式决定是否渲染。本模块控制注释**内容从哪来、显示多长、怎么标记纠错**；注释的**显示开关和格式**在 [候选词显示](./candidate-display) 模块中设置。
 
 ## 这是什么
 
-万象拼音的注释系统由两个独立维度组成：
+万象拼音（rime-ice）内置了一个名为 `super_comment` 的 Lua filter，挂载在引擎 Filter 链的末尾。它的作用是：遍历每个候选词，查询辅助码表、拼音表和纠错词表，然后把结果以文本形式写入候选词的 `comment` 字段。
 
-- **注释模式**：控制候选词**旁边**显示什么注释内容（拼音、辅助码等）
-- **编码显示**：控制候选栏**顶部**显示的输入编码格式
+这个 comment 字段就是你在候选词旁看到的灰色小字。它可以包含：
 
-两者都是多状态开关，通过 `Ctrl+~` 方案菜单或快捷键切换。它们与 [Lua 扩展](./lua-extensions)中的「超级注释」功能配合工作：注释模式控制「显不显示」，超级注释控制「显示什么内容」。
+| 注释类型 | 样例 | 触发条件 |
+|---------|------|---------|
+| 辅助码 | `〔k〕` | 单字且有辅助码 |
+| 带调拼音 | `nǐ hǎo` | commentMode 为 `toned` |
+| 无调拼音 | `ni hao` | commentMode 为 `toneless` |
+| 纠错提示 | `〔纠错〕正确` | 输入有误且开启纠错 |
+| 字频标记 | `(高频)` | 方案开启字频注释 |
+
+:::note
+`super_comment` 负责**写入**注释内容；[候选词显示](./candidate-display) 中的 `commentMode` 负责**是否渲染**这列小字。如果注释显示不出来，先确认 `commentMode` 不是 `off`。
+:::
+
+## 快速上手
+
+<StepGuide>
+  <Step title="确认 Lua 扩展中超级注释已开启">
+    前往编辑器「Lua 扩展」→「内置功能增强」Tab，找到「超级注释」行，确认开关处于开启状态。这一步会在 schema 的 `engine/filters` 链中注册 `lua_filter@super_comment`。
+  </Step>
+  <Step title="调整注释候选长度（candidateLength）">
+    默认值通常为 `2`，表示只对 2 字以内的候选词显示注释（单字和双字词）。如果你也想在三字词旁看到注释，调整到 `3` 或更高。数字越大，注释覆盖的词越多，候选栏信息密度也越高。
+  </Step>
+  <Step title="设置纠错提示前缀（correctorType）">
+    当你输入的拼音有误（如把「你好」打成「ni haao」），`super_comment` 能识别并在纠错词旁加上前缀标记。默认前缀为 `〔纠错〕`，可改成任意字符串，如 `✗` 或留空。
+  </Step>
+  <Step title="开启候选词注释显示">
+    回到「候选词显示」模块，将「注释模式」设为「有声调注释」或「无声调注释」。此时候选词旁的注释栏才会渲染出来。
+  </Step>
+  <Step title="重新部署并观察">
+    点击右上角「部署」按钮（或菜单栏 → 重新部署）。打开任意输入框，输入单个汉字对应的拼音，应该在候选词旁看到辅助码或拼音注释。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 注释模式（3 种状态）
-
-| 状态 | 内部值 | 视觉效果 |
-|------|--------|---------|
-| **注释关** | `comment_off` | 候选词旁不显示任何注释信息 |
-| **有声调** | `tone_hint` | 显示带声调标记的拼音注释，如 `nǐ hǎo` |
-| **无声调** | `toneless_hint` | 显示不带声调的拼音注释，如 `ni hao` |
-
-```yaml
-patch:
-  switches:
-    - options: [comment_off, tone_hint, toneless_hint]
-      reset: 0              # 默认关闭注释
-      states: [注释关, 有声调, 无声调]
-```
-
-当注释模式为「有声调」或「无声调」时，如果同时开启了超级注释（[Lua 扩展](./lua-extensions)），候选词旁还会显示辅助码编码和纠错提示。
-
-### 编码显示（3 种状态）
-
-| 状态 | 内部值 | 视觉效果 |
-|------|--------|---------|
-| **原编码** | `raw_input` | 显示你实际按下的键，如 `nihk`（双拼编码） |
-| **有声调** | `tone_display` | 将编码转换为标准拼音，如 `nǐ hǎo` |
-| **无声调** | `full_pinyin` | 将编码转换为无声调拼音，如 `ni hao` |
-
-```yaml
-patch:
-  switches:
-    - options: [raw_input, tone_display, full_pinyin]
-      reset: 0              # 默认显示原始编码
-      states: [原编码, 有声调, 无声调]
-```
-
-:::tip
-编码显示的「有声调」模式对双拼用户特别有用——双拼的编码（如 `nihk`）对旁人来说完全不可读，但转换为 `nǐ hǎo` 后就能看懂了。在给别人演示输入法时很有帮助。
-:::
-
 <ConfigSlot module="comment-hints" />
 
-## 常见场景与推荐搭配
+### `candidateLength` — 注释候选长度
 
-**学习辅助码阶段**：最大化辅助信息，帮助记忆：
+控制**最多为几字的候选词**附加注释。
 
-```yaml
-patch:
-  switches:
-    - options: [comment_off, tone_hint, toneless_hint]
-      reset: 1              # 默认「有声调」注释
-    - options: [raw_input, tone_display, full_pinyin]
-      reset: 0              # 编码显示保持原编码
-  # 配合超级注释
-  super_comment/enabled: true
-  super_comment/max_length: 2
+| 值 | 效果 | 适用场景 |
+|----|------|---------|
+| `1` | 仅单字候选显示注释 | 专注学习单字辅助码 |
+| `2`（推荐） | 单字 + 双字词显示注释 | 兼顾学习与效率的平衡点 |
+| `3`–`5` | 覆盖三至五字词 | 需要在较长词组旁看辅助码时 |
+| `10` | 几乎所有候选 | 最大信息密度，视觉较嘈杂 |
+
+:::tip
+学习辅助码阶段推荐设为 `1` 或 `2`——专注看单字和常用双字词的注释就够了。熟练后可以调低回 `1` 甚至关闭，保持候选栏整洁。
+:::
+
+### `correctorType` — 纠错提示格式
+
+输入拼音有误时，`super_comment` 的纠错子系统会在候选词旁添加提示文本。`correctorType` 控制这段提示的**包裹格式**。
+
+| 值示例 | 显示效果 | 说明 |
+|--------|---------|------|
+| `〔纠错〕`（默认） | `〔纠错〕nǐ hǎo` | 中文书名号风格，明显区分 |
+| `✗ ` | `✗ nǐ hǎo` | 简洁符号风格 |
+| `(err)` | `(err) nǐ hǎo` | 纯 ASCII，兼容性最好 |
+| `""` （空字符串） | `nǐ hǎo`（无前缀） | 不标记，纠错词与正常词注释一样 |
+
+## 原理机制
+
+### super_comment 在引擎中的位置
+
+RIME 每次处理输入时，依次经过：
+
+```
+按键 → Processor → Segmentor → Translator → Filter → 候选词输出
 ```
 
-这样每个候选词旁边都会显示辅助码编码和带声调拼音，一边打字一边学习。
-
-**日常高效输入**：关闭注释减少视觉干扰：
+`super_comment` 是一个 **Filter**，注册在 Filter 链的末尾位置：
 
 ```yaml
-patch:
-  switches:
-    - options: [comment_off, tone_hint, toneless_hint]
-      reset: 0              # 注释关闭
-    - options: [raw_input, tone_display, full_pinyin]
-      reset: 0              # 原始编码
+engine/filters/+:
+  - lua_filter@super_comment    # 最后执行，修饰候选词注释
 ```
 
-**教学演示场景**：展示最完整的输入信息：
+Filter 链末尾意味着它能看到所有前置 Filter（包括辅助码 filter）处理后的候选词状态，再统一决定最终注释内容。
 
-```yaml
-patch:
-  switches:
-    - options: [comment_off, tone_hint, toneless_hint]
-      reset: 1              # 有声调注释
-    - options: [raw_input, tone_display, full_pinyin]
-      reset: 1              # 有声调编码显示
+### 注释的生成逻辑
+
+`super_comment.lua` 的核心逻辑可以用伪代码描述：
+
+```
+for each cand in candidates:
+    if len(cand.text) > candidateLength:
+        skip  # 超过长度阈值，不附加注释
+    
+    aux_code = lookup_aux_table(cand.text)
+    if aux_code:
+        cand.comment = "〔" + aux_code + "〕"
+    
+    if is_correction(cand):
+        cand.comment = correctorType + cand.comment
 ```
 
-## 进阶技巧
+实际脚本还会：
+- 查询辅助码表（`lua/aux_code/*.txt`）获取编码
+- 通过 `spelling_hints` 的拼音信息决定是否追加读音
+- 检测候选是否来自纠错翻译器，若是则加上纠错前缀
+
+### comment 字段的流转
+
+```
+super_comment Lua filter 写入 cand.comment
+        ↓
+前端读取候选词列表（含 comment 字段）
+        ↓
+候选词显示模块的 commentMode 决定渲染方式：
+  off       → 不渲染，comment 字段被丢弃
+  toned     → 渲染带调拼音，辅助码注释原样显示
+  toneless  → 渲染去调号拼音，辅助码注释原样显示
+```
 
 :::note
-你可以通过快捷键快速切换注释模式，而不需要进入方案菜单。`Ctrl+A` 可以在注释模式的三种状态之间循环切换，`Ctrl+S` 切换编码显示。在需要查看辅助码时临时开启，用完后快速关闭。
+`commentMode` 的开关在前端层面生效。即使 `super_comment` 写入了 comment 内容，只要 `commentMode=off`，用户就看不到任何注释。这是一个「写入与显示分离」的设计。
 :::
+
+## 完整示例
+
+<YamlPreview title="rime_ice.custom.yaml" caption="开启超级注释 + 设置纠错前缀 + 限定注释候选长度">
+
+```yaml
+patch:
+  # 注册 super_comment filter（追加到 Filter 链末尾）
+  engine/filters/+:
+    - lua_filter@super_comment
+
+  # 超级注释参数
+  super_comment:
+    candidate_length: 2        # 2 字以内的候选显示注释
+    corrector_type: "〔纠错〕"  # 纠错词的注释前缀
+
+  # 开启拼音注释（translator 层面生成 comment 来源）
+  translator/spelling_hints: 8
+  translator/always_show_comments: true
+```
+
+</YamlPreview>
+
+:::tip
+`engine/filters/+` 中的 `+` 是追加语义，不会覆盖已有 filter。如果你已经在 Lua 扩展模块中勾选了「超级注释」，编辑器会自动生成这个 patch，无需手动添加。
+:::
+
+## 常见场景
+
+### 学习辅助码：单字带注释
+
+专注学习阶段，只看单字注释，减少信息干扰：
+
+```yaml
+patch:
+  super_comment:
+    candidate_length: 1        # 只注释单字
+    corrector_type: "〔纠错〕"
+  translator/spelling_hints: 1
+  translator/always_show_comments: true
+```
+
+配合候选词显示中的 `commentMode: toned`，每个单字候选旁会显示辅助码和带调拼音，一边打字一边对照记忆。
+
+---
+
+### 纠错提示：输错拼音也能看到正确拼音
+
+当你打出 `ni haao`（多了一个 `a`），纠错系统仍然能匹配出「你好」，并在旁边标注：
+
+```
+你好  〔纠错〕nǐ hǎo
+```
+
+只需确认：
+1. `corrector_type` 不为空（否则纠错词与普通词看起来一样）
+2. 方案的 corrector 翻译器已启用
+
+---
+
+### 不显示注释：候选栏更干净
+
+熟练用户的日常输入配置，去掉所有视觉噪音：
+
+```yaml
+patch:
+  translator/spelling_hints: 0
+  translator/always_show_comments: false
+```
+
+或者只需在「候选词显示」中将 `commentMode` 设为 `off`，无需改动 `super_comment` 参数——下次切回学习模式时直接换回 `toned` 即可。
+
+---
+
+### 仅多音字显示拼音
+
+`super_comment` 本身不区分多音字，但你可以通过调低 `spelling_hints` 的阈值来近似实现：将 `spelling_hints` 设为 `1`（仅单字），让注释只覆盖单字，多音字自然会在其中。更精细的过滤需要修改 Lua 脚本（见「自定义注释内容」一节）。
+
+---
+
+<Details title="何时应该关闭超级注释" level="intermediate">
+
+以下场景可以考虑关闭超级注释（在 Lua 扩展模块中将「超级注释」开关关闭）：
+
+| 场景 | 原因 |
+|------|------|
+| 辅助码已完全记忆，进入流畅输入阶段 | 注释对输入效率没有帮助，只增加渲染开销 |
+| 在低性能设备上感到输入卡顿 | Filter 链每次都遍历所有候选词，候选词多时有性能开销 |
+| 使用不带辅助码的方案 | 辅助码表为空时注释内容没有实质内容 |
+| 截图 / 录屏展示输入法 | 候选词旁没有注释，界面更简洁美观 |
+
+关闭超级注释只需移除 `engine/filters` 中的 `lua_filter@super_comment`，或在编辑器 Lua 扩展模块中关闭开关。其他配置（`spelling_hints`、`commentMode`）保持不变，方便随时重新开启。
+
+</Details>
+
+<Details title="排错：注释不显示" level="advanced">
+
+按以下顺序排查：
+
+1. **super_comment filter 是否已注册**
+
+   在方案的 YAML 或 `custom.yaml` 中确认 `engine/filters` 包含 `lua_filter@super_comment`。可以在 RIME 用户数据目录下用文本编辑器打开对应方案的 `.yaml` 文件，搜索 `super_comment`。
+
+2. **candidateLength 是否太小**
+
+   如果设为 `1`，双字词就不会有注释。先把值调到 `3` 测试，确认注释出现后再调回目标值。
+
+3. **commentMode 是否为 off**
+
+   前往「候选词显示」模块，检查「注释模式」设置。`commentMode: off` 会在前端层面完全不渲染注释栏，即使 `super_comment` 已经写入了 comment 内容。
+
+4. **spelling_hints 是否为 0**
+
+   `translator/spelling_hints: 0` 会让 Translator 不产生任何注释来源，`super_comment` 就无内容可修饰。将其设为 `8` 或更大。
+
+5. **Lua 脚本文件是否存在**
+
+   万象拼音的 Lua 脚本位于用户数据目录 `lua/` 子目录下，文件名应为 `super_comment.lua`。如果该文件缺失（如方案更新后路径变化），filter 会静默失败。
+
+6. **重新部署是否完成**
+
+   所有修改必须「重新部署」后才生效。确认部署过程没有报错（RIME 图标应从旋转变回静止）。
+
+</Details>
+
+<Details title="原理：super_comment Lua filter 的实现概览" level="advanced">
+
+`super_comment.lua` 是万象拼音随方案分发的 Lua 脚本，通常位于 `lua/super_comment.lua`。它的结构如下：
+
+```lua
+-- 读取配置
+local function get_config(env)
+  local config = env.engine.schema.config
+  local max_len = config:get_int("super_comment/candidate_length") or 2
+  local corrector_type = config:get_string("super_comment/corrector_type") or "〔纠错〕"
+  return max_len, corrector_type
+end
+
+-- Filter 主函数
+local function filter(input, env)
+  local max_len, corrector_type = get_config(env)
+  for cand in input:iter() do
+    if utf8.len(cand.text) <= max_len then
+      -- 查辅助码表，写入 comment
+      local code = aux_table[cand.text]
+      if code then
+        cand:get_genuine().comment = "〔" .. code .. "〕"
+      end
+      -- 检测纠错候选，加前缀
+      if cand.type == "corrected" then
+        cand:get_genuine().comment = corrector_type .. (cand.comment or "")
+      end
+    end
+    yield(cand)
+  end
+end
+
+return filter
+```
+
+关键点：
+- `cand:get_genuine()` 获取底层候选对象（跳过包装层），直接修改 `comment` 字段
+- `yield(cand)` 将候选词传递给下一个环节（最终到前端）
+- 辅助码查询通过预先加载的 Lua table（从 `.txt` 文件读取）完成，而非每次查文件
+
+</Details>
+
+<Details title="自定义注释内容" level="advanced">
+
+如果内置注释格式不满足需求，可以直接修改 `lua/super_comment.lua`（建议先备份）：
+
+**示例 1：在辅助码后追加 Unicode 码点**
+
+```lua
+if code then
+  local codepoint = string.format("U+%04X", utf8.codepoint(cand.text))
+  cand:get_genuine().comment = "〔" .. code .. " " .. codepoint .. "〕"
+end
+-- 效果：〔k U+4F60〕
+```
+
+**示例 2：只为多音字显示拼音注释**
+
+多音字的识别可以通过维护一个多音字列表 `lua/polyphone.lua` 实现：
+
+```lua
+local polyphone = require("polyphone")   -- 加载多音字表
+if polyphone[cand.text] then
+  cand:get_genuine().comment = get_pinyin(cand.text)
+end
+```
+
+**示例 3：显示字符笔画数**
+
+```lua
+local strokes = require("strokes_table")
+if strokes[cand.text] then
+  cand:get_genuine().comment = strokes[cand.text] .. "画"
+end
+-- 效果：你 → 7画
+```
+
+修改 Lua 脚本后，需要重新部署 RIME 才能生效。如果脚本有语法错误，RIME 会在部署时报错并回退到上一次正常状态——可以在 `rime.log` 中查看错误详情。
 
 :::warning
-注释模式和超级注释是**两个不同的控制层**。如果你开启了注释模式但没有开启超级注释（或超级注释的 Lua 脚本未加载），注释内容可能只有基本拼音而没有辅助码信息。确保两者配合使用。
+直接修改方案自带的 `super_comment.lua` 会在方案升级时被覆盖。建议将修改版本保存为 `super_comment_custom.lua`，然后在 `rime_ice.custom.yaml` 中注册新文件名：`lua_filter@super_comment_custom`，同时移除原有的 `lua_filter@super_comment`。
 :::
 
-## 学习路径
-
-1. **起步**：保持默认（注释关闭），先熟悉基本输入
-2. **学习期**：开启「有声调」注释 + 超级注释，观察每个字的辅助码编码
-3. **熟练后**：关闭注释回到极简模式，只在需要时通过 `Ctrl+A` 临时开启
+</Details>
 
 ## 相关模块
 
-- [辅助码配置](./auxiliary-code-config) — 辅助码编码信息通过注释系统显示
-- [Lua 扩展](./lua-extensions) — 超级注释功能控制注释的具体内容
-- [候选词显示](./candidate-display) — `always_show_comments` 与注释显示联动
-- [开关与杂项](./switches) — 注释模式和编码显示都是多状态开关
+- [候选词显示](./candidate-display) — `commentMode` 控制注释栏是否渲染及格式
+- [Lua 扩展](./lua-extensions) — super_comment 的注册入口和其他内置 Lua 功能
+- [辅助码配置](./auxiliary-code-config) — 辅助码编码表，super_comment 注释内容的核心来源
+- [候选词设置](./candidate-settings) — `spelling_hints` 参数控制注释生成的长度阈值
 
 <ConfigSlot module="comment-hints" />

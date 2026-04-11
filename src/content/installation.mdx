@@ -1,86 +1,425 @@
-# 安装教程
+# 安装 RIME
 
-根据你的操作系统，选择对应的 Rime 发行版进行安装。所有发行版共享同一套配置体系，安装完成后的配置方式完全相同。
+## 这是什么
 
-## macOS — 鼠须管（Squirrel）
+安装 RIME 分为**两个独立的步骤**，新用户经常只完成第一步就以为装好了：
 
-**方法一：使用 Homebrew（推荐）**
+1. **安装平台前端**（Frontend）：Squirrel（鼠须管）、Weasel（小狼毫）等。这是操作系统能识别的输入法程序，负责候选框 UI 和按键捕获。
+2. **安装输入方案**（Schema）：告诉引擎"怎么把你的按键翻译成汉字"。安装完前端后，RIME 内置了朙月拼音等基础方案，但大多数用户会想安装社区维护的方案（如雾凇拼音）以获得更好的词库。
+
+本文主要讲第一步——前端安装。第二步请参阅[输入方案管理](./schema-manager)。
+
+:::note
+不同平台的前端名称不同（鼠须管 / 小狼毫 / ibus-rime / Trime / Hamster），但底层共享同一套 librime 引擎，配置文件格式完全相同。
+:::
+
+## 快速上手
+
+<StepGuide>
+  <Step title="确认你的平台">
+    根据操作系统选择对应的前端：
+
+    | 平台 | 前端名称 | 中文名 |
+    |------|----------|--------|
+    | macOS | Squirrel | 鼠须管 |
+    | Windows | Weasel | 小狼毫 |
+    | Linux（IBus） | ibus-rime | — |
+    | Linux（Fcitx5） | fcitx5-rime | — |
+    | Android | Trime | 同文输入法 |
+    | iOS | Hamster | 仓输入法 |
+  </Step>
+  <Step title="安装前端程序">
+    参考本文下方对应平台的安装章节，执行安装命令或下载安装包。
+  </Step>
+  <Step title="在系统输入法列表中添加">
+    安装完成后，操作系统不会自动激活新输入法——你需要手动将它加入输入法列表：
+    - **macOS**：系统设置 → 键盘 → 输入法 → `+` → 选择「鼠须管」
+    - **Windows**：安装后默认出现在语言栏，右下角任务栏可见小狼毫图标
+    - **Linux**：在 IBus 或 Fcitx5 配置工具中添加「Rime」输入法
+    - **Android / iOS**：在系统键盘设置中将 Trime / Hamster 设为默认键盘
+  </Step>
+  <Step title="注销或重启（如需）">
+    Linux 平台必须注销并重新登录，让输入法框架重新扫描已安装的引擎。macOS 和 Windows 通常无需重启。
+  </Step>
+  <Step title="切换到 RIME 并测试">
+    切换到 RIME 前端后，打开任意文本框，尝试输入拼音字母。如果看到候选词弹出，说明安装成功。首次使用时按 `Ctrl+~` 可呼出方案切换菜单。
+  </Step>
+</StepGuide>
+
+---
+
+## macOS：安装 Squirrel（鼠须管）
+
+### 方法一：Homebrew（推荐）
+
+如果已安装 Homebrew，直接在终端运行：
 
 ```bash
 brew install --cask squirrel
 ```
 
-**方法二：手动下载**
+安装完成后，macOS 会弹出通知提示已安装新输入法。如果没有弹出，打开「系统设置 → 键盘 → 输入法」手动添加。
 
-访问 [https://rime.im](https://rime.im)，下载最新版本的 `.pkg` 安装包，双击运行并按照提示完成安装。
+### 方法二：下载 .pkg 安装包
 
-**安装后的步骤：**
+访问 [Squirrel GitHub Releases](https://github.com/rime/squirrel/releases)，下载最新版本的 `.pkg` 文件，双击运行按照向导完成安装。
+
+:::tip
+推荐使用 Homebrew 安装，方便后续通过 `brew upgrade --cask squirrel` 一键更新到新版本。
+:::
+
+### 安装后的步骤
 
 1. 打开「系统设置」→「键盘」→「输入法」
-2. 点击 `+`，找到「鼠须管」，添加为输入法
-3. 注销并重新登录，或重启系统，使输入法完全生效
-4. 切换到鼠须管后，点击菜单栏图标，选择「重新部署」
+2. 点击左下角 `+`，在列表中找到「鼠须管」，点击「添加」
+3. 在菜单栏输入法图标处切换到鼠须管，尝试输入文字
 
-## Windows — 小狼毫（Weasel）
+### 用户配置目录
 
-1. 访问 [https://rime.im](https://rime.im)，下载最新版本的小狼毫安装程序（`.exe`）
-2. 以管理员权限运行安装程序，按照向导提示完成安装
-3. 安装完成后，在任务栏的语言栏中切换到「中文（小狼毫）」
-4. 右键点击系统托盘中的小狼毫图标，选择「重新部署」
+鼠须管的用户配置文件存放在：
 
-> **注意**：安装过程中如果提示需要安装 VC++ 运行库，请同意安装，否则小狼毫无法正常运行。
-
-## Linux — ibus-rime 或 fcitx5-rime
-
-Linux 下有两种主流输入法框架可以选择。
-
-**IBus 框架：**
-
-```bash
-# Debian / Ubuntu
-sudo apt install ibus-rime
-
-# Arch Linux
-sudo pacman -S ibus-rime
-
-# Fedora
-sudo dnf install ibus-rime
+```
+~/Library/Rime/
 ```
 
-**Fcitx5 框架（推荐，功能更完善）：**
+所有 `.yaml` 和 `.custom.yaml` 文件都放在这里，修改后需在菜单栏点击「重新部署」才能生效。
+
+<Details title="macOS 权限问题（macOS 10.15+）" level="intermediate">
+
+macOS Catalina（10.15）及更高版本对输入法有更严格的沙盒限制。如果安装后鼠须管无法正常输入，或在某些 App 中不生效，请检查以下权限：
+
+**输入监控权限**
+
+1. 打开「系统设置」→「隐私与安全性」→「输入监控」
+2. 确认「Squirrel」已勾选
+
+**全磁盘访问（某些场景需要）**
+
+如果在 Finder 的文件名输入框或沙盒 App 中输入法不响应，可尝试：
+
+1. 「系统设置」→「隐私与安全性」→「完全磁盘访问」
+2. 将 Squirrel 加入列表并勾选
+
+**注意**：每次更新鼠须管后，可能需要重新授权上述权限。
+
+</Details>
+
+---
+
+## Windows：安装 Weasel（小狼毫）
+
+### 方法一：Scoop
+
+如果已安装 [Scoop](https://scoop.sh)：
+
+```powershell
+scoop bucket add extras
+scoop install weasel
+```
+
+### 方法二：下载 .exe 安装包
+
+访问 [Weasel GitHub Releases](https://github.com/rime/weasel/releases)，下载最新版本的 `.exe` 安装程序，以管理员权限运行，按向导完成安装。
+
+:::note
+安装程序可能会提示安装 Microsoft Visual C++ 运行库（VC++ Redistributable）。请同意安装，否则小狼毫无法启动。
+:::
+
+### 安装后的状态
+
+安装完成后，小狼毫图标会出现在系统托盘（任务栏右下角）。在语言栏中切换到「中文 (小狼毫)」即可开始使用。
+
+右键点击托盘图标可以访问：
+- **重新部署**：修改配置后必须执行
+- **输入法设定**：调整外观和行为
+- **用户文件夹**：直接打开配置目录
+
+### 用户配置目录
+
+```
+%APPDATA%\Rime\
+```
+
+在资源管理器地址栏输入 `%APPDATA%\Rime` 可直接跳转。
+
+<Details title="与其他输入法的冲突问题" level="intermediate">
+
+Windows 上同时安装多个输入法时，有时会出现冲突或切换异常。常见症状：
+
+- 切换到小狼毫后，仍然弹出其他输入法的候选框
+- 输入无响应，或候选词与键盘不匹配
+- 系统语言栏出现多个重复图标
+
+**排查步骤**
+
+1. 打开「设置」→「时间和语言」→「语言」→「中文（简体）」→「选项」
+2. 检查已安装的键盘列表，移除不需要的输入法
+3. 如果之前安装过搜狗、百度等第三方输入法，建议卸载或禁用后再使用小狼毫
+4. 卸载/禁用其他输入法后，注销并重新登录 Windows
+
+**注意**：部分杀毒软件会将小狼毫的按键监听行为误报为可疑程序。如遇此情况，将小狼毫加入杀毒软件的信任列表即可。
+
+</Details>
+
+---
+
+## Linux：安装 ibus-rime 或 fcitx5-rime
+
+Linux 上 RIME 需要通过输入法框架（Input Method Framework）集成到系统中，目前主流框架有两种：
+
+| 框架 | 适用场景 | RIME 包名 |
+|------|----------|-----------|
+| IBus | GNOME 桌面默认，Ubuntu/Fedora 预装 | `ibus-rime` |
+| Fcitx5 | KDE、XFCE 及其他 DE 常用，功能更丰富 | `fcitx5-rime` |
+
+### Debian / Ubuntu
 
 ```bash
-# Debian / Ubuntu
-sudo apt install fcitx5 fcitx5-rime
+# IBus 框架
+sudo apt install ibus-rime
 
-# Arch Linux
-sudo pacman -S fcitx5 fcitx5-rime fcitx5-configtool
+# Fcitx5 框架
+sudo apt install fcitx5 fcitx5-rime fcitx5-chinese-addons
+```
 
-# Fedora
+### Arch Linux
+
+```bash
+# IBus 框架
+sudo pacman -S ibus-rime
+
+# Fcitx5 框架（推荐）
+sudo pacman -S fcitx5 fcitx5-rime fcitx5-configtool fcitx5-qt fcitx5-gtk
+```
+
+### Fedora
+
+```bash
+# IBus 框架
+sudo dnf install ibus-rime
+
+# Fcitx5 框架
 sudo dnf install fcitx5 fcitx5-rime
 ```
 
-安装后，在系统语言和输入法设置中将 ibus 或 fcitx5 设为默认输入法框架，重新登录后生效。
+### 安装后的配置
 
-## Android — 同文输入法（Trime）
+安装完包之后，还需要让系统识别新的输入法框架：
 
-同文输入法是 Rime 在 Android 上的实现，支持完整的配置体系。
+**使用 IBus 时**，将以下内容添加到 `~/.bashrc` 或 `~/.profile`（已有相关配置则跳过）：
 
-- **F-Droid（推荐）**：在 F-Droid 中搜索「同文输入法」并安装
-- **GitHub**：访问 [https://github.com/osfans/trime](https://github.com/osfans/trime) 下载最新 APK
+```bash
+export GTK_IM_MODULE=ibus
+export QT_IM_MODULE=ibus
+export XMODIFIERS=@im=ibus
+```
 
-安装后，在「设置」→「语言和输入法」中启用同文输入法，并将其设为默认输入法。
+**使用 Fcitx5 时**：
 
-## iOS — 仓输入法（Hamster）
+```bash
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+```
 
-仓输入法是 iOS 平台上功能最完整的 Rime 实现。
+:::warning
+修改完环境变量后，必须**注销并重新登录**（或重启），才能让输入法框架在 GUI 应用中生效。仅重启终端不够。
+:::
 
-- 打开 App Store，搜索「仓输入法」，点击安装
-- 安装后进入「设置」→「通用」→「键盘」→「键盘」，添加「仓输入法」
-- 开启「允许完全访问」以获得最佳使用体验
+登录后，在 IBus 设置或 Fcitx5 配置工具中添加「Rime」输入法引擎，即可使用。
 
-## 安装后：第一次部署
+### 用户配置目录
 
-所有平台安装完成后，都需要执行一次**重新部署**操作，让 Rime 编译内置的配置文件。具体步骤请参阅[第一次部署](./first-deploy)。
+| 框架 | 用户配置目录 |
+|------|-------------|
+| ibus-rime | `~/.config/ibus/rime/` |
+| fcitx5-rime | `~/.local/share/fcitx5/rime/` |
 
-部署完成后，Rime 默认会加载朙月拼音（全拼）方案，你可以按 `Ctrl+~`（macOS / Windows / Linux）呼出方案选单，切换到其他方案。
+<Details title="ibus vs fcitx5：如何选择" level="intermediate">
+
+两个框架都能运行 ibus-rime / fcitx5-rime，性能差异不大，主要区别在于系统集成深度和桌面环境适配：
+
+**选择 IBus 的场景**
+
+- 使用 GNOME 桌面（Ubuntu 默认、Fedora Workstation 默认）
+- 不想额外配置，直接用发行版预装的框架
+- 对候选框外观没有特殊要求
+
+**选择 Fcitx5 的场景**
+
+- 使用 KDE、XFCE、i3 或其他非 GNOME 桌面
+- 需要更丰富的候选框主题定制
+- 需要中英文混输标点符号自动转换等高级特性
+- Arch Linux 用户（fcitx5 在 Arch 社区维护更活跃）
+
+**混合桌面（Wayland）注意**
+
+在 Wayland 会话下，IBus 和 Fcitx5 的兼容性因应用不同而有差异。原生 Wayland 应用（如 Firefox Wayland 版）通常两者均可；XWayland 应用可能需要额外配置环境变量。如果遇到某些应用中输入法不弹出候选框，建议切换框架测试。
+
+</Details>
+
+---
+
+## Android：安装 Trime（同文输入法）
+
+Trime 是 RIME 在 Android 上的原生实现，支持完整的配置体系，可以使用与桌面端相同的方案文件。
+
+### 安装渠道
+
+- **F-Droid（推荐）**：搜索「同文输入法」或「Trime」，F-Droid 版本无广告，更新及时
+- **Google Play**：搜索「同文输入法」
+- **GitHub**：访问 [osfans/trime Releases](https://github.com/osfans/trime/releases) 直接下载 APK
+
+### 启用为默认键盘
+
+1. 打开手机「设置」→「语言与输入法」→「虚拟键盘」（不同厂商 ROM 路径略有差异）
+2. 点击「管理键盘」，找到「同文输入法」并开启
+3. 回到输入法列表，将同文输入法设为默认
+
+### 用户配置目录
+
+Trime 的配置文件存放在手机存储的 `Rime/` 目录下（通常为 `/sdcard/Rime/` 或通过 Files 应用访问的 `Rime/` 文件夹）。可以通过 USB 传输或云存储将桌面端的方案文件复制到这个目录，再在 Trime 设置中点击「重新部署」。
+
+:::note
+Android 对外部存储的访问权限管理较严，安装后请在系统设置中授予 Trime「文件和媒体」访问权限，否则无法读取 `/sdcard/Rime/` 目录中的配置文件。
+:::
+
+---
+
+## iOS：安装 Hamster（仓输入法）
+
+Hamster 是目前 iOS 平台上功能最完整的 RIME 实现，方案导入、配置管理均可在 App 内完成。
+
+### 安装
+
+打开 App Store，搜索「仓输入法」，下载安装（[App Store 链接](https://apps.apple.com/app/id6446617683)）。
+
+### 启用键盘
+
+1. 打开手机「设置」→「通用」→「键盘」→「键盘」
+2. 点击「添加新键盘」→「仓输入法」
+3. 点击「仓输入法」→ 开启「允许完全访问」
+
+:::warning
+iOS 的键盘扩展在没有「完全访问」权限时功能受限（如无法访问剪贴板）。RIME 方案的某些功能（如 Lua 脚本调用系统日期）需要完全访问才能正常工作。开启后数据仍保留在本机，不上传网络。
+:::
+
+### 方案安装
+
+Hamster 的方案通过 App 内的「方案管理」界面安装：
+
+- **内置方案**：App 预置了朙月拼音等基础方案，安装即可使用
+- **导入自定义方案**：在 App 内通过 iCloud / 本地文件导入方案包（`.zip`）
+- **WebDAV 同步**：支持配置 WebDAV 服务器，与其他设备同步 Rime 配置
+
+---
+
+<Details title="各平台用户配置目录对照表" level="intermediate">
+
+| 平台 | 前端 | 用户配置目录 |
+|------|------|-------------|
+| macOS | Squirrel | `~/Library/Rime/` |
+| Windows | Weasel | `%APPDATA%\Rime\` |
+| Linux | ibus-rime | `~/.config/ibus/rime/` |
+| Linux | fcitx5-rime | `~/.local/share/fcitx5/rime/` |
+| Android | Trime | `/sdcard/Rime/`（外部存储）|
+| iOS | Hamster | App 内文件管理 / iCloud |
+
+所有平台的用户配置目录结构相同：`.schema.yaml` 方案文件、`.dict.yaml` 词典文件、`default.custom.yaml` 全局补丁等都放在这个目录中。桌面端之间（macOS ↔ Windows ↔ Linux）的配置文件可以直接复制共用，只有少数涉及字体名称的设置需要按平台调整。
+
+</Details>
+
+<Details title="排错：安装后输入法不生效" level="advanced">
+
+安装完成但切换不到 RIME 输入法，或切换后没有候选词弹出，按以下步骤排查：
+
+**第一步：确认输入法已加入系统列表**
+
+- macOS：「系统设置 → 键盘 → 输入法」列表中是否有「鼠须管」
+- Windows：「设置 → 时间和语言 → 语言 → 中文 → 选项」中是否有「小狼毫」
+- Linux：IBus / Fcitx5 配置工具中是否添加了「Rime」引擎
+
+**第二步：检查是否已执行部署**
+
+首次安装后，RIME 需要编译默认配置才能使用。进入输入法菜单，选择「重新部署」，等待图标恢复正常后再测试。
+
+**第三步：Linux 环境变量**
+
+在终端执行以下命令检查环境变量是否设置：
+
+```bash
+echo $GTK_IM_MODULE
+echo $QT_IM_MODULE
+echo $XMODIFIERS
+```
+
+如果输出为空，说明环境变量未生效，需要注销后重新登录。
+
+**第四步：查看错误日志**
+
+| 平台 | 日志位置 |
+|------|---------|
+| macOS | `~/Library/Logs/Rime/` 或 `$TMPDIR/rime.squirrel.ERROR` |
+| Windows | `%TEMP%\rime.weasel.ERROR` |
+| Linux（ibus） | `~/.config/ibus/rime/rime.ibus.ERROR` |
+| Linux（fcitx5） | `~/.local/share/fcitx5/rime/rime.fcitx5.ERROR` |
+
+日志文件通常记录了部署失败的具体原因（YAML 语法错误、找不到词典文件等）。
+
+**第五步：冲突输入法**
+
+Windows 上如果同时安装了搜狗、百度等输入法，可能发生冲突。尝试暂时禁用其他输入法，重启后再测试小狼毫。
+
+</Details>
+
+<Details title="从源码编译安装" level="advanced">
+
+如果你需要最新的未发布特性，或想在不支持包管理器的环境中安装，可以从源码编译。
+
+**编译 librime（核心引擎）**
+
+```bash
+git clone --recursive https://github.com/rime/librime.git
+cd librime
+
+# macOS / Linux 依赖（以 Ubuntu 为例）
+sudo apt install build-essential cmake libboost-all-dev \
+    libglog-dev libleveldb-dev libmarisa-dev libopencc-dev \
+    libyaml-cpp-dev libgtest-dev
+
+# 编译
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+sudo cmake --install build
+```
+
+**编译前端（以 ibus-rime 为例）**
+
+```bash
+git clone https://github.com/rime/ibus-rime.git
+cd ibus-rime
+cmake -B build
+cmake --build build
+sudo cmake --install build
+```
+
+:::warning
+从源码编译需要处理较多依赖关系，版本不匹配会导致编译失败。建议优先使用包管理器安装，仅在有明确需求时才从源码编译。librime 的依赖（Boost、LevelDB、Marisa、OpenCC）版本要求可在项目 `CMakeLists.txt` 中查看。
+:::
+
+各前端的详细编译说明请参考各自的 GitHub 仓库 README：
+- [rime/squirrel](https://github.com/rime/squirrel) — macOS
+- [rime/weasel](https://github.com/rime/weasel) — Windows
+- [rime/ibus-rime](https://github.com/rime/ibus-rime) — Linux IBus
+
+</Details>
+
+---
+
+## 下一步
+
+安装完前端后，建议按以下顺序继续：
+
+- [首次部署](./first-deploy) — 了解「部署」的含义，以及如何触发部署让配置生效
+- [输入方案管理](./schema-manager) — 安装雾凇拼音、万象拼音等社区方案，替换内置的基础方案
+- [什么是 RIME](./what-is-rime) — 理解 RIME 的引擎架构与前端分离设计

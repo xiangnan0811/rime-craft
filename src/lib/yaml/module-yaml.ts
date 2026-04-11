@@ -30,8 +30,19 @@ const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
   'spelling-scheme': { file: 'schema', keys: ['speller'] },
   'auxiliary-code': { file: 'schema', keys: ['speller'] },
   'reverse-lookup': { file: 'schema', keys: ['reverse_lookup', 'wanxiang_lookup'] },
-  'special-input': { file: 'schema', keys: ['recognizer'] },
-  'lua-extensions': { file: 'schema', keys: ['super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics'] },
+  'lua-extensions': {
+    file: 'schema',
+    keys: [
+      // From original special-input
+      'recognizer',
+      // From original lua-extensions
+      'super_comment',
+      'super_processor',
+      'user_predict',
+      'super_replacer',
+      'input_statistics',
+    ],
+  },
   'candidate-display': { file: 'schema', keys: ['translator'] },
   'comment-hints': { file: 'schema', keys: ['super_comment'] },
 }

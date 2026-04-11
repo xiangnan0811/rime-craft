@@ -1,102 +1,580 @@
-# 配置文件结构
+# 配置结构
 
-Rime 的所有配置都以 YAML 文本文件的形式存放在用户配置目录中。理解这个目录结构，是自定义 Rime 的第一步。
+## 这是什么
 
-## 用户配置目录位置
+RIME 的配置是一套**分层 YAML 文件系统**。用户只需编辑 `.custom.yaml` 补丁文件，引擎在每次部署时会自动将补丁合并到原始方案文件上，生成最终的运行时配置。
 
-| 平台 | 配置目录路径 |
-|------|------------|
-| macOS | `~/Library/Rime/` |
-| Windows | `%APPDATA%\Rime\`（即 `C:\Users\用户名\AppData\Roaming\Rime\`） |
-| Linux（IBus） | `~/.config/ibus/rime/` |
-| Linux（Fcitx5） | `~/.local/share/fcitx5/rime/` |
-| Android（同文） | `/sdcard/rime/` 或应用内部存储 |
-| iOS（仓） | 仓输入法「文件」标签页内 |
+**它解决什么问题？**
 
-## 核心文件说明
+如果你直接修改 `default.yaml` 或 `rime_ice.schema.yaml`，方案更新时你的改动会被覆盖。RIME 的补丁机制让你的个人设置独立于方案作者的代码——无论方案更新多少次，你的 `.custom.yaml` 始终有效，只需重新部署即可应用。
 
-### `default.yaml`
+:::note
+「配置结构」是 RIME 所有进阶定制的入口。理解三层文件模型和 `patch:` 语法之后，你就能读懂社区教程中几乎所有的配置片段。
+:::
 
-这是 Rime 的**全局默认配置**文件，由 Rime 官方维护，定义了候选词数量、快捷键、已启用方案等全局设置。
+---
 
-**不要直接编辑这个文件**。每次 Rime 升级都可能覆盖它，你的修改会丢失。
+## 快速上手
 
-### `default.custom.yaml` ← 你应该编辑这个
+<StepGuide>
+  <Step title="找到用户配置目录">
+    RIME 的所有配置文件都保存在用户配置目录中：
 
-这是全局配置的**用户补丁文件**。使用 `patch:` 机制，将你的改动叠加到 `default.yaml` 上，而不替换整个文件。
+    | 平台 | 路径 |
+    |------|------|
+    | macOS | `~/Library/Rime/` |
+    | Windows | `%APPDATA%\Rime\` |
+    | Linux（IBus） | `~/.config/ibus/rime/` |
+    | Linux（Fcitx5） | `~/.local/share/fcitx5/rime/` |
+
+    在 rime-craft 编辑器中，点击任意模块右上角的「打开文件」按钮可以直接定位到对应文件。
+  </Step>
+  <Step title="找到或创建 custom 文件">
+    打开用户配置目录，找到你想要修改的目标文件对应的 `.custom.yaml`：
+
+    - 修改全局设置（候选词数量、方案列表）→ 编辑 `default.custom.yaml`
+    - 修改某个方案（如雾凇拼音）→ 编辑 `rime_ice.custom.yaml`
+
+    如果对应的 `.custom.yaml` 文件不存在，直接新建一个空文件即可。
+  </Step>
+  <Step title="写 patch 段落">
+    `.custom.yaml` 文件的根键必须是 `patch:`，所有修改都写在它下面：
+
+    ```yaml
+    patch:
+      menu/page_size: 9
+    ```
+
+    路径用 `/` 分隔 YAML 嵌套层级；`menu/page_size` 等同于修改 `menu:` 下的 `page_size` 字段。
+  </Step>
+  <Step title="保存文件">
+    保存 `.custom.yaml` 文件。此时改动还未生效——YAML 文件只是人类可读的文本，引擎运行时读取的是 `build/` 目录中的编译产物。
+  </Step>
+  <Step title="重新部署">
+    触发「重新部署」让改动生效。macOS 点击菜单栏图标 → 「重新部署」；Windows 在系统托盘右键 → 「重新部署」。部署完成后改动立即生效，无需重启系统。
+
+    :::tip
+    修改了 `.custom.yaml` 之后，**必须部署**，不是重启输入法。重启只重新加载上次的编译产物，不会重新读取你的 YAML 文件。
+    :::
+  </Step>
+</StepGuide>
+
+---
+
+## 核心文件
+
+RIME 配置分为三层，用户只需关注第三层：
+
+| 文件 | 作用 | 来源 | 是否由用户编辑 |
+|------|------|------|--------------|
+| `default.yaml` | 引擎级全局默认设置 | librime 内置 | 否 |
+| `<schema>.schema.yaml` | 方案定义（编码规则、引擎管道、功能开关） | 方案作者（rime-ice 等） | 否 |
+| `default.custom.yaml` | 全局用户覆盖（方案列表、页大小、快捷键等） | 用户 | **是** |
+| `<schema>.custom.yaml` | 方案级用户覆盖（模糊音、词典参数等） | 用户 | **是** |
+| `build/*.yaml` | 部署后的合并快照（编译产物） | rime_deployer 生成 | 否 |
+
+:::warning
+`build/` 目录中的文件是机器生成的，即使你直接修改了它们，下次部署也会被覆盖。如果你用 Git 管理配置目录，将 `build/` 加入 `.gitignore`。
+:::
+
+---
+
+## 原理机制
+
+### YAML 合并顺序
+
+每次部署时，`rime_deployer` 按以下顺序合并文件：
+
+```
+default.yaml
+  ↓ + default.custom.yaml     →  build/default.yaml（全局运行时配置）
+
+<schema>.schema.yaml
+  ↓ + <schema>.custom.yaml    →  build/<schema>.schema.yaml（方案运行时配置）
+```
+
+最终写入 `build/` 的文件是完全展开的 YAML，引擎直接读取，不再做任何合并。
+
+### patch 块结构
+
+`.custom.yaml` 文件有且只有一个根键 `patch:`，所有修改项写在它下面，使用 YAML 字典语法：
 
 ```yaml
-# default.custom.yaml 示例
 patch:
-  menu/page_size: 7
+  键路径1: 值1
+  键路径2: 值2
+```
+
+`patch:` 之外的内容会被忽略，文件里也不能有其他根级键。
+
+### 路径表示法
+
+RIME patch 用 `/` 代替 YAML 的嵌套缩进，表示深层键的路径：
+
+```yaml
+# 这两种写法等价：
+
+# 方式一：展开嵌套（标准 YAML）
+patch:
+  menu:
+    page_size: 9
+
+# 方式二：路径表示法（RIME 推荐）
+patch:
+  menu/page_size: 9
+```
+
+两种写法的效果完全相同。路径表示法更简洁，是社区文档的通用写法。
+
+### 列表追加 vs 整体替换
+
+这是最容易出错的地方。RIME 对**列表类型**的键提供两种 patch 模式：
+
+**整体替换**（不带 `/+`）：用 patch 中的列表完全覆盖原值：
+
+```yaml
+patch:
+  # 将 schema_list 替换为仅含这两个方案
   schema_list:
-    - schema: luna_pinyin_simp
+    - schema: rime_ice
     - schema: double_pinyin_flypy
 ```
 
-### `<方案名>.schema.yaml`
-
-输入方案的**完整定义文件**，包含该方案的拼写规则、词典引用、按键行为等所有设定。例如 `luna_pinyin.schema.yaml` 是朙月拼音的方案文件。
-
-同样，不建议直接修改这类文件，因为方案更新会覆盖它。
-
-### `<方案名>.custom.yaml`
-
-对特定输入方案的**用户补丁**。例如 `luna_pinyin_simp.custom.yaml` 只影响简体版朙月拼音，不影响其他方案。
+**追加到列表末尾**（带 `/+`）：在原有列表的基础上追加新元素，不删除原有内容：
 
 ```yaml
-# luna_pinyin_simp.custom.yaml 示例
+patch:
+  # 在现有 schema_list 末尾追加一个新方案
+  schema_list/+:
+    - schema: custom_pinyin
+
+  # 在现有 algebra 规则末尾追加新规则
+  speller/algebra/+:
+    - derive/^([zcs])h/$1/
+```
+
+:::warning
+如果你想"加一条规则"却误用了整体替换，`speller/algebra` 会变成只含你新加那一条，原有的所有规则全部丢失。当你不确定是替换还是追加时，优先考虑 `/+`。
+:::
+
+---
+
+## 完整示例
+
+<YamlPreview title="default.custom.yaml" caption="修改候选页大小，并追加一个自定义方案到方案列表">
+
+```yaml
+patch:
+  # 将每页候选词数量改为 9 个（默认通常是 5）
+  menu/page_size: 9
+
+  # 在现有方案列表末尾追加一个自定义方案
+  # 使用 /+ 确保不覆盖已有的方案
+  schema_list/+:
+    - schema: custom_pinyin
+```
+
+</YamlPreview>
+
+<YamlPreview title="rime_ice.custom.yaml" caption="覆盖 translator 参数，并追加模糊音 algebra 规则">
+
+```yaml
+patch:
+  # 开启智能补全候选（整体替换单个标量值）
+  translator/enable_completion: true
+
+  # 调整 translator 的初始权重
+  translator/initial_quality: 1.2
+
+  # 在现有 algebra 规则末尾追加模糊音规则
+  # 注意：使用 /+ 追加，而不是替换整个 algebra 列表
+  speller/algebra/+:
+    - derive/^([zcs])h/$1/
+    - derive/^([zcs])([^h])/$1h$2/
+    - derive/^n/l/
+    - derive/^l/n/
+```
+
+</YamlPreview>
+
+---
+
+## 常见场景
+
+### 修改候选页大小
+
+在 `default.custom.yaml` 中修改 `menu/page_size`：
+
+```yaml
+patch:
+  menu/page_size: 9
+```
+
+有效范围：1–9。设为 9 可以最大化候选词展示，减少翻页次数。
+
+### 切换简繁输出
+
+在方案的 `.custom.yaml` 中切换 `simplification` 开关的默认值：
+
+```yaml
+# rime_ice.custom.yaml
+patch:
+  switches/@next:
+    name: simplification
+    reset: 1          # 1 = 默认开启简化；0 = 默认关闭
+    states: [漢字, 汉字]
+```
+
+`@next` 是在 `switches` 数组末尾追加一个新开关的写法。如果方案已有 `simplification` 开关，直接修改对应位置的 `reset` 值即可（查看方案源文件确认数组下标）。
+
+### 追加模糊音规则
+
+在方案的 `.custom.yaml` 中追加 `speller/algebra` 规则：
+
+```yaml
+# rime_ice.custom.yaml
+patch:
+  speller/algebra/+:
+    - derive/^([zcs])h/$1/       # zh/ch/sh → z/c/s
+    - derive/^([zcs])([^h])/$1h$2/  # z/c/s → zh/ch/sh
+    - derive/^n/l/               # n → l
+    - derive/^l/n/               # l → n
+    - derive/^ing$/in/           # ing → in
+    - derive/^in$/ing/           # in → ing
+```
+
+追加的规则在原有规则之后生效。模糊音规则会让这些音节互相匹配，但可能增加错误候选，按需添加。
+
+### 添加自定义开关
+
+在方案的 `.custom.yaml` 中追加一个新的 `switches` 开关项：
+
+```yaml
+# rime_ice.custom.yaml
+patch:
+  switches/@next:
+    name: emoji_suggestion
+    reset: 1
+    states: [无 Emoji, 有 Emoji]
+```
+
+`@next` 是 RIME 列表操作的特殊语法，表示在数组末尾追加一个元素。添加的开关名称需要对应方案中实际存在的 filter 或 translator，否则开关虽然出现但不起作用。
+
+### include 其他方案文件
+
+使用 `__include:` 指令将另一个 YAML 文件（或文件中的某个节点）引入当前位置：
+
+```yaml
+# 在方案文件中引用共享配置（通常出现在 schema.yaml 而非 custom.yaml）
+key_binder:
+  __include: key_bindings:/common_bindings
+```
+
+`__include:` 适合在多个方案之间共享配置片段（如统一的按键绑定），避免重复粘贴。
+
+---
+
+<Details title="排错：patch 不生效的常见原因" level="advanced">
+
+部署成功但改动没有反映到实际输入行为时，按以下步骤排查：
+
+**1. 路径拼写错误**
+
+RIME patch 路径区分大小写，且必须与原始 YAML 中的键名完全一致。
+
+```yaml
+# 错误：
+patch:
+  Menu/PageSize: 9      # 键名大小写不对
+  menu/page-size: 9     # 分隔符用了连字符而不是下划线
+
+# 正确：
+patch:
+  menu/page_size: 9
+```
+
+排查方法：打开 `build/default.yaml`（或对应方案的 `build/*.yaml`），搜索你想改的键名，确认实际拼写。
+
+**2. 列表追加误写为替换**
+
+想追加一条规则，却忘记加 `/+`，导致原有列表被清空：
+
+```yaml
+# 危险：会把 algebra 替换成只有这一条规则
 patch:
   speller/algebra:
+    - derive/^n/l/
+
+# 正确：在末尾追加
+patch:
+  speller/algebra/+:
+    - derive/^n/l/
+```
+
+**3. YAML 缩进错误**
+
+YAML 使用空格缩进，不能混用 Tab 键。`patch:` 下面的所有键必须统一缩进（通常是 2 个空格）：
+
+```yaml
+# 错误（混用了 Tab）：
+patch:
+	menu/page_size: 9   # ← 这是 Tab，YAML 不允许
+
+# 正确：
+patch:
+  menu/page_size: 9   # ← 两个空格
+```
+
+**4. 特殊字符未加引号**
+
+值中包含 `:`, `#`, `[`, `{` 等 YAML 特殊字符时需要用引号包裹：
+
+```yaml
+# 错误：冒号后的内容被解析为嵌套结构
+patch:
+  speller/delimiter: " :"   # 取决于 YAML 解析器行为，可能出错
+
+# 安全写法：用单引号或双引号
+patch:
+  speller/delimiter: " :"
+```
+
+**5. 部署失败，但无提示**
+
+RIME 有时静默失败——输入法仍可用，但配置未更新。查看日志文件确认：
+
+| 平台 | 日志路径 |
+|------|---------|
+| macOS | `$TMPDIR/rime.squirrel.ERROR` |
+| Windows | `%TEMP%\rime.weasel.ERROR` |
+| Linux（ibus） | `~/.config/ibus/rime/rime.ibus.ERROR` |
+
+搜索 `deployer` 或 `patch` 关键词定位具体错误。
+
+**6. patch 文件根键不是 `patch:`**
+
+文件保存时误加了其他根级键，或 `patch:` 下面混入了顶层内容：
+
+```yaml
+# 错误：顶层出现了 patch 以外的内容
+customization:
+  distribution_code_name: Squirrel
+
+patch:
+  menu/page_size: 9
+```
+
+正确的 `.custom.yaml` 结构是 `patch:` 作为**唯一**根键（`customization:` 是 RIME 在部署后自动写入的，不要手动添加）。
+
+</Details>
+
+<Details title="原理：__include / __patch / __append / __merge 指令" level="advanced">
+
+RIME 的配置系统除了 `patch:` 语法，还提供四个 YAML 指令用于更细粒度的配置复用。这些指令通常出现在方案文件（`.schema.yaml`）或共享配置文件中，而不是 `.custom.yaml`。
+
+**`__include:`**
+
+将另一个 YAML 节点的内容完整引入当前位置。语法：`file_name:/path/to/node` 或省略文件名引用同文件节点。
+
+```yaml
+# 引用同文件的节点
+key_binder:
+  bindings:
+    __include: preset_key_bindings:/common
+
+# 引用另一个文件的节点
+key_binder:
+  __include: shared_bindings.yaml:/key_binder
+```
+
+`__include:` 是**完整替换**——引用的节点内容会完全取代当前位置的值。
+
+**`__patch:`**
+
+对已有节点进行局部修改，语义类似 `.custom.yaml` 中的 `patch:`，但写在文件内部：
+
+```yaml
+engine:
+  translators:
+    - script_translator
+  __patch:
+    translators/+:
+      - lua_translator@my_custom_translator
+```
+
+适合方案文件在发布时内置一些常见的扩展点，用户可以用 `__patch:` 插入自定义内容。
+
+**`__append:`**
+
+专门用于向列表追加元素，效果等同于 `/+` 路径后缀，但语义更明确：
+
+```yaml
+speller:
+  algebra:
     - erase/^xx$/
-    - derive/^([zcs])h/$1/   # 模糊音：zh→z
+  __append:
+    algebra:
+      - derive/^n/l/
 ```
 
-### `custom_phrase.txt`
+与 `/+` 的区别：`__append:` 是节点内指令，在 schema.yaml 内部使用；`/+` 是 patch 路径语法，在 custom.yaml 中使用。两者效果相同，选择哪种取决于你在哪个文件里写。
 
-用于添加自定义词组的纯文本文件，使用制表符分隔的三列格式：`词语<Tab>编码<Tab>权重`。
+**`__merge:`**
 
+将一个映射（Map）类型的节点与另一个合并，保留两者的键，冲突时以 `__merge:` 的来源为准：
+
+```yaml
+translator:
+  __merge:
+    enable_completion: true
+    enable_sentence: false
 ```
-你好世界	nihao shijie	1
-Rime输入法	rime shurfa	1
-```
 
-## `patch:` 机制详解
+`__merge:` 适合在 `__include:` 引入整块配置之后，对其中少数键做覆盖修改，而不必重写整个块。
 
-`.custom.yaml` 文件的核心是 `patch:` 键。它的作用是：**在不替换整个配置的前提下，精确修改某个配置项的值**。
+**使用场景对照**
 
-### 路径语法
+| 指令 | 典型场景 |
+|------|---------|
+| `patch:` | 用户的 `.custom.yaml` 修改任意配置项 |
+| `__include:` | 方案文件中复用公共配置块 |
+| `__patch:` | 方案文件内部为用户预留的扩展点 |
+| `__append:` | 向列表型节点追加元素（schema.yaml 内部） |
+| `__merge:` | 在 `__include:` 引入的块上做局部覆盖 |
 
-Rime 使用 `/` 分隔符表示 YAML 嵌套路径：
+</Details>
+
+<Details title="路径表示法的边界情况" level="advanced">
+
+**patch 嵌套 Map**
+
+路径可以任意深度，只要用 `/` 分隔各层键名：
 
 ```yaml
 patch:
-  # 等同于在 default.yaml 中设置 menu: { page_size: 7 }
-  menu/page_size: 7
-
-  # 等同于在顶层设置 key_binder: { bindings: [...] }
-  key_binder/bindings:
-    - { when: paging, accept: bracketleft, send: Page_Up }
+  engine/translators/0: script_translator    # 替换 translators 数组的第 0 个元素
+  key_binder/bindings/0/when: composing      # 修改第 0 条 binding 的 when 字段
 ```
 
-### 为什么使用 `.custom.yaml` 而不是直接改 `.yaml`？
+直接用数字下标定位数组元素时，整体替换该位置的值。
 
-| 直接改 `.yaml` | 使用 `.custom.yaml` |
-|--------------|-------------------|
-| 方案升级后改动丢失 | 方案升级不影响你的改动 |
-| 必须维护完整文件 | 只需写出变更的部分 |
-| 难以追踪改了什么 | 一目了然，改动集中 |
-| 易引入格式错误 | 补丁文件更简短，出错概率低 |
+**数组中插入元素（不是追加）**
 
-**结论：始终通过 `.custom.yaml` 进行定制，保持 `.yaml` 原文件不变。**
+RIME 没有在数组中间插入元素的原生语法。如果必须在特定位置插入，只能整体替换整个列表：
 
-## 目录中其他常见文件
+```yaml
+patch:
+  # 整体替换 translators，在 script_translator 之前插入 lua_translator
+  engine/translators:
+    - lua_translator@date_translator
+    - script_translator
+    - punct_translator
+    - reverse_lookup_translator
+```
 
-- `build/`：部署后生成的编译产物，不要手动修改
-- `*.dict.yaml`：词典文件，定义方案使用的词汇
-- `opencc/`：OpenCC 简繁转换配置目录
-- `lua/`：Lua 脚本目录，用于高级扩展
+整体替换时要确保列表完整，不遗漏原有项目（可以先查看 `build/` 中的对应文件确认原始列表）。
 
-理解了配置文件的结构之后，就可以开始具体的配置了。推荐从[输入方案管理](./schema-manager)开始，然后根据需要调整[候选词设置](./candidate-settings)、[模糊音](./fuzzy-pinyin)等选项。
+**键名中包含 `/`**
 
-在编辑器中可以直观地修改这些设置，而无需手动了解每个文件的路径和语法。
+RIME 的键路径本身使用 `/` 作分隔符，如果 YAML 键名中含有字面量 `/`，需要用 `__patch:` 指令或写成嵌套 YAML，避免歧义（实际上 RIME 的配置键几乎不含 `/`，此情况极少遇到）。
+
+**`@` 数组操作符**
+
+除了数字下标，RIME 还支持几个 `@` 语法的数组操作符：
+
+| 语法 | 含义 |
+|------|------|
+| `list/@n` | 访问下标为 `n` 的元素 |
+| `list/@last` | 最后一个元素 |
+| `list/@before n` | 在下标 `n` 之前插入 |
+| `list/@after n` | 在下标 `n` 之后插入 |
+| `list/@next` | 在末尾追加（等同于 `/+`） |
+
+示例：
+
+```yaml
+patch:
+  # 在 switches 数组末尾追加一个新开关
+  switches/@next:
+    name: emoji_suggestion
+    reset: 1
+    states: [无 Emoji, 有 Emoji]
+
+  # 在 switches 第 0 项之前插入
+  switches/@before 0:
+    name: ascii_mode
+    reset: 0
+    states: [中文, 西文]
+```
+
+</Details>
+
+<Details title="YAML 引号规则与 RIME 的特殊字符" level="intermediate">
+
+RIME 配置中有几类特殊字符经常需要引号处理：
+
+**正则表达式（algebra 规则）**
+
+`speller/algebra` 中的规则本身是字符串，但通常不需要引号，除非含有 YAML 元字符：
+
+```yaml
+patch:
+  speller/algebra/+:
+    - "derive/[^aeiouv]$//"    # 末尾的 // 可能被误解，加引号更安全
+    - derive/^([zcs])h/$1/     # 不含特殊字符，不需要引号
+    - "xform/([aeiou])ng$/$1gn/"   # 含 [ ] 时，引号更安全
+```
+
+**包含 `:` 的字符串值**
+
+YAML 中冒号有特殊含义，当值中包含 `:` 时（如 URL、注释文本），需要引号：
+
+```yaml
+patch:
+  schema/description: "这是一个: 示例描述"   # 含冒号需要引号
+```
+
+**包含 `#` 的字符串值**
+
+`#` 在 YAML 中是注释符，用在值中时需要引号：
+
+```yaml
+patch:
+  speller/alphabet: "zyxwvutsrqponmlkjihgfedcba#"  # 若字母表含 # 需要引号
+```
+
+**布尔值和数字**
+
+YAML 会将 `true`/`false`/`yes`/`no` 解析为布尔值，将纯数字解析为整数或浮点数。RIME 配置的值类型通常与 YAML 解析结果一致，但如果你需要字符串形式的 `"true"` 或版本号 `"1.0"`，需要加引号：
+
+```yaml
+patch:
+  schema/version: "2.0"        # 保持字符串，防止被解析为浮点数 2.0
+  translator/enable_completion: true   # 布尔值，不需要引号
+```
+
+**单引号 vs 双引号**
+
+- 单引号：内容完全按字面量处理，不解析转义序列
+- 双引号：解析 `\n`、`\t` 等转义序列
+
+RIME 配置绝大多数情况下单引号和双引号效果相同。对于含反斜杠的正则表达式，优先用单引号，避免意外转义：
+
+```yaml
+patch:
+  speller/algebra/+:
+    - 'xform/\btest\b/测试/'    # 单引号：反斜杠按字面量传递给 RIME 正则引擎
+```
+
+</Details>
+
+---
+
+## 下一步
+
+掌握配置结构之后，建议按以下顺序继续：
+
+- [首次部署](./first-deploy) — 了解部署的完整流程与原理，以及部署失败时如何排查
+- [输入方案管理](./schema-manager) — 安装雾凇拼音、万象拼音等社区方案，配置方案列表
+- [多设备同步](./multi-device-sync) — 用 Git 或 iCloud 在多台设备间同步 `.custom.yaml` 配置
+- [什么是 RIME](./what-is-rime) — 回顾 RIME 的整体架构，理解引擎管线与方案系统

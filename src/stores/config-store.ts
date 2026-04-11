@@ -12,6 +12,8 @@ import type {
   ThemeColors,
   SchemaConfig,
   EditorUIState,
+  CustomTrigger,
+  LuaScript,
 } from '@/types/config'
 import { createEmptyProject } from '@/lib/config/defaults'
 
@@ -43,6 +45,12 @@ interface ConfigState {
   removeCustomPhrase: (index: number) => void;
   updateCustomPhrase: (index: number, phrase: CustomPhrase) => void;
   setCustomPhrases: (phrases: CustomPhrase[]) => void;
+  addCustomTrigger: (schemaId: string, trigger: Omit<CustomTrigger, 'id'>) => void;
+  updateCustomTrigger: (schemaId: string, id: string, partial: Partial<Omit<CustomTrigger, 'id'>>) => void;
+  deleteCustomTrigger: (schemaId: string, id: string) => void;
+  addLuaScript: (schemaId: string, script: Omit<LuaScript, 'id'>) => void;
+  updateLuaScript: (schemaId: string, id: string, partial: Partial<Omit<LuaScript, 'id'>>) => void;
+  deleteLuaScript: (schemaId: string, id: string) => void;
 }
 
 export const useConfigStore = create<ConfigState>((set) => ({
@@ -271,4 +279,139 @@ export const useConfigStore = create<ConfigState>((set) => ({
       },
       isDirty: true,
     })),
+
+  addCustomTrigger: (schemaId, trigger) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      const currentSpecial = existing?.specialInput ?? { enabledTriggers: [], customTriggers: [] }
+      const newTrigger: CustomTrigger = {
+        ...trigger,
+        id: crypto.randomUUID(),
+      }
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...(existing ?? { schemaId, fuzzyRules: [] }),
+              specialInput: {
+                enabledTriggers: currentSpecial.enabledTriggers,
+                customTriggers: [...currentSpecial.customTriggers, newTrigger],
+              },
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  updateCustomTrigger: (schemaId, id, partial) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.specialInput) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              specialInput: {
+                ...existing.specialInput,
+                customTriggers: existing.specialInput.customTriggers.map((t) =>
+                  t.id === id ? { ...t, ...partial } : t,
+                ),
+              },
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  deleteCustomTrigger: (schemaId, id) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.specialInput) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              specialInput: {
+                ...existing.specialInput,
+                customTriggers: existing.specialInput.customTriggers.filter((t) => t.id !== id),
+              },
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  addLuaScript: (schemaId, script) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      const currentScripts = existing?.luaScripts ?? []
+      const newScript: LuaScript = {
+        ...script,
+        id: crypto.randomUUID(),
+      }
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...(existing ?? { schemaId, fuzzyRules: [] }),
+              luaScripts: [...currentScripts, newScript],
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  updateLuaScript: (schemaId, id, partial) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.luaScripts) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              luaScripts: existing.luaScripts.map((sc) =>
+                sc.id === id ? { ...sc, ...partial } : sc,
+              ),
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
+
+  deleteLuaScript: (schemaId, id) =>
+    set((s) => {
+      const existing = s.project.schemaConfigs[schemaId]
+      if (!existing?.luaScripts) return {}
+      return {
+        project: {
+          ...s.project,
+          schemaConfigs: {
+            ...s.project.schemaConfigs,
+            [schemaId]: {
+              ...existing,
+              luaScripts: existing.luaScripts.filter((sc) => sc.id !== id),
+            },
+          },
+        },
+        isDirty: true,
+      }
+    }),
 }))

@@ -1,108 +1,336 @@
 # 输入方案管理
 
-输入方案是 Rime 的核心概念——每个方案定义了一套完整的输入规则，从拼音映射到候选词排序到功能开关。理解方案的结构和切换机制，是驾驭 Rime 的第一步。
+输入方案（Schema）是 RIME 的核心单元——每个方案是一套完整的输入规则，从编码方式到词典到功能开关全部自包含。理解方案管理，是从「能用」走向「用好」RIME 的第一步。
 
 ## 这是什么
 
-在 Rime 中，「输入方案」（Schema）是一套**完整的输入规则定义**，包含：
+在 RIME 中，**输入方案**是一套完整的输入规则定义。一个方案包含：
 
-- 编码规则（全拼、双拼、五笔等）
-- 词典配置（使用哪个词库）
-- 开关定义（有哪些可切换的功能）
-- 引擎配置（挂载了哪些 Lua 扩展、过滤器等）
+- **编码规则**：全拼、双拼、五笔、仓颉等不同的编码体系
+- **词典配置**：使用哪个词库，以及词库规模
+- **功能开关**：方案内可切换的特性（简繁转换、英文模式等）
+- **引擎管道**：挂载哪些 Lua 扩展、过滤器、翻译器
 
-每个方案对应一个 `.schema.yaml` 文件。你可以同时安装多个方案，通过 `Ctrl+~`（macOS 为 `Control+~`）打开方案菜单来切换。
+`default.yaml`（或用户覆盖文件 `default.custom.yaml`）的 `schema_list` 字段决定**哪些方案会被加载**，以及**它们的优先顺序**。列表第一项是默认方案，Ctrl+\`（macOS 为 Control+\`）打开方案切换菜单时也按此顺序展示。
 
-### 方案文件结构
-
-一个典型的 Rime 方案由以下文件组成：
-
-| 文件 | 作用 |
-|------|------|
-| `xxx.schema.yaml` | 方案主文件，定义所有输入规则 |
-| `xxx.dict.yaml` | 方案词典，包含词库数据 |
-| `xxx.custom.yaml` | 用户自定义补丁（你的修改写在这里） |
-| `lua/` 目录 | Lua 扩展脚本 |
-
-:::warning
-永远不要直接修改 `.schema.yaml` 文件——方案更新时你的修改会被覆盖。所有自定义配置都应该写在 `.custom.yaml` 中，使用 `patch:` 语法。
+:::tip
+每个方案是独立的——切换方案时，RIME 会完整加载另一套引擎管道。不同方案的用户词典互相独立，词频数据不会互相干扰。
 :::
+
+## 快速上手
+
+<StepGuide>
+  <Step title="浏览可用方案">
+    在编辑器左侧导航找到「输入方案管理」模块。页面下方显示当前已启用的方案列表，右侧有「浏览所有方案」入口，可以查看所有预设方案的对比信息（词库规模、辅助码支持、难度等）。
+  </Step>
+  <Step title="添加一个方案">
+    点击「添加方案」下拉框，选择想要启用的方案，点击「添加」按钮。该方案会追加到列表末尾。如果想让它成为默认方案，用上方的 ↑ 按钮将它移到列表第一位。
+  </Step>
+  <Step title="重新部署让改动生效">
+    添加或删除方案后，必须触发「重新部署」才能生效：macOS 点击菜单栏输入法图标 → 重新部署；Windows 在小狼毫系统托盘菜单中选择重新部署；Linux 使用 `ibus-daemon -drx` 或对应命令。**保存配置文件本身不够，必须完成部署步骤。**
+  </Step>
+  <Step title="用 Ctrl+` 切换方案">
+    部署完成后，在任意输入框按 Ctrl+\`（macOS 为 Control+\`）打开方案切换菜单，可以在已启用的方案之间即时切换。切换不需要重新部署。
+  </Step>
+  <Step title="删除不再使用的方案">
+    在方案列表中点击对应方案的「删除」按钮，然后重新部署。删除方案只是从 `schema_list` 中移除该条目，不会删除方案文件本身，之后随时可以重新添加。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 方案列表
+### default.yaml 中的 schema_list
 
-在 `default.custom.yaml` 中定义你启用的方案列表：
+`schema_list` 是 `default.yaml`（或 `default.custom.yaml`）中的顶层字段，值是一个有序数组：
 
-```yaml
-patch:
-  schema_list:
-    - schema: wanxiang          # 万象拼音
-    - schema: rime_ice          # 雾凇拼音
-    - schema: double_pinyin_flypy  # 小鹤双拼
-```
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `schema_list` | 数组 | 已启用方案的列表，顺序即切换菜单顺序 |
+| `schema_list[].schema` | 字符串 | 方案的 `schema_id`，对应 `<schema_id>.schema.yaml` 文件名 |
 
-列表中的第一个方案是默认方案。
+### 方案元数据字段
 
-### 主流方案对比
+每个 `.schema.yaml` 的 `schema` 节点包含以下常用字段：
 
-| 方案 | 类型 | 特点 | 适合人群 |
-|------|------|------|---------|
-| **万象拼音** | 全拼/双拼 | 方案内切换拼写、内置辅助码、Lua 扩展丰富 | 追求极致效率、愿意深度定制的用户 |
-| **雾凇拼音** | 全拼 | 词库丰富、开箱即用、社区活跃 | 想要稳定好用的全拼方案 |
-| **朙月拼音** | 全拼 | Rime 内置、轻量稳定 | 极简主义者、方案开发者 |
-| **小鹤双拼** | 双拼 | 最流行的双拼方案 | 双拼用户（但万象也内置了小鹤双拼） |
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| `schema_id` | 方案唯一标识符，与文件名一致 | `rime_ice` |
+| `name` | 方案显示名称 | `雾凇拼音` |
+| `version` | 方案版本号 | `"2024-01-01"` |
+| `author` | 作者信息 | `Dvel <dvel.me>` |
+| `description` | 方案简介 | 多行文本 |
+| `dependencies` | 依赖的其他方案 ID 列表 | `[stroke]` |
+
+:::note
+`dependencies` 字段声明该方案依赖的其他方案。最常见的用途是反查功能——例如拼音方案依赖 `stroke`（笔画方案），用户输入 `/` 后可以用笔画查询不认识的字。被依赖的方案无需出现在 `schema_list` 中，RIME 会在后台自动加载。
+:::
+
+### rime-craft 预设方案
+
+以下方案可以直接通过编辑器添加，无需手动配置文件：
+
+| 方案 ID | 名称 | 类型 | 词库规模 | 辅助码 | 难度 |
+|---------|------|------|---------|------|------|
+| `wanxiang` | 万象拼音 | 全拼/双拼 | 150万+ | 直接辅助码 | 中等 |
+| `rime_ice` | 雾凇拼音 | 全拼 | 200万+ | 不支持 | 简单 |
+| `double_pinyin_flypy` | 小鹤双拼 | 双拼 | 依赖基础方案 | 可选音形 | 中等 |
+| `luna_pinyin` | 朙月拼音 | 全拼 | 50万+ | 不支持 | 简单 |
+| `wubi86` | 五笔86 | 形码 | 10万+ | 不适用 | 困难 |
 
 <ConfigSlot module="schema-manager" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**只用万象拼音**：
+### 方案的三层文件组织
+
+一个完整的 RIME 方案由三类文件组成，职责分明：
+
+| 文件 | 职责 | 修改建议 |
+|------|------|---------|
+| `<schema_id>.schema.yaml` | 方案主定义：引擎管道、编码规则、开关等 | **不要直接修改**，更新时会被覆盖 |
+| `<schema_id>.custom.yaml` | 用户补丁：用 `patch:` 语法覆盖主文件中的任意字段 | 所有个人自定义写这里 |
+| `<schema_id>.dict.yaml` | 词典：词条列表和频率数据 | 通常不直接编辑，通过词典管理工具处理 |
+
+:::warning
+永远不要直接编辑 `.schema.yaml` 文件。方案更新后，原始文件会被新版本覆盖，你的修改会丢失。所有自定义配置必须写在 `.custom.yaml` 中，使用 `patch:` 语法。
+:::
+
+### schema_list 加载流程
+
+RIME 启动或重新部署时，按以下顺序处理方案：
+
+1. 读取 `default.yaml`，合并 `default.custom.yaml` 中的 `patch`
+2. 按 `schema_list` 的顺序，逐一读取每个方案的 `.schema.yaml`
+3. 对每个方案，检查并合并对应的 `.custom.yaml` 补丁
+4. 将合并结果编译为 `build/` 目录下的二进制缓存（prism、table、trie 等文件）
+5. 输入时，RIME 直接读取 `build/` 目录的编译结果——速度快，但修改配置后必须重新触发编译
+
+这就是为什么「修改配置文件后必须重新部署」——部署 = 重新执行上面的编译步骤。
+
+### dependencies 机制
+
+当一个方案声明了 `dependencies`，RIME 会确保被依赖的方案也完成编译，即使它不在 `schema_list` 中：
 
 ```yaml
-# default.custom.yaml
-patch:
-  schema_list:
-    - schema: wanxiang
+# rime_ice.schema.yaml（片段）
+schema:
+  schema_id: rime_ice
+  dependencies:
+    - stroke   # 笔画方案，用于反查功能
 ```
 
-**万象 + 雾凇双方案并存**（不确定时先都装上，对比体验）：
+实践意义：如果你只用雾凇拼音而不需要五笔，`schema_list` 中不需要加 `wubi86`；但如果雾凇拼音的反查功能依赖 `stroke`，`stroke` 会被自动编译，你无需手动添加。
+
+## 完整示例
+
+<YamlPreview title="default.custom.yaml" caption="在 schema_list 中启用多个方案，万象拼音作为默认">
 
 ```yaml
 patch:
   schema_list:
     - schema: wanxiang
     - schema: rime_ice
+    - schema: double_pinyin_flypy
+    - schema: wubi86
 ```
 
-**多方案切换**（为不同场景准备不同方案）：
+</YamlPreview>
+
+## 常见场景
+
+### 只用一个方案（精简配置）
+
+如果你已经确定了自己用哪个方案，只保留一个可以减少切换菜单的干扰：
 
 ```yaml
 patch:
   schema_list:
-    - schema: wanxiang          # 日常中文输入
-    - schema: wubi86            # 偶尔用五笔打生僻字
+    - schema: wanxiang
 ```
 
-## 进阶技巧
+### 拼音 + 五笔双方案并存
 
-:::tip
-安装新方案后需要执行「重新部署」（Deploy）才能生效。macOS 在鼠须管菜单中点击「重新部署」，Windows 在小狼毫托盘菜单中选择，Linux 使用 `ibus-daemon -drx` 或对应命令。
-:::
+为不同场景配备不同方案——拼音处理日常输入，五笔处理需要精确无歧义的生僻字：
 
-:::note
-万象拼音通过方案内切换（`/flypy` 等指令）实现多种拼写方案，不需要为每种双拼安装独立方案。这意味着你的用户词典在切换拼写方案后仍然共享，比安装多个独立方案更高效。
-:::
+```yaml
+patch:
+  schema_list:
+    - schema: rime_ice     # 日常中文输入
+    - schema: wubi86       # 打生僻字、专业术语
+```
 
-## 学习路径
+### 添加社区方案（rime-ice、万象拼音、虎码等）
 
-1. **起步**：从一个方案开始（推荐万象拼音），熟悉基本输入
-2. **探索**：通过 `Ctrl+~` 方案菜单了解方案切换机制
-3. **进阶**：根据需要添加第二个方案（如五笔），为不同场景配置
+在 rime-craft 中，选择「浏览所有方案」可以查看和添加预设的社区方案。如果要手动添加尚未预设的社区方案，需要先将方案文件放入 RIME 用户目录，再在 `default.custom.yaml` 中添加对应条目。
+
+### 方案迁移：替换默认拼音为雾凇拼音
+
+从 RIME 内置的朙月拼音迁移到雾凇拼音：
+
+```yaml
+patch:
+  schema_list:
+    - schema: rime_ice          # 替换为雾凇拼音
+    # - schema: luna_pinyin     # 注释掉或删除朙月拼音
+```
+
+用户词典（`.userdb`）不会随方案切换迁移，词频数据需要重新积累。如果词典格式兼容，可以手动合并。
+
+---
+
+<Details title="排错：新方案添加后不出现在切换菜单" level="advanced">
+
+按以下顺序排查：
+
+1. **确认已完成部署**：添加方案后必须「重新部署」，仅保存配置不够。检查部署是否报错——macOS 鼠须管的部署错误会出现在「通知中心」或日志文件中。
+
+2. **检查 schema_id 是否正确**：`schema_list` 中填写的是 `schema_id`，不是方案名称。`schema_id` 必须与方案文件名（去掉 `.schema.yaml` 后缀）完全一致，区分大小写。
+
+   ```yaml
+   # 错误：方案名称不是 schema_id
+   schema_list:
+     - schema: 雾凇拼音        # ❌
+   
+   # 正确：使用 schema_id
+   schema_list:
+     - schema: rime_ice       # ✅
+   ```
+
+3. **确认方案文件存在**：打开 RIME 用户目录（macOS：`~/Library/Rime/`；Windows：`%APPDATA%\Rime\`），确认 `<schema_id>.schema.yaml` 文件存在。如果文件缺失，切换菜单中不会出现该方案。
+
+4. **依赖缺失**：如果方案声明了 `dependencies`，被依赖的方案文件也必须存在于用户目录或 RIME 共享目录中，否则整个方案编译会失败。检查 `rime.log`（用户目录下）中是否有 `[ERROR]` 或 `[WARNING]` 行。
+
+5. **build 缓存损坏**：极少数情况下，`build/` 目录中的缓存文件损坏会导致方案无法加载。尝试手动删除用户目录中的 `build/` 文件夹，然后重新部署重建缓存。
+
+</Details>
+
+<Details title="原理：build 目录与方案编译缓存" level="advanced">
+
+RIME 在 `build/` 目录（位于用户目录下）存储编译产物。对于每个方案，主要有以下几类缓存文件：
+
+| 文件类型 | 用途 |
+|---------|------|
+| `<schema_id>.prism.bin` | 拼写引擎的前缀索引树，由 `algebra` 规则编译 |
+| `<schema_id>.table.bin` | 词典的快速查询表 |
+| `<schema_id>.reverse.bin` | 反查索引 |
+
+**为什么修改配置后必须重新部署？**
+
+RIME 在运行时只读取 `build/` 目录的二进制文件，不直接解析 YAML。修改 `.custom.yaml` 后，需要部署步骤将 YAML 重新编译到 `build/`，改动才能生效。
+
+**如何判断某个方案是否已成功编译？**
+
+查看用户目录的 `build/` 文件夹，确认对应的 `.prism.bin` 和 `.table.bin` 文件存在且时间戳是最近一次部署的时间。如果文件不存在，说明该方案编译失败，需要查看日志排查原因。
+
+</Details>
+
+<Details title="自定义方案：minimum viable schema 结构" level="advanced">
+
+如果预设方案不满足需求，可以从头编写一个 `.schema.yaml`。以下是一个可运行的最小化方案结构：
+
+```yaml
+# my_schema.schema.yaml
+schema:
+  schema_id: my_schema         # 必须与文件名一致
+  name: 我的自定义方案
+  version: "1.0"
+  author:
+    - 你的名字
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [中文, 西文]
+
+engine:
+  processors:
+    - ascii_composer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - uniquifier
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+  algebra:
+    - abbrev/^([a-z]).+$/$1/   # 支持首字母缩写
+
+translator:
+  dictionary: my_schema        # 对应 my_schema.dict.yaml
+
+menu:
+  page_size: 5
+```
+
+最小化词典文件 `my_schema.dict.yaml`：
+
+```yaml
+---
+name: my_schema
+version: "1.0"
+sort: by_weight
+...
+你好	ni hao	100
+世界	shi jie	100
+```
+
+编写完成后，将两个文件放入 RIME 用户目录，在 `default.custom.yaml` 的 `schema_list` 中添加 `- schema: my_schema`，然后重新部署。
+
+</Details>
+
+<Details title="dependencies 的正确使用场景" level="intermediate">
+
+`dependencies` 的核心用途是**反查功能**。当你在方案中按下触发键（通常是 `/`），RIME 需要用另一个方案的编码来「反向查询」汉字——例如用笔画查不认识的字、用拼音查五笔编码。
+
+**典型配置示例**
+
+拼音方案依赖笔画方案实现笔画反查：
+
+```yaml
+# rime_ice.schema.yaml（片段，勿直接编辑）
+schema:
+  dependencies:
+    - stroke    # 笔画方案，用于 /stroke 触发的反查
+
+reverse_lookup:
+  dictionary: stroke
+  prefix: /stroke
+  suffix: "'"
+  tips: 〔笔画〕
+```
+
+**什么时候需要手动添加 dependencies？**
+
+如果你自己编写方案，并希望支持反查，需要：
+
+1. 在 `schema` 节点声明 `dependencies`
+2. 配置 `reverse_lookup` 节点指定触发键和数据来源
+
+使用预设方案时通常不需要手动修改 `dependencies`——方案作者已经配置好了。
+
+**注意**：`dependencies` 中声明的方案不会出现在 Ctrl+\` 切换菜单中，它们只在后台被编译加载。
+
+</Details>
 
 ## 相关模块
 
-- [开关与杂项](./switches) — 每个方案有自己的开关定义
-- [按键绑定](./key-bindings) — 按键配置是全局的，影响所有方案
+- [候选词设置](./candidate-settings) — 每个方案有独立的候选词数量和排序配置
+- [模糊音规则](./fuzzy-pinyin) — 模糊音配置属于单个方案，切换方案后需要分别配置
+- [反查与筛选](./reverse-lookup) — 利用 dependencies 机制实现的跨方案反查功能
+- [多设备同步](./multi-device-sync) — 跨设备同步时，schema_list 配置的迁移注意事项
 
 <ConfigSlot module="schema-manager" />

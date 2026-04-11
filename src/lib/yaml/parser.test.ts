@@ -242,6 +242,43 @@ describe('mapToPlatformConfig with style', () => {
   })
 })
 
+describe('mapToSchemaConfig — custom triggers and Lua scripts', () => {
+  it('extracts customTriggers from recognizer patterns not matching presets', () => {
+    const yaml = {
+      'recognizer/patterns/custom_ip_query': '^/ip$',
+      engine: {
+        translators: [
+          'script_translator@translator',
+          'lua_translator@date_translator',
+          'lua_translator@custom_ip_query',
+        ],
+      },
+    }
+    const cfg = mapToSchemaConfig(yaml, 'test')
+    expect(cfg.specialInput?.customTriggers).toHaveLength(1)
+    expect(cfg.specialInput?.customTriggers?.[0]?.triggerCode).toBe('/ip')
+  })
+
+  it('returns empty customTriggers when only preset triggers present', () => {
+    const yaml = {
+      'recognizer/patterns/date': '^/rq$',
+      engine: {
+        translators: ['lua_translator@date_translator'],
+      },
+    }
+    const cfg = mapToSchemaConfig(yaml, 'test')
+    expect(cfg.specialInput?.customTriggers ?? []).toHaveLength(0)
+  })
+
+  it('does not populate luaScripts from YAML alone', () => {
+    const yaml = {
+      engine: { translators: ['lua_translator@my_custom'] },
+    }
+    const cfg = mapToSchemaConfig(yaml, 'test')
+    expect(cfg.luaScripts ?? []).toHaveLength(0)
+  })
+})
+
 describe('extractPreservedFields', () => {
   it('extracts keys not in the known set', () => {
     const patch = {

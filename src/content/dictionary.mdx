@@ -1,126 +1,377 @@
 # 词典管理
 
-词典是输入法的「大脑」——它决定了你能打出什么词、候选词的排序有多准确、输入法能不能跟上你的用词习惯。理解词典系统的工作方式，能帮助你有效管理和优化输入体验。
+词典是输入法的「大脑」——决定了你能打出什么词、候选词怎么排序、输入法能不能记住你的用词习惯。RIME 的词典系统由三层构成，理解它们的职责分工，才能有效增词、调频、备份。
 
 ## 这是什么
 
-Rime 的词典系统由三层组成：
+RIME 的词典系统分三层，各司其职：
 
-**主词典（.dict.yaml）**：方案自带的核心词库，包含数万到数十万条词汇及其拼音编码和默认词频。这是输入法的基础数据，由方案维护者提供。
+**主词典（`<schema>.dict.yaml`）**：方案自带的核心词库，包含数万到数十万条词汇、拼音编码和默认词频权重。由方案维护者提供，用户一般不直接编辑。
 
-**用户词典**：Rime 在使用过程中自动积累的个人数据，记录你每次选词的行为。选过的词会提升词频，下次输入时排名更靠前。这是输入法「越用越聪明」的关键。
+**用户词典（`<schema>.userdb`）**：RIME 在你使用过程中自动生成和维护的个人数据库，记录每次选词行为，实现「越用越聪明」。这是运行时 B+ 树文件，不是普通文本文件。
 
-**自定义词典（custom_phrase.txt）**：你手动添加的自定义短语，适合输入固定格式的文本（如邮箱、地址、常用句式）。
+**自定义短语（`custom_phrase.txt`）**：你手动维护的固定短语表，适合邮箱、地址、常用句式等不变的内容。权重可以调得很高，确保它始终排在前面。
+
+**外部词典**：通过 `import_tables` 在主词典头部引入其他 `.dict.yaml`，实现词库合并（如 rime-ice 词库）。
+
+为什么需要管理词典？——主词典词汇再多，也不可能覆盖你的个人用词习惯；用户词典会随时间漂移；自定义短语则是最精准的「钉选」手段，让特定输入始终出现你想要的结果。
+
+## 快速上手
+
+<StepGuide>
+  <Step title="打开词典管理模块">
+    在 rime-craft 编辑器左侧导航中找到「词典管理」。你会看到词条列表、搜索框、「添加词条」按钮和批量导入区域。
+  </Step>
+  <Step title="添加一条自定义短语">
+    点击「添加词条」，在新增行中填写三个字段：
+
+    - **词条**：要输出的文字，例如 `周末愉快`
+    - **编码**：触发该词条的输入码，例如 `zmyk`（可以是任意字母组合，不必是正确拼音）
+    - **权重**：优先级数字，建议从 50 开始；数字越大越靠前
+
+    填写完毕后点击行尾以外任意处，修改会实时保存到编辑器状态。
+  </Step>
+  <Step title="批量导入（可选）">
+    如果已有 TSV 格式的词条表，在「批量导入」区域粘贴内容，每行格式为：
+
+    ```
+    词条文字[Tab]编码[Tab]权重
+    ```
+
+    `#` 开头的行会被当作注释跳过。点击「导入」后所有词条追加到列表末尾。
+  </Step>
+  <Step title="保存并重新部署">
+    点击右上角「保存」。然后触发重新部署：
+
+    - **macOS**：菜单栏输入法图标 → 重新部署
+    - **Windows**：小狼毫系统托盘 → 重新部署
+
+    **必须部署**才能生效——部署时 RIME 会将 `custom_phrase.txt` 重新读入并编译到翻译器。
+  </Step>
+  <Step title="测试验证">
+    在任意输入框输入你设置的编码（如 `zmyk`），确认「周末愉快」出现在候选列表中，且排在较前位置。
+
+    若没出现，检查：编码拼写是否正确、权重是否足够大、部署是否成功完成（见后文「排错」）。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 词频调整机制
+### 自定义短语字段
 
-Rime 的词频系统是动态的：每次你选择一个候选词，它的词频权重就会增加。经过一段时间的使用，候选词列表会越来越「懂」你的用词习惯。
+| 字段 | 类型 | 含义 | 示例值 |
+|------|------|------|--------|
+| `text` | 字符串 | 要输出的文字内容，可以是任何 Unicode 文本 | `张三丰` |
+| `code` | 字符串 | 触发该词条的输入编码，不必是真实拼音 | `zsf`、`zs`、`dz1` |
+| `weight` | 整数 | 优先级权重，数字越大越靠前；建议范围 1–1000 | `100` |
 
-```yaml
-patch:
-  translator/dictionary: wanxiang       # 指定主词典
-  translator/user_dict: wanxiang_user   # 指定用户词典名
-```
+:::note
+编码可以设为任意字母组合。把邮箱编码设为 `yx`、地址设为 `dz`、手机号设为 `sj`，只要不与你常用的拼音前缀冲突即可。不必担心「占用」了真实拼音：自定义短语翻译器与拼音翻译器并列运行，两者的候选会合并显示。
+:::
 
-### 自定义短语
+### 四类词典对比
 
-自定义短语文件 `custom_phrase.txt` 放在 Rime 用户目录下，格式为：
-
-```
-# 文本\t编码\t权重
-# Tab 分隔，权重可选
-example@mail.com	yx	1
-我的收件地址	dz	1
-```
-
-在方案中启用自定义短语翻译器：
-
-```yaml
-patch:
-  engine/translators:
-    - table_translator@custom_phrase
-  custom_phrase:
-    dictionary: ""
-    user_dict: custom_phrase
-    db_class: stabledb
-    enable_completion: false
-    enable_sentence: false
-    initial_quality: 1
-```
-
-### 用户词典维护
-
-**同步（Sync）**：Rime 支持将用户词典同步到指定目录，用于备份或多设备共享：
-
-```yaml
-patch:
-  installation_id: "my-mac"              # 设备标识
-  sync_dir: "/Users/你的用户名/RimeSync"  # 同步目录
-```
-
-执行「同步用户数据」后，用户词典会导出到同步目录。在另一台设备上配置相同的同步目录（如通过云盘），再执行同步即可合并词典。
+| 词典类型 | 文件格式 | 谁来维护 | 适用内容 | 优先级 |
+|---------|---------|---------|---------|--------|
+| 主词典（`.dict.yaml`）| 文本，TAB 分隔 | 方案作者 | 通用词汇、拼音编码 | 低（基础） |
+| 用户词典（`.userdb`）| 二进制 B+ 树 | RIME 自动维护 | 个人选词历史、词频 | 中（动态） |
+| 自定义短语（`custom_phrase.txt`）| 文本，TAB 分隔 | 用户手动 | 固定短语、缩写 | 高（可配置） |
+| 外部词典（`import_tables`）| 文本，`.dict.yaml` | 第三方词库作者 | 专业词汇、扩展词库 | 随主词典 |
 
 <ConfigSlot module="dictionary" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**添加常用短语**：
+### 词典加载流程
 
-在 `custom_phrase.txt` 中添加：
+RIME 启动或重新部署时，词典按以下流程加载：
+
+1. **读取方案头部**：解析 `<schema>.dict.yaml` 的 `YAML` 头，找到 `import_tables` 列表
+2. **合并子词典**：递归读入所有 include 的 `.dict.yaml` 文件，合并词条
+3. **编译二进制索引**：将合并后的文本词典编译成 `build/<schema>.table.bin`（词典正排表）和 `build/<schema>.prism.bin`（拼音棱镜，支持模糊拼音）
+4. **加载翻译器**：`script_translator` 或 `table_translator` 读取编译好的二进制文件，正式提供候选
+
+这意味着修改 `.dict.yaml` 后**必须重新部署**才能生效——直接改文本文件不会影响正在运行的输入法。
+
+### custom_phrase 的加载方式
+
+自定义短语通过独立的 `table_translator@custom_phrase` 翻译器加载，与主词典翻译器**并列**注册在 `engine/translators` 链中。
+
+关键区别：
+- 主词典翻译器走 `.table.bin` 二进制索引，启动时一次性加载
+- `custom_phrase` 使用 `db_class: stabledb`，即稳定键值数据库（非 B+ 树），**每次输入时实时查询**，改完 `custom_phrase.txt` 重新部署后立即生效，不需要重建二进制索引
+
+由于 custom_phrase 翻译器设置了 `initial_quality: 1`，其候选的初始质量分高于普通词典候选，加上你手动设置的 weight，高权重词条几乎总会排在候选列表前列。
+
+### 用户词典（userdb）机制
+
+用户词典是 RIME 运行时维护的 B+ 树数据库文件（`.userdb` 目录或 `.userdb.txt` 快照）。它记录：
+
+- 你每次提交（上屏）的词条及其编码
+- 该词条被选择的次数（频率）
+- 最后使用的时间戳
+
+**权重归一化**：用户词典中的频率会经过对数归一化后与主词典权重比较，因此反复选择某个词确实会让它排名上升，但不会无限制地「淹没」其他候选。
+
+**整数 vs 浮点数**：`custom_phrase.txt` 中的 weight 是整数，直接作为候选的基础分；用户词典的频率经过归一化后是浮点数。两者在同一候选列表中比较时，RIME 使用统一的评分机制排序。数值越大优先级越高，但跨翻译器的比较还受 `initial_quality` 影响。
+
+## 完整示例
+
+<YamlPreview title="custom_phrase.txt" caption="自定义短语表，TAB 分隔，权重越大越靠前">
 
 ```
-# 个人信息
-张三	zs	1
-13800138000	sj	1
-example@mail.com	yx	1
+# 文本	编码	权重
+# ── 个人信息 ──
+张三	zs	200
+13800138000	sj	200
+zhang.san@example.com	yx	200
 
-# 常用短语
-麻烦你帮我看一下	mf	1
-收到，谢谢	sd	1
+# ── 常用短语 ──
+周末愉快	zmyk	100
+好的谢谢	hdxx	50
+我是中国人	wszgr	30
+
+# ── 工作用语 ──
+请查收附件	qcsfj	80
+如有问题请随时联系	rywt	60
 ```
 
-**多设备词典同步**：
+</YamlPreview>
 
-两台设备使用相同的云盘目录作为同步路径：
+<YamlPreview title="wanxiang.custom.yaml" caption="在方案中注册 custom_phrase 翻译器">
 
 ```yaml
-# 设备 A
 patch:
-  installation_id: "macbook"
-  sync_dir: "/Users/xxx/Dropbox/RimeSync"
+  # 追加翻译器（不覆盖原有列表）
+  engine/translators/+:
+    - table_translator@custom_phrase
 
-# 设备 B
-patch:
-  installation_id: "desktop"
-  sync_dir: "C:\\Users\\xxx\\Dropbox\\RimeSync"
+  # custom_phrase 翻译器配置
+  custom_phrase:
+    dictionary: ""          # 不使用独立词典文件
+    user_dict: custom_phrase  # 对应 custom_phrase.txt
+    db_class: stabledb      # 稳定键值库，适合静态短语
+    enable_completion: false  # 不补全——只精确匹配
+    enable_sentence: false    # 不自动造句
+    initial_quality: 1        # 初始质量高于主词典候选
 ```
 
-分别在两台设备执行「同步用户数据」即可合并词频记录。
-
-## 进阶技巧
+</YamlPreview>
 
 :::tip
-自定义短语的编码可以设为任意字母组合，不需要是拼音。例如把邮箱编码为 `yx`、地址编码为 `dz`。只要在输入时输入这个编码，就会出现你定义的短语。
+`engine/translators/+:` 中的 `+` 表示**追加**，不会覆盖原有翻译器列表。如果写成 `engine/translators:`（没有 `+`），会替换整个列表，导致拼音翻译器等被移除，输入法无法正常工作。
 :::
+
+## 常见场景
+
+### 常用短语：邮箱、签名、地址一键上屏
+
+把重复输入的固定文字设为短码，是 custom_phrase 最核心的用途：
+
+```
+zhang.san@example.com	yx	200
+北京市朝阳区XX路XX号	dz	200
+此致敬礼	cjjl	100
+周末愉快，下周见	zmyk	100
+```
+
+权重设为 100–200，确保同编码下它总排第一。
+
+### 专业术语：行业词汇批量导入
+
+程序员、医生、律师等有大量专业术语，可以整理成 TSV 文件后在编辑器「批量导入」区域粘贴：
+
+```
+面向对象编程	mxdx	50
+依赖注入	ylzr	50
+持续集成	cxjc	50
+微服务架构	wfwjg	50
+```
+
+导入后统一出现在词条列表，可逐条调整权重。
+
+### 调频：让特定词排名更靠前
+
+用户词典会自动调频，但速度慢。如果某个词总是排不到前面，可以在 custom_phrase 里直接「钉选」：
+
+```
+的	de	1000
+了	le	500
+```
+
+高权重直接覆盖主词典的默认排序。
+
+### 用户词典跨设备同步
+
+两台设备使用相同云盘目录作为同步路径，RIME 会在「同步用户数据」时导出/合并用户词典快照：
+
+```yaml
+# 设备 A（macOS）
+patch:
+  installation_id: "macbook-2024"
+  sync_dir: "/Users/yourname/Dropbox/RimeSync"
+
+# 设备 B（Windows）
+patch:
+  installation_id: "desktop-2024"
+  sync_dir: "C:\\Users\\yourname\\Dropbox\\RimeSync"
+```
+
+两台设备分别执行「同步用户数据」后，词频记录会合并。`installation_id` 必须不同，否则两台设备会相互覆盖。
+
+### 外部词典合并：引入 rime-ice 词库
+
+在主词典头部通过 `import_tables` 引入第三方词库：
+
+```yaml
+# wanxiang.dict.yaml（节选头部）
+---
+name: wanxiang
+version: "2024.01"
+sort: by_weight
+import_tables:
+  - rime_ice.base          # rime-ice 基础词库
+  - rime_ice.ext           # rime-ice 扩展词库
+  - custom_extra           # 自定义补充词库
+...
+```
+
+合并后重新部署，RIME 会将所有子词典词条合并编译到同一个 `.table.bin`。
+
+---
+
+<Details title="排错：新词没出现或权重不生效" level="advanced">
+
+按以下顺序排查：
+
+**1. 确认部署成功完成**
+
+修改 `custom_phrase.txt` 后必须重新部署。部署时观察 RIME 日志（`rime.log`）是否有错误。macOS 日志路径：`~/Library/Rime/rime.log`；Windows：`%APPDATA%\Rime\rime.log`。
+
+**2. 检查文件编码和分隔符**
+
+`custom_phrase.txt` 必须是 UTF-8 编码，字段之间是**制表符（Tab）**，不是空格。用文本编辑器查看时，肉眼难以区分，建议用十六进制查看器确认分隔符是 `0x09`。
+
+**3. 权重太低被淹没**
+
+如果主词典或用户词典中有高频同编码词条，custom_phrase 的权重可能不够高。尝试将 weight 提高到 500 或 1000，观察是否排到首位。
+
+**4. 编码错误**
+
+检查 `code` 字段是否与你实际输入的字符完全一致。注意大小写：RIME 默认区分大小写，`yx` 和 `YX` 是不同的编码。
+
+**5. 翻译器未注册**
+
+确认 `engine/translators` 中包含 `table_translator@custom_phrase`。使用 `+` 追加而非直接覆盖：
+
+```yaml
+patch:
+  engine/translators/+:
+    - table_translator@custom_phrase   # ✅ 追加
+```
+
+不要写成（这会删除所有其他翻译器）：
+
+```yaml
+patch:
+  engine/translators:                  # ❌ 覆盖
+    - table_translator@custom_phrase
+```
+
+**6. stabledb 文件损坏**
+
+极少数情况下，`custom_phrase.userdb` 文件可能损坏。删除 `build/` 目录下的相关文件后重新部署可重建。
+
+</Details>
+
+<Details title="原理：主词典、用户词典、自定义短语的优先级" level="advanced">
+
+三类词典在 `engine/translators` 链中以**不同翻译器**的形式并列运行，每个翻译器独立产出候选，最终由 `engine/filters` 和候选排序器合并排序。
+
+**翻译器链（典型顺序）**：
+
+```
+script_translator          → 主词典 + 用户词典候选
+table_translator@custom_phrase  → 自定义短语候选
+```
+
+两者的候选合并后，按以下维度综合排序：
+
+1. **initial_quality**：翻译器的基础质量分（custom_phrase 设为 1，高于主词典默认值）
+2. **候选自身权重**：主词典用编译时的 weight；custom_phrase 用 `custom_phrase.txt` 中的整数权重；用户词典用归一化后的频率
+3. **语言模型分**（如有）：部分方案加载了 n-gram 语言模型，会影响最终排序
+
+**结论**：`custom_phrase` 的 `initial_quality: 1` 加上较高的 weight，通常能确保它排在主词典前面。但如果用户词典中某个词的频率极高（选了数百次），它仍可能超过 custom_phrase。要完全「钉选」某个词排第一，可以将 weight 设为 9999。
+
+**为什么不直接改主词典**：改主词典需要重新编译 `.table.bin`，耗时更长；而 custom_phrase 使用 stabledb，修改后部署快，且更新不影响主词典的整体结构。方案升级时主词典会被覆盖，但 `custom_phrase.txt` 是用户目录的独立文件，不受影响。
+
+</Details>
+
+<Details title="用户词典的维护与迁移" level="advanced">
+
+**用户词典文件结构**
+
+用户词典存储为 `<schema>.userdb` 目录（内部是 LevelDB 格式）。RIME 在「同步用户数据」时会在 `sync_dir/<installation_id>/` 下导出可读的 `.userdb.txt` 快照文件，格式为：
+
+```
+# Rime user dictionary
+# encoding: utf-8
+#@/db_name	wanxiang.userdb
+#@/db_type	userdb
+#@/rime_version	1.11.0
+#@/tick	12345
+#@/user_id	macbook-2024
+
+你好	ni hao	c=5 d=0.234 t=12340
+谢谢	xie xie	c=12 d=0.567 t=12341
+```
+
+字段含义：`c` = 选择次数，`d` = 频率分（归一化后），`t` = 最后使用的 tick（时钟计数）。
+
+**跨设备迁移**
+
+1. 在旧设备执行「同步用户数据」，生成 `.userdb.txt` 快照
+2. 将快照复制到新设备的同步目录
+3. 在新设备执行「同步用户数据」，RIME 自动合并
+
+注意：两台设备的 `installation_id` 必须不同，同步目录相同。RIME 会将两台设备的 `.userdb.txt` 合并，取各词条频率的较大值。
+
+**清理用户词典**
+
+如果候选词排序「学坏了」（错误词频太高），可以：
+
+- **部分清理**：在用户词典快照 `.userdb.txt` 中找到问题词条，直接删除该行，然后重新同步
+- **完全重建**：删除 `<schema>.userdb` 目录，重新部署。所有个人词频数据丢失，谨慎操作
 
 :::warning
-清理用户词典是一个不可逆操作。如果你觉得候选词排序「学坏了」（比如经常把错误的词排在前面），建议先尝试同步导出备份，再考虑是否清理。清理后所有积累的词频数据都会丢失。
+清理用户词典是不可逆操作。建议先执行「同步用户数据」备份快照，再决定是否清理。
 :::
 
-:::note
-用户词典的质量直接影响候选词排序。如果你发现某些常用词总是排在后面，可能是因为你之前多次选择了其他候选词导致它们的词频更高。持续选择正确的词，词频会逐渐调整过来。
-:::
+</Details>
 
-## 学习路径
+<Details title="何时用 custom_phrase，何时直接改主词典" level="intermediate">
 
-1. **起步**：正常使用输入法，让用户词典自然积累
-2. **优化**：添加个人常用短语到 `custom_phrase.txt`
-3. **进阶**：配置词典同步，实现多设备统一的输入体验
+**优先用 custom_phrase 的情况**：
+
+- 个人专属词汇（姓名、地址、账号等）
+- 需要非拼音编码（缩写、自定义码）
+- 希望词条在方案升级后依然保留
+- 词条数量在数千条以内
+
+**考虑改主词典的情况**：
+
+- 大批量词汇（数万条），且需要完整的拼音补全支持
+- 专业行业词库（如医学、法律），需要参与语言模型排序
+- 需要与其他词典合并，通过 `import_tables` 统一管理
+
+**两者的本质区别**：主词典参与拼音补全（可以输入前几个字母就联想完整词）；custom_phrase 默认关闭补全（`enable_completion: false`），只精确匹配编码。如果你的自定义词条需要支持前缀联想，可以将 `enable_completion` 改为 `true`，但这会增加歧义候选。
+
+</Details>
 
 ## 相关模块
 
 - [候选词设置](./candidate-settings) — 词典质量直接影响候选词排序准确度
+- [多设备同步](./multi-device-sync) — 用户词典跨设备同步的完整配置流程
+- [自定义词典](./custom-dictionary) — 创建和维护独立的 `.dict.yaml` 词库文件
 
 <ConfigSlot module="dictionary" />
