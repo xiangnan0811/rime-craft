@@ -1,123 +1,327 @@
 # 中英文切换
 
-中英文切换是输入法最基础也最频繁的操作。Rime 提供了灵活的切换机制，从按键选择到应用级自动切换，让你可以完全掌控什么时候输入中文、什么时候输入英文。
+中英文切换是输入法最基础也最频繁的操作。RIME 通过 `ascii_composer` 处理器和 `app_options` 配置，让你可以精确控制每个修饰键的切换行为，以及在特定应用中自动进入英文模式。
 
 ## 这是什么
 
-Rime 中的中英文切换涉及两个概念：
+RIME 的中英文切换涉及两个相互独立的机制：
 
-**ascii_mode 开关**：输入法的中英文状态。当 `ascii_mode` 为 0（关闭）时输入中文，为 1（开启）时输入英文。这是一个「状态」，需要被某个操作来切换。
+**`ascii_mode` 开关**：输入法的当前中英文状态。`ascii_mode: 0` 表示中文模式，`ascii_mode: 1` 表示英文直通模式。这是一个持久化的状态值，可以被多种操作读取和修改。
 
-**ascii_composer**：负责处理中英文切换操作的组件。它监听 Shift、Control、Caps Lock 等键的按下和释放事件，根据配置执行对应的切换动作。在[按键绑定](./key-bindings)中详细配置。
+**`ascii_composer` 处理器**：引擎 Processor 链中的一个组件，专门监听 Shift、Control、CapsLock 的按下和释放事件，根据 `switch_key` 配置映射决定执行哪种切换动作——上屏编码、上屏候选词、临时行内英文，或者什么都不做。
 
-两者的关系：`ascii_composer` 是「切换动作」，`ascii_mode` 是「当前状态」。
+**`app_options`**：平台级配置（鼠须管 / 小狼毫），可以为特定应用程序设置默认的 `ascii_mode` 初始值，实现「切换到 VS Code 时自动变成英文」的效果。
+
+三者的关系：`ascii_composer` 负责实时切换 `ascii_mode`，`app_options` 负责应用级的初始状态。
+
+## 快速上手
+
+:::tip
+最常见的需求是调整 Shift 的切换行为。如果只改这一项，完成前四步即可。
+:::
+
+<StepGuide>
+  <Step title="打开中英文切换模块">
+    在编辑器左侧导航找到「中英文切换」模块。页面分为两部分：上方是**修饰键行为**配置，下方是**应用级自动切换**列表。
+  </Step>
+  <Step title="设置 Shift 键的切换行为">
+    找到「左 Shift」下拉菜单，按你的习惯选择：
+    - **提交候选词并切换**（`commit_text`）：按下 Shift 时，当前候选词上屏，然后切到英文。适合「选词后顺手写英文」的场景。
+    - **提交编码并切换**（`commit_code`）：按下 Shift 时，输入框中的拼音字母原样上屏，然后切到英文。适合需要输入英文变量名的程序员。
+    - **行内临时英文**（`inline_ascii`）：按住 Shift 输入英文，松开后自动回到中文。不切换模式，只是临时借用。
+    - **无操作**（`noop`）：禁用此键的切换功能，防止误触。
+  </Step>
+  <Step title="确认 CapsLock 行为">
+    找到「传统 CapsLock 行为」开关：
+    - **开启**（推荐）：CapsLock 直接切换系统大写锁定，与普通键盘行为一致，不触发任何 RIME 操作。
+    - **关闭**：CapsLock 按「Caps Lock」下拉菜单中的 `switch_key` 设置执行切换动作（`clear` 等）。
+  </Step>
+  <Step title="为常用应用添加自动英文">
+    在「应用级自动切换」区域，点击终端、VS Code 等编辑器旁的快速添加按钮，或点击「添加应用」手动输入 Bundle Identifier。添加后，切换到该应用时 RIME 自动进入英文模式。
+  </Step>
+  <Step title="保存并部署">
+    点击「保存」，然后重新部署 RIME（macOS 菜单栏图标 → 重新部署；Windows 任务栏图标 → 重新部署）。部署完成后立即生效。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 全局切换 vs 临时切换
+### SwitchKeyAction：5 种切换动作
 
-**全局切换**（`commit_code`、`commit_text`、`clear`）：按下切换键后，输入法进入英文模式并**保持**，直到再次按切换键才回到中文。
+| 值 | 名称 | 有输入中（如拼音 `nihao`，候选「你好」）时的效果 | 适用场景 |
+|----|------|--------------------------------------|---------|
+| `commit_code` | 提交编码 | 上屏原始字母 `nihao`，切换到英文 | 程序员输入变量名 |
+| `commit_text` | 提交文本 | 上屏当前候选词「你好」，切换到英文 | 写中文后顺手切英文 |
+| `inline_ascii` | 行内临时英文 | 进入临时英文状态；不上屏任何内容；松开后自动回中文 | 中文句子中临时插入英文单词 |
+| `clear` | 清空切换 | 丢弃所有输入，切换到英文 | CapsLock 重置场景 |
+| `noop` | 无操作 | 无任何反应，此键保留给系统或其他应用 | 防误触、Vim 用户 |
 
-**临时切换**（`inline_ascii`）：按住 Shift 输入英文，松开后自动回到中文模式。适合在中文句子中临时插入一两个英文单词。
-
-### 应用级自动切换
-
-Rime 支持为特定应用设置默认的中英文模式——比如在终端和 IDE 中默认英文，在文档编辑器中默认中文：
-
-**macOS（鼠须管）**：在 `squirrel.custom.yaml` 中配置：
-
-```yaml
-patch:
-  app_options:
-    com.apple.Terminal:          # 终端
-      ascii_mode: true
-    com.microsoft.VSCode:        # VS Code
-      ascii_mode: true
-    com.googlecode.iterm2:       # iTerm2
-      ascii_mode: true
-```
-
-**Windows（小狼毫）**：在 `weasel.custom.yaml` 中配置：
-
-```yaml
-patch:
-  app_options:
-    cmd.exe:
-      ascii_mode: true
-    code.exe:                    # VS Code
-      ascii_mode: true
-    powershell.exe:
-      ascii_mode: true
-```
-
-:::tip
-应用级切换的 `ascii_mode: true` 表示**切换到该应用时默认进入英文模式**。你仍然可以手动切换回中文——这只是设置了一个初始状态。
+:::note
+**`inline_ascii` 与其他动作的本质区别**：`commit_*` 和 `clear` 会改变 `ascii_mode` 状态（持久切换），而 `inline_ascii` 不改变状态，只在按住期间临时直通英文。松开修饰键后，RIME 自动恢复到切换前的模式。
 :::
+
+### 修饰键默认行为
+
+| 编辑器字段 | YAML 键 | 默认值 | 说明 |
+|-----------|---------|--------|------|
+| 传统 CapsLock 行为 | `ascii_composer/good_old_caps_lock` | `true` | 开启时 CapsLock 直接切换大写锁定，不经过 RIME |
+| 左 Shift | `ascii_composer/switch_key/Shift_L` | `commit_code` | 按下左 Shift 时的切换动作 |
+| 右 Shift | `ascii_composer/switch_key/Shift_R` | `commit_text` | 按下右 Shift 时的切换动作 |
+| 左 Control | `ascii_composer/switch_key/Control_L` | `noop` | 按下左 Control 时的切换动作 |
+| 右 Control | `ascii_composer/switch_key/Control_R` | `noop` | 按下右 Control 时的切换动作 |
+| Caps Lock | `ascii_composer/switch_key/Caps_Lock` | `clear` | 仅在 `good_old_caps_lock: false` 时生效 |
+
+### app_options：应用级自动切换
+
+`app_options` 配置写在平台专属文件中（不是 `default.custom.yaml`），用应用标识符作为键：
+
+| 平台 | 配置文件 | 应用标识符格式 | 示例 |
+|------|---------|--------------|------|
+| macOS（鼠须管） | `squirrel.custom.yaml` | Bundle Identifier | `com.apple.Terminal` |
+| Windows（小狼毫） | `weasel.custom.yaml` | 可执行文件名 | `code.exe` |
+| Linux | `ibus_rime.custom.yaml` | WM_CLASS 或进程名 | `code` |
+
+每条记录只有一个字段：`ascii_mode: true` 表示切换到该应用时默认进入英文模式。
 
 <ConfigSlot module="ascii-mode" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**程序员（大量中英切换）**：
+### ascii_composer 在 Processor 链中的位置
+
+RIME 处理每次按键时，按顺序调用 Processor 链：
+
+```
+物理按键
+  ↓
+Processor 链
+  ├─ ascii_composer   ← 最先运行：判断是否触发中英切换
+  ├─ recognizer       ← 识别特殊输入模式（触发器前缀等）
+  ├─ key_binder       ← 功能快捷键映射
+  ├─ speller          ← 拼写处理（字母键输入拼音）
+  └─ ...其他 Processor
+  ↓
+Segmentor / Translator / Filter
+  ↓
+候选列表
+```
+
+`ascii_composer` 处于链的最前端，这意味着：**Shift 切换动作发生在 `key_binder` 规则之前**。如果 `ascii_composer` 消费了一次 Shift 按键，`key_binder` 就不会再看到这个事件。
+
+### switch_key 动作的内部逻辑
+
+`ascii_composer` 收到修饰键事件后，按以下逻辑决策：
+
+1. **当前在英文模式**：无论 `switch_key` 配置什么，按下切换键都只是切回中文，不执行 `commit_*` 或 `clear` 动作（因为此时没有输入需要上屏）
+2. **当前在中文模式且无输入**：切换 `ascii_mode` 状态，不执行上屏操作
+3. **当前在中文模式且有输入中**：按配置的动作执行（先上屏或清空，再切换状态）
+4. **`good_old_caps_lock: true`**：CapsLock 事件完全绕过 `ascii_composer`，由操作系统处理
+
+### app_options 的匹配机制
+
+当前台应用程序切换时，前端（鼠须管 / 小狼毫）会：
+
+1. 获取当前前台应用的标识符（macOS 读取 Bundle ID，Windows 读取进程名）
+2. 在 `app_options` 中查找精确匹配的条目
+3. 如果找到 `ascii_mode: true`，将 `ascii_mode` 开关设为 1（英文）
+4. 如果未找到，保持 `ascii_mode` 的当前状态不变
+
+:::note
+`app_options` 只在**切换到该应用时**触发一次。进入应用后手动切换回中文，离开再回来才会再次重置为英文。这是预期行为，不是 bug。
+:::
+
+## 完整示例
+
+<YamlPreview title="default.custom.yaml + squirrel.custom.yaml" caption="Shift 上屏中文候选 + VS Code / 终端自动英文的完整配置">
 
 ```yaml
-# squirrel.custom.yaml (macOS)
+# default.custom.yaml — 适用于所有方案的修饰键行为
+patch:
+  ascii_composer/good_old_caps_lock: true
+  ascii_composer/switch_key:
+    Shift_L: commit_text    # 左 Shift：上屏候选词，切英文
+    Shift_R: commit_code    # 右 Shift：上屏原始编码，切英文
+    Control_L: noop         # 左 Control：禁用（避免误触）
+    Control_R: noop         # 右 Control：禁用
+    Caps_Lock: clear        # CapsLock：仅在 good_old_caps_lock: false 时生效
+```
+
+```yaml
+# squirrel.custom.yaml（macOS）— 应用级自动英文
 patch:
   app_options:
-    com.apple.Terminal:
-      ascii_mode: true
     com.microsoft.VSCode:
+      ascii_mode: true
+    com.apple.Terminal:
       ascii_mode: true
     com.googlecode.iterm2:
       ascii_mode: true
+    com.jetbrains.intellij:
+      ascii_mode: true
 ```
 
-在编程相关应用中默认英文，写文档时保持中文。
+```yaml
+# weasel.custom.yaml（Windows）— 应用级自动英文
+patch:
+  app_options:
+    code.exe:
+      ascii_mode: true
+    cmd.exe:
+      ascii_mode: true
+    powershell.exe:
+      ascii_mode: true
+    WindowsTerminal.exe:
+      ascii_mode: true
+```
 
-**写作者（以中文输入为主）**：
+</YamlPreview>
 
-不需要配置 app_options，保持所有应用默认中文模式。在偶尔需要英文时，使用 `inline_ascii`（临时英文）功能即可。
+## 常见场景
 
-**混合使用**：
+**场景一：Shift 上屏中文候选（最常用）**
 
-建议的按键绑定配合（在[按键绑定](./key-bindings)中配置）：
+适合写中文时需要频繁夹杂英文的用户。左 Shift 上屏候选词后切英文，右 Shift 上屏原始编码后切英文：
 
 ```yaml
 # default.custom.yaml
 patch:
   ascii_composer/switch_key:
-    Shift_L: inline_ascii      # 左 Shift 临时英文
-    Shift_R: commit_text       # 右 Shift 上屏候选并切英文
-    Caps_Lock: clear
+    Shift_L: commit_text
+    Shift_R: commit_code
 ```
 
-左 Shift 用于中文句子中临时插入英文（松开自动回中文），右 Shift 用于需要持续切换到英文的场景。
+**场景二：CapsLock 切换中英文**
 
-## 进阶技巧
+不想用 Shift 切换，改用 CapsLock 做持久切换。需要先关闭传统 CapsLock 行为：
+
+```yaml
+patch:
+  ascii_composer/good_old_caps_lock: false
+  ascii_composer/switch_key:
+    Caps_Lock: commit_text  # 或 commit_code / clear
+    Shift_L: noop
+    Shift_R: noop
+```
+
+**场景三：程序员——编辑器里强制英文**
+
+终端和代码编辑器几乎只用英文，配置应用自动切换省去手动操作：
+
+```yaml
+# squirrel.custom.yaml (macOS)
+patch:
+  app_options:
+    com.microsoft.VSCode:
+      ascii_mode: true
+    com.apple.Terminal:
+      ascii_mode: true
+    com.googlecode.iterm2:
+      ascii_mode: true
+```
+
+**场景四：临时行内英文（inline_ascii）**
+
+在中文写作中偶尔要写一两个英文单词，不想切换模式。配置左 Shift 为 `inline_ascii`：按住左 Shift 打字，字母实时直通；松开后自动回中文，无需再次切换：
+
+```yaml
+patch:
+  ascii_composer/switch_key:
+    Shift_L: inline_ascii   # 按住 Shift 临时英文，松开自动回中文
+    Shift_R: commit_text    # 右 Shift 持久切换
+```
+
+**场景五：禁用 CapsLock 切换（避免误触）**
+
+如果你不需要 CapsLock 触发任何切换，启用传统行为即可：
+
+```yaml
+patch:
+  ascii_composer/good_old_caps_lock: true
+  # 此时 Caps_Lock switch_key 设置无效
+```
+
+---
+
+<Details title="good_old_caps_lock 的三种实际状态" level="intermediate">
+
+`good_old_caps_lock` 是一个布尔值，但它与操作系统交互的实际效果有三种情形：
+
+**1. `good_old_caps_lock: true`（推荐）**
+
+CapsLock 事件完全绕过 `ascii_composer`，交由操作系统处理。RIME 的 `Caps_Lock` switch_key 配置**无效**。macOS 和 Windows 上大写锁定行为与普通键盘完全一致。
+
+**2. `good_old_caps_lock: false` + `Caps_Lock: commit_text`（或其他动作）**
+
+CapsLock 被 `ascii_composer` 接管，按下时执行 `switch_key` 中配置的动作。松开时再次执行（通常是切回中文）。实际效果：**按一下切英文，再按一下回中文**。
+
+**3. `good_old_caps_lock: false` + macOS 系统 CapsLock 延迟**
+
+macOS 对 CapsLock 有防抖处理（短按不响应），可能导致 RIME 的 CapsLock 切换出现延迟感。这不是 RIME 的问题，而是 macOS 系统行为。建议在 macOS 上始终使用 `good_old_caps_lock: true`，改用 Shift 做切换。
+
+</Details>
+
+<Details title="排错：Shift 切换不生效" level="intermediate">
+
+按以下顺序逐项排查：
+
+1. **是否重新部署？** 修改配置后必须重新部署才生效。macOS 点击菜单栏图标 → 重新部署；Windows 右键任务栏图标 → 重新部署。
+
+2. **`switch_key` 值是否拼写正确？** 常见错误：
+   - `commit_text` 而不是 `commitText` 或 `commit text`
+   - `Shift_L` 而不是 `shift_l` 或 `ShiftL`（YAML 键名区分大小写）
+
+3. **是否被系统级快捷键拦截？** macOS 上某些系统功能（如截图、Spotlight）可能在 RIME 之前消费 Shift 组合键。纯 Shift 单键通常不受影响，但 `Shift+字母` 组合可能被其他程序捕获。
+
+4. **是否与第三方软件冲突？** 部分 macOS 效率工具（如 Karabiner-Elements、BetterTouchTool）会在系统层面重映射 Shift，导致 RIME 收到的不是原始 Shift 键事件。暂时禁用这些工具测试是否恢复正常。
+
+5. **查看日志：** RIME 用户目录下的 `rime.log` 记录配置解析错误。搜索 `ascii_composer` 或 `[ERROR]` 定位问题行。
+
+</Details>
+
+<Details title="原理：ascii_composer 与 key_binder 的优先级差异" level="advanced">
+
+`ascii_composer` 位于 Processor 链的第一位，`key_binder` 在第三位。两者的优先级差异在以下场景中体现：
+
+**Shift 键冲突**
+
+如果你在 `key_binder` 中绑定了 `Shift+空格` 切换全角半角，同时 `ascii_composer` 的 `Shift_L` 配置了 `commit_text`——**哪个会生效？**
+
+答案是：取决于按键组合。纯 `Shift_L`（只按 Shift，不按其他键）由 `ascii_composer` 处理；`Shift+空格`（Shift 和空格同时按）通常传递给 `key_binder`，因为 `ascii_composer` 只处理修饰键本身的单独按下/释放事件，不处理修饰键与普通键的组合。
+
+**Control 键冲突**
+
+`Control_L: noop` 的设置不会影响 `Ctrl+字母` 组合键（如 `Control+a`），因为 `ascii_composer` 收到的是 `Control_L` 单独按下的事件，而 `Control+a` 是组合事件，会经过 `key_binder`。
+
+**实践建议**：如果某个 Shift/Control 绑定不生效，优先检查 `ascii_composer` 的 `switch_key` 设置——它可能提前消费了这个键。
+
+</Details>
+
+<Details title="进阶：用 key_binder 实现更复杂的切换逻辑" level="advanced">
+
+`ascii_composer` 只支持 Shift/Control/CapsLock 这几个固定的修饰键。如果需要用其他键（如 `Ctrl+Space`、`F8`）切换中英文，需要在 `key_binder` 中使用 `toggle: ascii_mode`：
+
+```yaml
+# default.custom.yaml
+patch:
+  key_binder/bindings/append:
+    - { when: always, accept: "Control+space", toggle: "ascii_mode" }
+    - { when: always, accept: "F8", toggle: "ascii_mode" }
+```
 
 :::warning
-macOS 上，系统自带的输入法切换（`Ctrl+空格` 或 `Fn`）和 Rime 的中英文切换是**两套独立机制**。系统切换是在不同输入法之间切换（如从 Rime 切到 ABC），而 Rime 的 Shift 切换是在 Rime 内部切换中英文模式。建议用 Shift 切换中英文，用系统快捷键在需要时切换到其他输入法。
+同时使用 `ascii_composer` 的 Shift 切换和 `key_binder` 的 `toggle: ascii_mode` 时，两者都会修改 `ascii_mode` 状态，可能造成切换混乱。建议选择一种主要切换方式，另一种设为 `noop`。
 :::
 
-:::note
-`app_options` 中的应用标识符（如 `com.apple.Terminal`）需要精确匹配。在 macOS 上可以通过以下命令查看应用的 Bundle ID：
+**组合动作（先上屏再切换）**
 
-```bash
-osascript -e 'id of app "应用名"'
-```
+如果需要「按一个键，同时上屏当前候选并切换到英文模式」，纯 `key_binder` 无法实现（每条规则只能执行一个 `send` 或 `toggle`）。解决方案是写一个 Processor 类型的 Lua 脚本挂载到 Processor 链中，在 Lua 中调用 `context:commit()` 后再切换状态。具体写法参考 [Lua 扩展](./lua-extensions)。
 
-在 Windows 上使用进程的 `.exe` 文件名即可。
-:::
-
-## 学习路径
-
-1. **起步**：了解 Shift 切换中英文的基本操作
-2. **优化**：在[按键绑定](./key-bindings)中配置最适合你的切换键行为
-3. **进阶**：为常用应用配置自动切换，减少手动切换频率
+</Details>
 
 ## 相关模块
 
-- [按键绑定](./key-bindings) — 配置 ascii_composer 的切换键行为
-- [开关与杂项](./switches) — ascii_mode 是开关系统的一部分
+- [按键绑定](./key-bindings) — `ascii_composer` 的 `switch_key` 配置详解，以及 `key_binder` 的完整快捷键列表
+- [开关与杂项](./switches) — `ascii_mode` 是开关系统的一部分，可在此查看所有可切换的开关
+- [候选词设置](./candidate-settings) — 配合中英切换使用的候选词翻页和数量设置
 
 <ConfigSlot module="ascii-mode" />
