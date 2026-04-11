@@ -25,7 +25,7 @@ const COMPARE_ROWS: CompareRow[] = [
   { label: '智能程度', getValue: (s) => s.smartLevel },
   { label: '辅助码', getValue: (s) => s.auxiliaryCode },
   { label: '扩展功能', getValue: (s) => s.features },
-  { label: 'Rime 生态平台', getValue: (s) => s.platforms },
+  { label: 'Rime 生态可用平台', getValue: (s) => s.platforms },
   { label: '上手难度', getValue: (s) => s.difficulty },
   { label: '推荐人群', getValue: (s) => s.recommendation },
   {
