@@ -7,7 +7,7 @@ import { useConfigStore } from '@/stores/config-store'
 import { createEmptyProject } from '@/lib/config/defaults'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
-import type { FormalEditorPlatform } from '@/lib/product/support-contract'
+import { getFormalPlatformFileName } from '@/lib/product/support-contract'
 import {
   serializeDefaultConfig,
   serializePlatformConfig,
@@ -15,15 +15,6 @@ import {
 } from '@/lib/yaml/serializer'
 import type { RimeProject } from '@/types/config'
 import type { WizardState } from '../WizardPage'
-
-function getPlatformFileName(platform: FormalEditorPlatform) {
-  switch (platform) {
-    case 'macos':
-      return 'squirrel.custom.yaml'
-    case 'windows':
-      return 'weasel.custom.yaml'
-  }
-}
 
 function buildProject(state: WizardState): RimeProject {
   const project = createEmptyProject()
@@ -62,7 +53,7 @@ export function ExportStep({ state }: ExportStepProps) {
 
     const platformPatch = serializePlatformConfig(project.platformConfig)
     if (Object.keys(platformPatch).length > 0) {
-      const platformFile = getPlatformFileName(state.platform)
+      const platformFile = getFormalPlatformFileName(state.platform)
       zip.file(platformFile, buildCustomYaml(platformPatch))
     }
 

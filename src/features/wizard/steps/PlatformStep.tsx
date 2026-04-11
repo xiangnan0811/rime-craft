@@ -1,11 +1,9 @@
 import { Card } from '@/components/ui/card'
-import type { FormalEditorPlatform } from '@/lib/product/support-contract'
+import {
+  FORMAL_EDITOR_PLATFORM_SPECS,
+  type FormalEditorPlatform,
+} from '@/lib/product/support-contract'
 import { cn } from '@/lib/utils'
-
-const PLATFORMS: { id: FormalEditorPlatform; name: string; description: string }[] = [
-  { id: 'macos', name: 'macOS', description: '鼠须管 (Squirrel)' },
-  { id: 'windows', name: 'Windows', description: '小狼毫 (Weasel)' },
-]
 
 interface PlatformStepProps {
   value: FormalEditorPlatform
@@ -20,19 +18,19 @@ export function PlatformStep({ value, onChange }: PlatformStepProps) {
         选择你使用 Rime 的操作系统，我们会生成对应的配置文件。
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {PLATFORMS.map((p) => (
+        {FORMAL_EDITOR_PLATFORM_SPECS.map((platform) => (
           <Card
-            key={p.id}
-            onClick={() => onChange(p.id)}
+            key={platform.id}
+            onClick={() => onChange(platform.id)}
             className={cn(
               'cursor-pointer p-4 transition-colors',
-              value === p.id
+              value === platform.id
                 ? 'border-blue-500 bg-blue-50'
                 : 'hover:border-gray-300',
             )}
           >
-            <p className="font-semibold">{p.name}</p>
-            <p className="mt-1 text-sm text-gray-500">{p.description}</p>
+            <p className="font-semibold">{platform.name}</p>
+            <p className="mt-1 text-sm text-gray-500">{platform.description}</p>
           </Card>
         ))}
       </div>

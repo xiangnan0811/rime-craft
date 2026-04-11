@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  FORMAL_EDITOR_PLATFORM_SPECS,
   FORMAL_EDITOR_PLATFORMS,
+  getFormalPlatformFileName,
   RIME_ECOSYSTEM_PLATFORMS,
   getFormalPlatformLabel,
   isFormalEditorPlatform,
@@ -30,8 +32,32 @@ describe('support contract', () => {
     ])
   })
 
+  it('exposes the runtime metadata for the formal editor platforms', () => {
+    expect(FORMAL_EDITOR_PLATFORM_SPECS).toEqual([
+      {
+        id: 'macos',
+        name: 'macOS',
+        description: '鼠须管 (Squirrel)',
+        label: 'macOS（Squirrel）',
+        fileName: 'squirrel.custom.yaml',
+      },
+      {
+        id: 'windows',
+        name: 'Windows',
+        description: '小狼毫 (Weasel)',
+        label: 'Windows（Weasel）',
+        fileName: 'weasel.custom.yaml',
+      },
+    ])
+  })
+
   it('returns the formal platform labels', () => {
     expect(getFormalPlatformLabel('macos')).toBe('macOS（Squirrel）')
     expect(getFormalPlatformLabel('windows')).toBe('Windows（Weasel）')
+  })
+
+  it('returns the formal export file name for each supported platform', () => {
+    expect(getFormalPlatformFileName('macos')).toBe('squirrel.custom.yaml')
+    expect(getFormalPlatformFileName('windows')).toBe('weasel.custom.yaml')
   })
 })
