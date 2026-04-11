@@ -5,6 +5,7 @@ import { serializeDefaultConfig, serializePlatformConfig, serializeSchemaConfig,
 import { serializeCustomPhrases } from '@/lib/config/custom-phrase'
 import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules'
 import { Button } from '@/components/ui/button'
+import { getFormalPlatformFileName, isFormalEditorPlatform } from '@/lib/product/support-contract'
 
 export function ExportButton() {
   const project = useConfigStore((s) => s.project)
@@ -19,8 +20,10 @@ export function ExportButton() {
 
     // Platform config
     const platformPatch = serializePlatformConfig(project.platformConfig)
-    if (Object.keys(platformPatch).length > 0) {
-      const platformFile = project.targetPlatform === 'windows' ? 'weasel.custom.yaml' : 'squirrel.custom.yaml'
+    const platformFile = isFormalEditorPlatform(project.targetPlatform)
+      ? getFormalPlatformFileName(project.targetPlatform)
+      : undefined
+    if (platformFile && Object.keys(platformPatch).length > 0) {
       const platformPreserved = project.preserved[platformFile]
       zip.file(platformFile, buildCustomYaml(platformPatch, platformPreserved as Record<string, unknown> | undefined))
     }

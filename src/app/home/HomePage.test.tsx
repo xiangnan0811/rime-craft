@@ -13,6 +13,7 @@ describe('<HomePage>', () => {
 
     expect(screen.queryByText('全平台支持')).not.toBeInTheDocument()
     expect(screen.getByText('正式支持 macOS / Windows 导入导出')).toBeInTheDocument()
-    expect(screen.getByText('教程覆盖更广的 Rime 平台生态')).toBeInTheDocument()
+    expect(screen.queryByText('教程覆盖更广的 Rime 平台生态')).not.toBeInTheDocument()
+    expect(screen.getByText('教程覆盖更广的 Rime 生态可用平台')).toBeInTheDocument()
   })
 })

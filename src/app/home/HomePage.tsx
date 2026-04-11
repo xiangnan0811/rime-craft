@@ -6,7 +6,7 @@ import { CandidatePreview } from '@/components/shared/CandidatePreview'
 const FEATURES = [
   { title: '可视化配置', description: '无需手动编辑 YAML，通过表单直观配置 Rime 各项参数' },
   { title: '正式支持 macOS / Windows 导入导出', description: '当前配置生成与平台文件处理以鼠须管、小狼毫为正式支持范围' },
-  { title: '教程覆盖更广的 Rime 平台生态', description: '安装、同步与方案知识内容继续覆盖 Linux、Android、iOS 等 Rime 生态平台' },
+  { title: '教程覆盖更广的 Rime 生态可用平台', description: '安装、同步与方案知识内容继续覆盖 Linux、Android、iOS 等 Rime 生态可用平台信息' },
   { title: '预设方案', description: '提供多种开箱即用的配置组合，快速上手' },
 ]
 
