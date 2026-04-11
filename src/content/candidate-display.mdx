@@ -1,115 +1,320 @@
 # 候选词显示
 
-候选词的排列方向和附加信息会显著影响输入体验——横排还是竖排、要不要显示拼音提示、注释信息什么时候出现。这些设置帮助你打造最舒适的视觉布局。
+候选词面板的**视觉呈现方式**——横排还是竖排、旁边要不要显示带调拼音、编码栏显示原始编码还是带调音节——这些都由「候选词显示」模块控制。它与「候选词设置」平行存在：候选词设置控制**生成什么候选**，候选词显示控制**怎么把候选展示出来**。
 
 ## 这是什么
 
-候选词显示设置控制候选词面板的**视觉呈现方式**，包括：
+RIME 把候选词的「内容生成」与「视觉呈现」分离成两个正交维度：
 
-- 候选词的排列方向（横排/竖排）
-- 是否在候选词旁显示拼音提示
-- 注释信息的显示策略
+- **[候选词设置](./candidate-settings)**：Translator 产生多少候选、是否整句、用户词典——这些决定候选*内容*
+- **候选词显示**（本模块）：候选面板的布局方向、旁边注释如何渲染、编码栏用什么格式——这些决定候选*外观*
 
-这些设置与[注释与提示](./comment-hints)模块配合工作：这里控制的是「显示格式和布局」，注释模块控制的是「注释内容」。
+本模块覆盖三类显示属性：
+
+| 属性 | 控制内容 |
+|------|---------|
+| `horizontal` | 候选词横排（左→右）还是竖排（上→下） |
+| `commentMode` | 候选词旁的注释栏：关闭 / 带调拼音 / 无调拼音 |
+| `encodingDisplay` | 顶部编码栏格式：原始编码 / 带调拼音 / 无调拼音 |
+
+:::note
+`commentMode` 和 `encodingDisplay` 是独立的两个维度。前者控制**候选词旁边**那列小字；后者控制**你正在打的编码**那一行。两者可以自由组合，例如「编码栏显示带调拼音 + 候选旁注释关闭」。
+:::
+
+## 快速上手
+
+<StepGuide>
+  <Step title="打开候选词显示模块">
+    在编辑器左侧导航找到「候选词显示」。页面上方控制横竖排和注释模式，下方控制编码显示格式。
+  </Step>
+  <Step title="切换横排 / 竖排">
+    打开「横排显示」开关，候选词将从上下排列改为左右排列。横排时建议同步把「每页候选词数量」调到 5–6，避免面板过宽超出屏幕。
+  </Step>
+  <Step title="开启带调注释">
+    将「注释模式」设为 `toned`（带调拼音）。候选词旁会出现标注声调的小字，例如「汉」旁显示「hàn」。这对核对多音字或学习拼音很有帮助。
+  </Step>
+  <Step title="调整编码栏显示">
+    将「编码显示」设为 `toned` 可让你打字时看到带调拼音（如 `pīnyīn`）而非原始编码（`pinyın`）。如果只想要干净的无调拼音，选 `toneless`。
+  </Step>
+  <Step title="重新部署并观察变化">
+    点击编辑器右上角「部署」按钮（或菜单栏 → 重新部署）。打开任意输入框，输入几个音节，观察候选面板布局与注释栏的变化。
+  </Step>
+</StepGuide>
 
 ## 配置项详解
 
-### 排列方向
+### `horizontal` — 排列方向
 
 ```yaml
 patch:
-  style/horizontal: true     # true=横排, false=竖排(默认)
+  style/horizontal: true     # true=横排，false=竖排（默认）
 ```
 
-| 方向 | 视觉效果 | 适用场景 |
-|------|---------|---------|
-| **竖排** | 候选词从上到下排列 | 默认模式，适合窄屏、候选词较多时 |
-| **横排** | 候选词从左到右排列 | 节省纵向空间，适合宽屏、现代 UI 风格 |
+| 值 | 视觉效果 | 适用场景 |
+|----|---------|---------|
+| `false`（默认） | 候选词从上到下竖向排列 | 窄屏、候选词较多、传统输入法习惯 |
+| `true` | 候选词从左到右横向排列 | 宽屏、现代 UI 风格、节省纵向空间 |
 
-### 拼音提示（spelling_hints）
-
-控制在候选词旁显示拼音提示的范围：
-
-```yaml
-patch:
-  translator/spelling_hints: 10    # 为 10 字以内的候选词显示拼音
-```
-
-| 值 | 效果 |
-|----|------|
-| `0` | 关闭拼音提示 |
-| `1` | 仅单字显示拼音 |
-| `10` | 10 字以内的候选词都显示拼音 |
-| `30` | 几乎所有候选词都显示拼音（学习阶段推荐） |
-
-拼音提示显示在候选词下方或旁边（取决于排列方向），帮助确认候选词的读音。
-
-### 注释始终显示（always_show_comments）
-
-```yaml
-patch:
-  translator/always_show_comments: true
-```
-
-| 值 | 行为 |
-|----|------|
-| `true` | 始终显示注释信息（只要注释模式不是「关闭」） |
-| `false` | 仅在有辅助码筛选时才显示注释 |
-
-:::note
-当设为 `false` 时，注释只在你输入了辅助码进行筛选时才会出现。这对于已经熟练辅助码的用户来说可以减少视觉干扰——平时不显示注释，只在需要精确筛选时才显示辅助码信息。
+:::tip
+横排用户建议将每页候选词数量调到 5–6 个。竖排面板纵向延伸，容纳 7–9 个候选词也不影响阅读；横排面板横向延伸，超过 6 个容易超出屏幕宽度。
 :::
+
+### `commentMode` — 注释模式
+
+控制候选词**旁边**那列灰色小字（注释栏）的内容格式。
+
+```yaml
+patch:
+  translator/spelling_hints: 8    # 为 8 字以内的候选词生成注释
+```
+
+| 值 | 效果 | 典型显示 |
+|----|------|---------|
+| `off` | 关闭注释栏 | 候选词旁无任何小字 |
+| `toned` | 带调拼音注释 | 「汉」→ `hàn`，「拼音」→ `pīnyīn` |
+| `toneless` | 无调拼音注释 | 「汉」→ `han`，「拼音」→ `pinyin` |
+
+`spelling_hints` 决定**最大字数阈值**：值为 `8` 时，8 字以内的候选词都会生成注释；设为 `0` 等同于关闭。
+
+### `encodingDisplay` — 编码显示
+
+控制**编码栏**（输入法面板顶部，显示你正在打的内容）的格式。
+
+| 值 | 效果 | 示例（输入 `pinyın`） |
+|----|------|---------------------|
+| `raw` | 原始编码，原样显示 | `pinyın` |
+| `toned` | 带调拼音 | `pīnyīn` |
+| `toneless` | 无调拼音，去除调号 | `pinyin` |
+
+编码显示由 `preedit_format` 规则实现（见「原理机制」一节）。
 
 <ConfigSlot module="candidate-display" />
 
-## 常见场景与推荐搭配
+## 原理机制
 
-**学习阶段（信息最大化）**：
+### 显示属性由前端控制，而非引擎
 
-```yaml
-patch:
-  translator/spelling_hints: 30           # 所有候选词显示拼音
-  translator/always_show_comments: true   # 始终显示注释
+RIME 的架构将**引擎**（librime，负责语言处理）与**前端**（Squirrel/Weasel/ibus-rime，负责界面渲染）解耦。候选词显示属性由前端读取，因此：
+
+- `style/horizontal` 写在 `default.custom.yaml` 的 `style` 节，由前端主题引擎处理
+- 不同前端对同一设置的支持程度可能有差异。例如某些 Linux 前端可能不支持 `horizontal`，设置了也不生效
+
+验证方式：查阅对应前端（Squirrel / Weasel）的官方文档，确认支持的 `style` 字段列表。
+
+### `horizontal` 的生效路径
+
+```
+default.custom.yaml
+  └─ patch
+       └─ style/horizontal: true
+            └─ 前端读取 → 渲染候选面板时改变布局方向
 ```
 
-拼音提示帮助确认候选词读音，注释显示辅助码编码辅助记忆。适合刚开始使用辅助码的用户。
+`style/horizontal` 是前端主题的**全局**属性，对所有方案生效。如果你在前端主题配置文件（如 `squirrel.custom.yaml`）中有单独的主题定义，需要在主题内也设置 `horizontal: true`，否则主题会覆盖全局设置。
 
-**日常使用（平衡模式）**：
+### `commentMode` 的生效路径
 
-```yaml
-patch:
-  translator/spelling_hints: 1            # 仅单字显示拼音
-  translator/always_show_comments: false  # 仅筛选时显示注释
+注释栏内容经过两个阶段：
+
+```
+Translator 产出候选 (+ comment 字段)
+  → Filter 链修饰 comment
+      → 前端按 commentMode 渲染
 ```
 
-**极简模式（最少干扰）**：
+1. **Translator** 根据 `spelling_hints` 阈值为候选附加注释字段（带调拼音文本）
+2. **Filter**（如辅助码 filter）可能修改或追加注释内容
+3. **前端**根据 `commentMode` 决定是否渲染注释栏、渲染原始文本还是去调号版本
+
+`commentMode: off` 在前端层面直接不渲染注释，即使 Translator 产生了注释字段也不显示。
+
+### `encodingDisplay` 与 `preedit_format`
+
+编码栏显示的文字是 RIME 的**预编辑文本（preedit）**，由 `preedit_format` 规则在输出给前端之前做文本重写：
 
 ```yaml
-patch:
-  translator/spelling_hints: 0            # 关闭拼音提示
-  translator/always_show_comments: false  # 仅筛选时显示注释
-  style/horizontal: true                  # 横排，节省空间
+translator/preedit_format:
+  - xform/([nl])v/$1ü/          # nv → nü，lv → lü
+  - xform/([nl])ue/$1üe/        # lue → lüe
+  - xform/([jqxy])v/$1u/        # jv → ju（规范化）
 ```
 
-## 进阶技巧
+`preedit_format` 是一组正则替换规则，`xform/pattern/replacement/` 格式。规则按顺序应用，前一条的输出是后一条的输入。
 
-:::tip
-如果你是横排候选词的用户，可以把 `page_size` 适当调小（5-6），因为横排的候选词在屏幕上占据更多宽度，太多会导致面板过宽。竖排用户则可以放心使用 7-9 个候选词。
+:::note
+`encodingDisplay: toned` 要求方案的 `preedit_format` 中包含声调转换规则（如拼音方案通常内置了 `tone_letter` 或类似规则）。如果设为 `toned` 但编码栏没有声调，说明方案本身未配置声调规则，需要手动添加。
 :::
 
-:::warning
-`spelling_hints` 设置较大的值（如 30）会为长词组也显示完整拼音，这会占用较多空间。如果发现候选面板变得拥挤，可以适当调小这个值。
+## 完整示例
+
+<YamlPreview title="default.custom.yaml" caption="横排 + 带调注释 + 规范化编码显示的完整配置">
+
+```yaml
+patch:
+  # 横排候选词
+  style/horizontal: true
+  # 每页候选词数量（横排时建议 5-6）
+  menu/page_size: 6
+  # 注释栏：为 8 字以内的候选词显示带调拼音
+  translator/spelling_hints: 8
+  # 始终显示注释（不只在辅助码筛选时显示）
+  translator/always_show_comments: true
+  # 编码栏：将 v 规范为 ü，其他保持原样
+  translator/preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+```
+
+</YamlPreview>
+
+:::note
+`patch` 是追加/覆盖语义。未列出的字段保持方案默认值，不会被清空。只需写需要更改的字段。
 :::
 
-## 学习路径
+## 常见场景
 
-1. **起步**：使用默认竖排布局，开启拼音提示帮助确认候选词
-2. **调整**：根据屏幕尺寸选择横排或竖排，调整拼音提示范围
-3. **熟练后**：关闭拼音提示、设置注释为仅筛选时显示，追求最简洁的输入界面
+**小屏幕 / 竖屏设备：横排节省纵向空间**
+
+```yaml
+patch:
+  style/horizontal: true
+  menu/page_size: 5
+```
+
+横排+5候选，面板只占一行高度，不遮挡内容区。
+
+---
+
+**学习拼音声调：带调注释辅助记忆**
+
+```yaml
+patch:
+  translator/spelling_hints: 30   # 几乎所有候选词都显示注释
+  translator/always_show_comments: true
+```
+
+`commentMode` 设为 `toned`（带调），每个候选词旁显示完整声调标注，帮助强化记忆。
+
+---
+
+**触屏 / 大字号：竖排 + 宽松间距**
+
+保持 `style/horizontal: false`（默认竖排），配合前端主题增大字号和行间距。竖排在触屏场景下点击目标更大，误触率更低。
+
+---
+
+**纯净输入：关闭所有注释**
+
+```yaml
+patch:
+  translator/spelling_hints: 0    # 不生成任何注释
+  translator/always_show_comments: false
+```
+
+注释栏完全消失，候选面板只有汉字，视觉最简洁。
+
+---
+
+<Details title="横排 vs 竖排的选择依据" level="intermediate">
+
+选择排列方向时可以参考以下几个维度：
+
+| 维度 | 偏向竖排 | 偏向横排 |
+|------|---------|---------|
+| 屏幕比例 | 窄屏 / 竖屏 / 手机 | 宽屏 / 横屏 / 桌面 |
+| 候选词数量 | 7–9 个 | 5–6 个 |
+| UI 风格 | 传统中文输入法习惯 | 现代扁平化 UI |
+| 辅助码使用 | 不影响 | 不影响 |
+| 注释栏存在 | 竖排注释列在汉字右侧，可读性好 | 横排注释紧跟汉字，空间紧凑 |
+
+没有绝对的优劣之分。建议两种都试用 1–2 天，以实际打字舒适度为准。
+
+</Details>
+
+<Details title="为什么 commentMode 和 encodingDisplay 是分开的" level="intermediate">
+
+两者控制的是界面上**不同位置**的文字：
+
+```
+┌─────────────────────────────────────────┐
+│  pīnyīn▌              ← encodingDisplay  │
+├─────────────────────────────────────────┤
+│  1. 拼音  pīnyīn      ← commentMode     │
+│  2. 品吟  pǐnyín                        │
+│  3. 拼     pīn                          │
+└─────────────────────────────────────────┘
+```
+
+- **encodingDisplay**：你「正在打」的那行（编码栏 / preedit 区）
+- **commentMode**：每个候选词旁边的那列灰字（注释栏）
+
+分开控制是有实际意义的：你可能希望编码栏保持原始编码（方便调试 / 熟悉方案键位），但候选词旁显示带调注释帮助选字；也可能反过来，编码栏带调显示但候选旁注释关闭以减少视觉噪音。
+
+</Details>
+
+<Details title="排错：显示设置不生效" level="advanced">
+
+按以下顺序排查：
+
+1. **确认已重新部署**：所有 RIME 配置修改后必须「重新部署」才生效。macOS 点击菜单栏图标 → 重新部署；Windows 用 Weasel 的小狼毫程序托盘菜单。
+
+2. **前端是否支持该设置**：`style/horizontal` 由前端渲染，部分 Linux 前端（如旧版 ibus-rime）可能忽略此字段。查阅对应前端文档确认支持列表。
+
+3. **主题配置覆盖了全局设置**：如果你在 `squirrel.custom.yaml` 或 `weasel.custom.yaml` 中定义了具名主题，主题内的 `horizontal` 字段会覆盖 `default.custom.yaml` 中的全局设置。需要在主题定义内也修改 `horizontal`：
+   ```yaml
+   # squirrel.custom.yaml
+   patch:
+     style/color_scheme: my_theme
+     preset_color_schemes/my_theme:
+       horizontal: true      # 主题内的设置优先于全局
+       # ...其他主题属性
+   ```
+
+4. **`preedit_format` 规则未生效**：如果编码栏显示没有变化，检查规则语法。`xform/pattern/replacement/` 中 pattern 是正则表达式，特殊字符需转义。用 RIME 日志（`rime.log`）搜索 `preedit` 定位错误行。
+
+5. **缓存问题**：修改 `spelling_hints` 后建议同时清除用户数据目录下的 `*.bin` 缓存文件，再重新部署。
+
+</Details>
+
+<Details title="进阶：preedit_format 规则详解" level="advanced">
+
+`preedit_format` 是一组作用于编码栏预编辑文本的**正则替换规则**，在内容显示给用户之前执行。格式：
+
+```
+xform/<pattern>/<replacement>/
+```
+
+等价于：将 preedit 文本中所有匹配 `<pattern>` 的部分替换为 `<replacement>`，支持正则捕获组（`$1`、`$2` 等）。
+
+**常用规则示例**：
+
+```yaml
+translator/preedit_format:
+  # ü 的规范化（汉语拼音标准写法）
+  - xform/([nl])v/$1ü/        # nv→nü, lv→lü
+  - xform/([nl])ue/$1üe/      # lue→lüe
+  - xform/([jqxy])v/$1u/      # jv→ju（j/q/x/y 后接 u 不写 ü）
+
+  # 将数字声调转为字母上方调号（需方案支持数字调输入）
+  # a1→ā  a2→á  a3→ǎ  a4→à
+  - xform/a1/ā/
+  - xform/a2/á/
+  - xform/a3/ǎ/
+  - xform/a4/à/
+  # ... 其他韵母类似
+```
+
+规则**按顺序**执行，前一条的输出是后一条的输入，注意避免规则之间的冲突。
+
+**注意**：`preedit_format` 只影响编码栏的**显示**，不影响实际输入编码和候选词查询逻辑。修改规则后原始编码仍然被引擎正确解析。
+
+</Details>
 
 ## 相关模块
 
-- [注释与提示](./comment-hints) — 控制注释内容和编码显示格式
-- [辅助码配置](./auxiliary-code-config) — 辅助码提示通过注释系统显示
+- [候选词设置](./candidate-settings) — 控制候选词的生成策略、每页数量、翻译器参数
+- [注释与提示](./comment-hints) — 控制注释内容的来源与格式（本模块控制注释的显示方式）
+- [辅助码配置](./auxiliary-code-config) — 辅助码提示通过注释系统显示，受 `commentMode` 影响
 
 <ConfigSlot module="candidate-display" />
