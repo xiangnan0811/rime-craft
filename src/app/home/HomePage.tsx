@@ -5,8 +5,8 @@ import { CandidatePreview } from '@/components/shared/CandidatePreview'
 
 const FEATURES = [
   { title: '可视化配置', description: '无需手动编辑 YAML，通过表单直观配置 Rime 各项参数' },
-  { title: '全平台支持', description: '鼠须管、小狼毫、ibus-rime、同文、仓输入法一站覆盖' },
-  { title: '导入导出', description: '上传已有配置快速编辑，一键导出为可用的配置文件包' },
+  { title: '正式支持 macOS / Windows 导入导出', description: '当前配置生成与平台文件处理以鼠须管、小狼毫为正式支持范围' },
+  { title: '教程覆盖更广的 Rime 平台生态', description: '安装、同步与方案知识内容继续覆盖 Linux、Android、iOS 等 Rime 生态平台' },
   { title: '预设方案', description: '提供多种开箱即用的配置组合，快速上手' },
 ]
 

@@ -1,18 +1,15 @@
-import type { Platform } from '@/types/config'
 import { Card } from '@/components/ui/card'
+import type { FormalEditorPlatform } from '@/lib/product/support-contract'
 import { cn } from '@/lib/utils'
 
-const PLATFORMS: { id: Platform; name: string; description: string }[] = [
+const PLATFORMS: { id: FormalEditorPlatform; name: string; description: string }[] = [
   { id: 'macos', name: 'macOS', description: '鼠须管 (Squirrel)' },
   { id: 'windows', name: 'Windows', description: '小狼毫 (Weasel)' },
-  { id: 'linux', name: 'Linux', description: 'ibus-rime / fcitx-rime' },
-  { id: 'android', name: 'Android', description: '同文输入法 (Trime)' },
-  { id: 'ios', name: 'iOS', description: '仓输入法 (Hamster)' },
 ]
 
 interface PlatformStepProps {
-  value: Platform
-  onChange: (platform: Platform) => void
+  value: FormalEditorPlatform
+  onChange: (platform: FormalEditorPlatform) => void
 }
 
 export function PlatformStep({ value, onChange }: PlatformStepProps) {
@@ -39,6 +36,9 @@ export function PlatformStep({ value, onChange }: PlatformStepProps) {
           </Card>
         ))}
       </div>
+      <p className="mt-4 text-sm text-gray-500">
+        当前向导的正式导出目标为 macOS 和 Windows。其他 Rime 平台仍可参考教程内容，但不作为本向导的正式配置输出目标。
+      </p>
     </div>
   )
 }

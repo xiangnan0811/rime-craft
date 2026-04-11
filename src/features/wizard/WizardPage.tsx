@@ -6,14 +6,15 @@ import { BasicConfigStep } from './steps/BasicConfigStep'
 import { ThemeStep } from './steps/ThemeStep'
 import { ExportStep } from './steps/ExportStep'
 import { PRESET_THEMES } from '@/data/preset-themes'
-import type { Platform, SwitchKeyAction } from '@/types/config'
+import type { FormalEditorPlatform } from '@/lib/product/support-contract'
+import type { SwitchKeyAction } from '@/types/config'
 import { cn } from '@/lib/utils'
 
 // ─── Wizard state ────────────────────────────────────────
 
 export interface WizardState {
   step: number
-  platform: Platform
+  platform: FormalEditorPlatform
   schemaId: string
   pageSize: number
   shiftLBehavior: SwitchKeyAction
@@ -23,7 +24,7 @@ export interface WizardState {
 
 export type WizardAction =
   | { type: 'SET_STEP'; step: number }
-  | { type: 'SET_PLATFORM'; platform: Platform }
+  | { type: 'SET_PLATFORM'; platform: FormalEditorPlatform }
   | { type: 'SET_SCHEMA'; schemaId: string }
   | { type: 'SET_PAGE_SIZE'; pageSize: number }
   | { type: 'SET_SHIFT_L'; behavior: SwitchKeyAction }

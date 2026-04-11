@@ -7,6 +7,7 @@ import { useConfigStore } from '@/stores/config-store'
 import { createEmptyProject } from '@/lib/config/defaults'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
+import type { FormalEditorPlatform } from '@/lib/product/support-contract'
 import {
   serializeDefaultConfig,
   serializePlatformConfig,
@@ -15,14 +16,22 @@ import {
 import type { RimeProject } from '@/types/config'
 import type { WizardState } from '../WizardPage'
 
+function getPlatformFileName(platform: FormalEditorPlatform) {
+  switch (platform) {
+    case 'macos':
+      return 'squirrel.custom.yaml'
+    case 'windows':
+      return 'weasel.custom.yaml'
+  }
+}
+
 function buildProject(state: WizardState): RimeProject {
   const project = createEmptyProject()
   project.targetPlatform = state.platform
   project.defaultConfig.schemaList = [{ schema: state.schemaId }]
   project.defaultConfig.pageSize = state.pageSize
   project.defaultConfig.asciiComposer.switchKey.shiftL = state.shiftLBehavior
-  project.platformConfig.platform =
-    state.platform === 'windows' ? 'windows' : 'macos'
+  project.platformConfig.platform = state.platform
   for (const app of state.asciiModeApps) {
     project.platformConfig.appOptions[app] = { asciiMode: true }
   }
@@ -53,10 +62,7 @@ export function ExportStep({ state }: ExportStepProps) {
 
     const platformPatch = serializePlatformConfig(project.platformConfig)
     if (Object.keys(platformPatch).length > 0) {
-      const platformFile =
-        project.targetPlatform === 'windows'
-          ? 'weasel.custom.yaml'
-          : 'squirrel.custom.yaml'
+      const platformFile = getPlatformFileName(state.platform)
       zip.file(platformFile, buildCustomYaml(platformPatch))
     }
 
