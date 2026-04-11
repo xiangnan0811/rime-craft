@@ -32,6 +32,9 @@ RIME 在处理输入时会依次调用一系列组件：按键处理（Processor
   <Step title="尝试输入">
     保存并部署后，在任意输入框输入 `/rq`，应在候选词中看到今天的日期。
   </Step>
+  <Step title="（可选）调整触发码">
+    如果默认触发码和你的其他输入习惯冲突，可以在开关旁边的输入框修改触发码，保存并重新部署即可生效。
+  </Step>
 </StepGuide>
 
 ## 配置项详解
@@ -97,6 +100,32 @@ patch:
 - `recognizer/patterns/xxx` 定义了触发该翻译器的输入模式（正则）
 - `lua_translator@my_translator` 中的 `my_translator` 必须对应 `lua/my_translator.lua` 文件，且文件返回的 Lua 函数名也应该是 `my_translator`
 
+Filter 与 Translator 的注册方式几乎相同，区别在于挂载点和职责不同——Filter 不生成新候选词，而是对 Translator 已产生的候选词逐一处理：
+
+<YamlPreview title="xxx.custom.yaml（注册 Filter 示例）" caption="lua_filter 追加到 filter 链，对已有候选词进行修改">
+
+```yaml
+patch:
+  engine/filters/+:
+    - lua_filter@my_comment_filter
+```
+
+</YamlPreview>
+
+Filter 脚本接收上游候选词流，逐一处理后再 `yield` 出去。你可以在这里追加注释、跳过某些候选、调整顺序，但不能凭空产生新词（那是 Translator 的工作）。
+
+### Translator / Filter / Processor 对比
+
+| 类型 | 职责 | 典型场景 | 关键返回值 |
+|------|------|---------|-----------|
+| Translator | 生成新候选词 | 特殊输入、反查、自定义词表 | `yield(Candidate(...))` |
+| Filter | 修改已有候选 | 追加注释、过滤词条、调整顺序 | `yield(cand)` |
+| Processor | 拦截并处理按键事件 | 快捷键、状态切换、特殊模式 | `0` kNoop / `1` kAccepted / `2` kRejected |
+
+三者可以在同一个方案中共存。通常的开发顺序是：先用 Translator 让功能可以触发，再用 Filter 做展示层美化，最后用 Processor 加快捷键入口。
+
+同一类型的 Lua 组件也可以注册多个，它们会按 `engine/translators` 或 `engine/filters` 数组中的顺序依次执行，互不干扰。
+
 ## 完整示例：自定义 IP 查询触发器
 
 目标：输入 `/ip` 时弹出候选词显示本机 IP 地址。
@@ -136,6 +165,9 @@ patch:
 - **办公场景**：日期、时间、星期是最常用的预设触发器。考虑关闭不常用的农历/节气以减少候选词干扰。
 - **程序员场景**：时间戳 `/tt`、计算器 `V`、Unicode `U` 都非常实用。可以自定义触发器查询 IP、生成 UUID 等。
 - **写作场景**：农历、节气、节日类触发器适合写古风、纪实类文章。
+- **学习 RIME**：通过编写一个最简 Translator 脚本，能直观理解候选词从无到有的全流程。打印调试信息到 `rime.log` 后，每次输入都能观察到引擎的调用时机。
+- **企业部署**：通过 Filter 类型的 Lua 脚本读取公司术语词表，对候选词追加缩写注释，或将特定产品名自动替换为规范写法，无需改动主词典。
+- **实验性开发**：用 Lua 脚本验证新输入法思路时，可以在不修改主方案 schema 的前提下，通过 `custom.yaml` 的 `patch` 临时挂载实验性组件，随时摘除，不影响日常使用。
 
 <Details title="进阶：RIME 引擎的完整组件链" level="advanced">
 
@@ -149,6 +181,51 @@ RIME 的数据流比上文简图更复杂。完整顺序是：
 6. 最终候选列表呈现给用户
 
 Lua 组件可以插入到步骤 2、4、5 的任何位置。`engine/translators/+` 中的 `+` 是追加，更高级的位置控制使用 `@before`/`@after` 修饰符。
+
+下面是一个 Filter 脚本的最小示例，展示候选词流是如何被遍历和修改的：
+
+```lua
+local function my_comment_filter(input, env)
+  for cand in input:iter() do
+    -- 可以在这里检查 cand.text、cand.type 等属性
+    -- 修改 comment（候选词右侧的注释文字）
+    cand.comment = "（自定义注释）"
+    -- yield 将候选词传递给下一个 Filter 或最终输出
+    yield(cand)
+  end
+end
+
+return my_comment_filter
+```
+
+如果某个候选词不应出现，只需跳过 `yield(cand)` 这一行即可将它从列表中移除。
+
+</Details>
+
+<Details title="Lua 脚本的调试技巧" level="intermediate">
+
+**用 `log.info()` 写入 rime.log**
+
+RIME 的 Lua 环境提供了 `log.info()`、`log.warning()`、`log.error()` 三个函数。在脚本中插入日志后，重新部署并触发输入，即可在用户目录的 `rime.log` 中看到输出：
+
+```lua
+local function my_translator(input, seg, env)
+  log.info("my_translator called, input=" .. input)
+  -- ...
+end
+```
+
+**分阶段开发**
+
+推荐先写一个只返回硬编码候选词的最小版本，确认注册流程正确后，再逐步替换为真实逻辑。每次只改一处，遇到问题能快速定位。
+
+**用预设 trigger 测试**
+
+在 `recognizer/patterns` 中临时给你的脚本注册一个简单触发码（如 `/dbg`），测试通过后再改为正式触发条件。这样避免正式触发码的正则干扰调试。
+
+**查阅 Lua API 参考**
+
+RIME 的官方 Lua API 文档位于 [rime/librime-lua 的 wiki](https://github.com/hchunhui/librime-lua/wiki)，涵盖 `Candidate`、`Segment`、`env`、`yield` 等所有可用对象和方法。
 
 </Details>
 
@@ -186,11 +263,32 @@ Lua 组件可以插入到步骤 2、4、5 的任何位置。`engine/translators/
 
 </Details>
 
+<Details title="性能注意事项" level="advanced">
+
+Lua 脚本在每次按键时都可能被调用，Filter 类脚本还会对当前候选列表中的每一个候选词执行一次循环。以下几点有助于保持输入流畅：
+
+- **避免重量级 I/O**：同步的 HTTP 请求、大文件读取会直接阻塞输入响应。如果需要读取外部数据，优先在脚本加载阶段（`init` 函数中）一次性读入内存，而不是每次调用时重复读取。
+- **用 `env` 缓存跨调用状态**：RIME 在每次 schema 加载时会调用脚本的 `init(env)` 函数，可以把初始化数据存入 `env` 表，供后续调用复用，避免重复计算。
+
+  ```lua
+  local function init(env)
+    -- 只在 schema 加载时执行一次
+    env.word_set = load_word_list("my_terms.txt")
+  end
+  ```
+
+- **字符串匹配选 `string.match`**：Lua 内置的 `string.match` 使用模式匹配，比引入外部 regex 库开销小得多。对于简单前缀判断，直接用 `string.sub(input, 1, 1) == "/"` 比正则更快。
+- **参考万象拼音的 super_comment filter**：该脚本在处理大量候选词时做了显式的长度截断和 early-exit 优化，是研究性能友好型 Filter 写法的好案例。
+
+</Details>
+
 <Details title="复用社区 Lua 脚本" level="intermediate">
 
-- [rime-ice 的 Lua 仓库](https://github.com/iDvel/rime-ice/tree/main/lua) 有许多实用脚本
-- 万象拼音也自带多个 Lua 脚本，可以参考它们的实现
+- [rime-ice 的 Lua 仓库](https://github.com/iDvel/rime-ice/tree/main/lua) 有许多实用脚本，涵盖日期、时间、计算、Unicode、以及各种 Filter 增强
+- 万象拼音也自带多个 Lua 脚本，可以参考它们的实现，尤其是 `super_comment` 和 `super_replace` 的写法
 - 复用前请审阅代码，注意和你的 schema 的兼容性
+- 如果脚本依赖特定的 `env` 配置项或外部词表文件，需要一并复制并调整路径
+- 社区脚本通常假设特定的触发码或 `recognizer/patterns`，复用时记得检查是否和你现有方案冲突
 
 </Details>
 
