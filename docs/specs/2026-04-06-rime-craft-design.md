@@ -4,6 +4,11 @@
 **Status**: Draft
 **Author**: weibo + Claude
 
+> **状态说明（2026-04-11）**
+>
+> 本文档是 2026-04-06 的原始产品设计草案，用于保留当时的范围设想，不代表当前 live product contract。
+> 当前正式产品契约请以 [docs/PRODUCT_CONTRACT.md](../PRODUCT_CONTRACT.md) 为准；批量审查后的分期路线与后续收敛请参见 [docs/superpowers/specs/2026-04-11-post-batch-roadmap-design.md](../superpowers/specs/2026-04-11-post-batch-roadmap-design.md)。
+
 ---
 
 ## 1. 项目概述

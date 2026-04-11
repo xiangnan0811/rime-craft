@@ -29,7 +29,11 @@ export function SchemaIntroTab({ schema }: { schema: SchemaDetail }) {
         </div>
       </div>
       <div>
-        <h3 className="mb-2 text-base font-semibold">平台支持</h3>
+        <h3 className="mb-2 text-base font-semibold">Rime 生态可用平台</h3>
+        <p className="mb-3 text-sm leading-relaxed text-gray-600">
+          这里展示的是常见方案在 Rime 生态中的可用平台，用于帮助理解方案覆盖面；
+          它不等同于 rime-craft 当前正式承诺的导入 / 导出支持范围。
+        </p>
         <div className="flex flex-wrap gap-2">
           {compare.platforms.map((p) => (
             <span key={p} className="rounded-md bg-gray-100 px-3 py-1.5 text-sm">{PLATFORM_ICONS[p] ?? ''} {p}</span>
