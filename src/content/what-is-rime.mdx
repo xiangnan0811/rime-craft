@@ -1,49 +1,263 @@
-# Rime 是什么
+# 什么是 RIME
 
-Rime，全称**中州韵输入法引擎**（Rime Input Method Engine），是一个开源、跨平台的输入法框架。它本身不是一款具体的输入法，而是一个底层引擎——在不同操作系统上，它以不同的名称和外观出现，但共享同一套配置逻辑和输入方案。
+**RIME**（中州韵输入法引擎，Rime Input Method Engine）是一个开源、跨平台的输入法引擎框架。它本身不是某一款具体的输入法，而是一套底层引擎——在不同操作系统上以不同名称出现，但共享同一套配置逻辑与输入方案体系。
 
-## Rime 的核心特点
+## 一句话定义
 
-**开源自由**：Rime 以 BSD 许可证开源，代码完全透明。任何人都可以查看、修改和分发它。没有商业公司控制它的走向，功能由社区共同推动。
+RIME 是一个以 **YAML 配置 + Lua 脚本** 驱动的本地输入法引擎，让用户完全掌控自己的输入体验，从候选词排序到输入方案的拼写规则，均可精细定制，且所有数据留在本地、不上云。
 
-**高度可定制**：从候选词数量、翻页按键，到输入方案的拼写规则、词库构成，几乎所有行为都可以通过 YAML 配置文件精确控制。这种灵活性是商业输入法无法比拟的。
+## 核心特点
 
-**全平台支持**：Rime 引擎运行在主流桌面和移动平台上，各平台发行版如下：
+- **开源、BSD 协议**：代码托管在 GitHub（[rime/librime](https://github.com/rime/librime) 等仓库），任何人可查看、修改、分发，没有商业公司控制方向。
+- **跨平台**：macOS、Windows、Linux（IBus/Fcitx5）、Android、iOS 均有原生发行版，共享同一套配置文件。
+- **极致可配置**：从候选词数量、翻页键到拼写规则、词库构成，几乎所有行为都通过 YAML 文件控制；进阶用户可用 Lua 脚本扩展引擎能力。
+- **数据自主**：完全本地运行，输入内容不上传任何服务器，用户词典保存在本机，可用 Git 管理和迁移。
+- **方案即文档**：一个 `.schema.yaml` 文件完整描述一种输入方式——编码规则、词典、功能开关、引擎管道全部自包含，可复用、可分享。
+- **社区生态活跃**：[雾凇拼音（rime-ice）](https://github.com/iDvel/rime-ice)、[万象拼音](https://github.com/amzxyz/rime_wanxiang)、虎码、小鹤双拼等方案持续维护，覆盖主流输入习惯。
 
-| 平台 | 发行版名称 | 安装来源 |
-|------|-----------|---------|
-| macOS | 鼠须管（Squirrel） | brew / rime.im |
-| Windows | 小狼毫（Weasel） | rime.im |
-| Linux（IBus） | ibus-rime | 包管理器 |
-| Linux（Fcitx5） | fcitx5-rime | 包管理器 |
-| Android | 同文输入法（Trime） | F-Droid / GitHub |
-| iOS | 仓输入法（Hamster） | App Store |
+## 快速开始
 
-**隐私保护**：Rime 完全本地运行。你输入的每一个字符都在本机处理，不会上传到任何云端服务器。对于注重隐私的用户，这是一个决定性优势。
+:::tip
+如果你是第一次接触 RIME，按以下四步即可完成基础安装并开始使用。
+:::
 
-**多方案支持**：一套 Rime 安装可以同时运行全拼、双拼、五笔、仓颉、粤语拼音等多种方案。切换方案只需按一个快捷键，无需重新安装。
+<StepGuide>
+  <Step title="选择你的平台发行版">
+    根据操作系统选择对应的 RIME 前端：
 
-## Rime 与商业输入法的区别
+    | 平台 | 发行版 | 获取方式 |
+    |------|--------|---------|
+    | macOS | 鼠须管（Squirrel） | `brew install --cask squirrel` 或 [rime.im](https://rime.im) |
+    | Windows | 小狼毫（Weasel） | [rime.im](https://rime.im) 下载安装包 |
+    | Linux（IBus） | ibus-rime | 发行版包管理器 |
+    | Linux（Fcitx5） | fcitx5-rime | 发行版包管理器（推荐） |
+    | Android | 同文输入法（Trime） | F-Droid 或 GitHub |
+    | iOS | 仓输入法（Hamster） | App Store |
+  </Step>
+  <Step title="安装并添加输入法">
+    安装完成后，在系统的输入法设置中将对应发行版添加为输入法。macOS 需在「系统设置 → 键盘 → 输入法」中添加「鼠须管」；Windows 在语言栏切换；Linux 在 IBus/Fcitx5 设置中添加。
+  </Step>
+  <Step title="选择输入方案">
+    首次部署后，RIME 默认加载朙月拼音（全拼）。按 `Ctrl+\`` 打开方案切换菜单，可以切换到已安装的其他方案。如需安装雾凇拼音、万象拼音等社区方案，参阅[输入方案管理](./schema-manager)。
+  </Step>
+  <Step title="执行重新部署">
+    每次修改配置文件后，必须执行「重新部署」才能生效：macOS 点击菜单栏输入法图标 → 重新部署；Windows 在系统托盘菜单选择重新部署；Linux 执行 `ibus-daemon -drx` 或等效命令。详见[首次部署](./first-deploy)。
+  </Step>
+</StepGuide>
 
-商业输入法（如搜狗、讯飞、百度输入法）的优势在于：开箱即用、词库庞大、云端同步方便、有专业团队持续优化。
+---
 
-Rime 的优势在于：
+## 双层架构：引擎 + 前端
 
-- **没有广告和推广词**：商业输入法经常在候选词中插入广告，Rime 没有这类问题。
-- **配置可迁移**：你的所有配置都是纯文本文件，可以用 Git 管理，跨设备同步，永久保存。
-- **方案可扩展**：社区有大量开源方案，如雾凇拼音（带词频优化的大词库全拼）、小鹤双拼、万象拼音等，可以自由选用。
-- **行为可预期**：Rime 不会在某次更新后悄悄改变你的输入习惯。
+RIME 的架构分为两层，这是理解"为什么有这么多不同名称"的关键：
 
-## 什么时候适合选择 Rime
+```
+┌──────────────────────────────────────────────────────┐
+│  前端（Platform Frontend）                            │
+│  Squirrel / Weasel / fcitx5-rime / Trime / Hamster   │
+│  负责：候选窗口 UI、系统输入法集成、按键捕获           │
+├──────────────────────────────────────────────────────┤
+│  librime（核心引擎）                                   │
+│  C++ 编写，跨平台，无 UI                              │
+│  负责：输入处理、方案编译、词典查询、Lua 脚本执行       │
+└──────────────────────────────────────────────────────┘
+```
 
-Rime 适合以下用户：
+**librime** 是核心，所有输入逻辑都在这里运行。各平台前端只负责 UI 渲染和系统集成，不包含输入逻辑。这就是为什么你在 macOS 上的鼠须管和 Windows 上的小狼毫可以使用完全相同的配置文件——底层引擎是同一个。
 
-- 对输入法有精细定制需求，希望"一切在掌控之中"
-- 使用双拼或其他非主流输入方案
-- 注重输入数据隐私，不希望输入内容上传
-- 需要在多个平台使用同一套配置（配置文件可以直接复制）
-- 想要学习和探索输入法工作原理的技术用户
+:::note
+配置文件在各平台之间高度可移植。方案文件（`.schema.yaml`、`.dict.yaml`）和用户配置（`.custom.yaml`）可以直接在不同平台间复用，只有少数涉及字体名称、快捷键的设置需要调整。
+:::
 
-如果你只是需要一个"够用就行"的输入法，商业方案或许更省心。但如果你愿意花一点时间配置，Rime 能给你带来更贴合自己习惯的输入体验——而且这套体验是你完全拥有的。
+## 引擎处理管线
 
-准备好了？下一步是[安装 Rime](./installation)。
+每一次击键，librime 都会按固定顺序经过以下组件：
+
+1. **Processor（按键处理）** — 判断按键是进入编辑状态、提交文字，还是触发特殊功能
+2. **Segmentor（分段）** — 将已输入的编码字符串拆分为音节或词段
+3. **Translator（翻译）** — 每个翻译器独立生成候选词列表（拼音翻译器、词典翻译器、Lua 翻译器等可同时挂载）
+4. **Filter（过滤）** — 对候选列表进行后处理：去重、添加注释、简繁转换、Lua 过滤等
+5. **候选展示** — 前端渲染最终候选列表
+
+Lua 脚本可以插入到 Processor、Translator、Filter 三个环节，实现几乎任意扩展。
+
+## 方案系统（Schema）
+
+**方案（Schema）是 RIME 的最小配置单元**，也是 RIME 最有力的设计。
+
+一个方案 = 一种完整的输入方式，由三类文件组成：
+
+| 文件 | 职责 |
+|------|------|
+| `<schema_id>.schema.yaml` | 方案主定义：编码规则、引擎管道、功能开关 |
+| `<schema_id>.dict.yaml` | 词典：词条与频率 |
+| `<schema_id>.custom.yaml` | 用户补丁：用 `patch:` 语法覆盖主文件中的任意字段 |
+
+<YamlPreview title="最简 schema 结构示意" caption="一个可运行的方案只需声明 schema 元数据和 engine 管道">
+
+```yaml
+# my_pinyin.schema.yaml
+schema:
+  schema_id: my_pinyin      # 必须与文件名一致
+  name: 我的拼音方案
+  version: "1.0"
+  author:
+    - 你的名字
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [中文, 西文]
+
+engine:
+  processors:
+    - ascii_composer
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - uniquifier
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+
+translator:
+  dictionary: my_pinyin     # 对应 my_pinyin.dict.yaml
+
+menu:
+  page_size: 5
+```
+
+</YamlPreview>
+
+用户可以同时安装多个方案，按 `Ctrl+\`` 切换，无需重新部署。每个方案有独立的用户词典，词频数据互不干扰。
+
+---
+
+<Details title="RIME 的历史与社区" level="intermediate">
+
+RIME 由 **佛振**（网名 Lotem）于约 2009 年开始开发，最初是个人项目，后来逐渐演化为覆盖多平台的完整生态。项目采用 BSD 许可证，核心仓库分布如下：
+
+- [rime/librime](https://github.com/rime/librime) — 核心 C++ 引擎
+- [rime/squirrel](https://github.com/rime/squirrel) — macOS 前端（鼠须管）
+- [rime/weasel](https://github.com/rime/weasel) — Windows 前端（小狼毫）
+- [osfans/trime](https://github.com/osfans/trime) — Android 前端（同文输入法）
+- [imfuxiao/Hamster](https://github.com/imfuxiao/Hamster) — iOS 前端（仓输入法）
+
+社区方面，国内形成了相当活跃的用户和开发者群体，以 GitHub、少数派、V2EX 等平台为聚集地。[rime-ice（雾凇拼音）](https://github.com/iDvel/rime-ice) 和[万象拼音](https://github.com/amzxyz/rime_wanxiang)是目前维护最活跃的全拼方案，持续更新词库和功能。
+
+RIME 的开发节奏较慢，核心团队规模有限，但底层引擎已经相当稳定。日常使用的功能迭代主要来自社区方案层面。
+
+</Details>
+
+<Details title="流行方案生态" level="intermediate">
+
+RIME 的价值很大程度上来自社区贡献的方案。以下是目前较为活跃的方案：
+
+**全拼方案**
+
+| 方案 | 特点 |
+|------|------|
+| [雾凇拼音（rime-ice）](https://github.com/iDvel/rime-ice) | 词库庞大（200万+词条）、持续维护、配置开箱即用 |
+| [万象拼音](https://github.com/amzxyz/rime_wanxiang) | 支持直接辅助码、词库丰富、rime-craft 的默认推荐方案 |
+| 朙月拼音（luna_pinyin） | RIME 内置基础全拼，词库较小，适合作为基础方案使用 |
+
+**双拼方案**
+
+| 方案 | 特点 |
+|------|------|
+| 小鹤双拼 | 最流行的双拼方案之一，键位记忆难度适中 |
+| 自然码双拼 | 历史悠久，部分商业输入法也支持，迁移成本低 |
+| 微软双拼 | 与 Windows 内置双拼键位一致 |
+
+**形码方案**
+
+| 方案 | 特点 |
+|------|------|
+| 五笔86 / 五笔98 | 经典形码，RIME 支持完整 |
+| 仓颉 | 流行于港澳台及部分海外用户 |
+| 虎码 | 新一代形码，学习曲线相对较低 |
+
+**其他**
+
+- **粤语拼音**（jyutping）：粤语用户的完整方案
+- **注音符号**（bopomofo）：台湾用户常用
+- **地方方言方案**：闽南语、吴语等也有社区维护的方案
+
+在 rime-craft 编辑器中，可以通过「输入方案管理」模块浏览和安装预设方案，无需手动下载配置文件。
+
+</Details>
+
+<Details title="RIME vs 主流商业输入法" level="advanced">
+
+选择 RIME 还是商业输入法，本质上是在**自由度**与**开箱即用体验**之间做权衡。
+
+**商业输入法的优势**（搜狗、百度、讯飞、Google 拼音等）
+
+- 云端大数据词库，热词更新极快
+- 云联想：根据当前输入上下文联想下一词
+- 开箱即用，几乎不需要配置
+- 专职团队持续优化，自然语言处理模型不断进步
+
+**RIME 的优势**
+
+- **无广告、无推广词**：商业输入法候选词中常混入广告和热搜词，RIME 没有此类问题
+- **数据不离本机**：所有词频学习、用户词典均保存在本地，不上传云端
+- **配置可版本管理**：所有设置是纯文本 YAML，可以用 Git 管理，跨设备迁移一目了然
+- **行为可预期**：不会因为某次无声更新改变你的输入习惯或词库权重
+- **永久可用**：不依赖厂商服务，没有停服或账号封禁风险
+
+**RIME 的劣势**
+
+- 初始配置成本较高，需要理解方案、部署、词典等概念
+- 没有云端大数据，词库覆盖度依赖方案维护者的更新频率
+- 没有扫一扫、语音输入、截图识别等附加功能（部分前端有少量支持）
+
+:::note
+rime-craft 的目标之一就是降低 RIME 的配置门槛，让新手也能在图形界面中完成常用配置，而不需要手动编辑 YAML。
+:::
+
+</Details>
+
+<Details title="为什么选择 RIME（和不选择）" level="advanced">
+
+**适合 RIME 的用户**
+
+- **注重数据隐私**：不希望输入的字符、词频数据上传到任何第三方服务器
+- **使用双拼或形码**：商业输入法对小众方案的支持有限，RIME 的方案生态几乎覆盖所有主流编码方式
+- **跨平台需求强**：在 macOS、Windows、Linux 甚至手机端都需要一套统一配置
+- **程序员或技术用户**：习惯用文本文件管理配置，愿意花时间理解工具内部逻辑
+- **需要定制化输入行为**：特殊符号输入、自定义词库、Lua 扩展等需求
+
+**不适合 RIME 的用户**
+
+- 只需要"能用就行"的输入法，不愿意花时间配置
+- 依赖云端大词库和实时热词更新（微博热搜、网络新词等）
+- 需要语音输入、扫码、截图识别等功能作为主力输入方式
+- 不熟悉 YAML 且不愿意学习新概念
+
+:::warning
+RIME 的学习曲线确实存在。如果你刚接触 RIME，建议从 rime-craft 编辑器 + 雾凇拼音或万象拼音方案开始，避免从零手写配置文件。
+:::
+
+</Details>
+
+---
+
+## 相关文档
+
+- [安装](./installation) — 各平台详细安装步骤
+- [首次部署](./first-deploy) — 安装完成后的初始化流程
+- [输入方案管理](./schema-manager) — 如何切换和管理输入方案
+- [配置结构](./config-structure) — RIME 配置文件的组织方式与 patch 语法
