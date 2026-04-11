@@ -57,5 +57,5 @@ export function renderLuaTemplate(
   scriptType: LuaScript['scriptType'],
   identifier: string,
 ): string {
-  return LUA_SCRIPT_TEMPLATES[scriptType].replaceAll('{name}', identifier)
+  return LUA_SCRIPT_TEMPLATES[scriptType].split('{name}').join(identifier)
 }

@@ -5,8 +5,6 @@ import {
   getAppsForPlatform,
   searchApps,
   getAppIdentifier,
-  type AppEntry,
-  type AppCategory,
 } from './app-database'
 
 describe('APP_DATABASE', () => {

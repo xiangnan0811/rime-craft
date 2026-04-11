@@ -164,7 +164,7 @@ describe('useConfigStore', () => {
       })
       const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]!.id
       useConfigStore.getState().updateCustomTrigger('rime_ice', id, { name: 'new' })
-      const updated = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]
+      const updated = useConfigStore.getState().project.schemaConfigs['rime_ice']!.specialInput!.customTriggers[0]!
       expect(updated.name).toBe('new')
     })
 
