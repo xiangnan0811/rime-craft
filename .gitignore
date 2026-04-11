@@ -4,3 +4,13 @@ dist
 .omc
 .superpowers
 *.tsbuildinfo
+
+# ai assistants files
+.omx/
+.omc/
+.superpowers/
+AGENTS.md
+.agent/
+CLAUDE.md
+GEMINI.md
+.gemini/
