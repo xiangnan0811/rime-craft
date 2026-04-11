@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import type { SwitchKeyAction } from '@/types/config'
 import type { WizardState, WizardAction } from '../WizardPage'
-import { getAppsForPlatform, getAppIdentifier } from '@/data/app-database'
+import { getAppIdentifier } from '@/data/app-database'
+import { getWizardAsciiModeAppOptions } from '../ascii-mode-apps'
 
 const PAGE_SIZES = [5, 6, 7, 8, 9]
 
@@ -97,27 +98,24 @@ export function BasicConfigStep({ state, dispatch }: BasicConfigStepProps) {
             在以下应用中自动切换为英文输入
           </p>
           <div className="space-y-3">
-            {getAppsForPlatform('macos')
-              .filter((app) => ['terminal', 'editor', 'ide'].includes(app.category))
-              .slice(0, 5)
-              .map((app) => {
-                const id = getAppIdentifier(app, 'macos')!
-                const checked = state.asciiModeApps.includes(id)
-                return (
-                  <div key={app.id} className="flex items-center justify-between">
-                    <Label htmlFor={app.id} className="text-sm">
-                      {app.name}
-                    </Label>
-                    <Switch
-                      id={app.id}
-                      checked={checked}
-                      onCheckedChange={() =>
-                        dispatch({ type: 'TOGGLE_APP', app: id })
-                      }
-                    />
-                  </div>
-                )
-              })}
+            {getWizardAsciiModeAppOptions(state.platform).map((app) => {
+              const id = getAppIdentifier(app, state.platform)!
+              const checked = state.asciiModeApps.includes(id)
+              return (
+                <div key={app.id} className="flex items-center justify-between">
+                  <Label htmlFor={app.id} className="text-sm">
+                    {app.name}
+                  </Label>
+                  <Switch
+                    id={app.id}
+                    checked={checked}
+                    onCheckedChange={() =>
+                      dispatch({ type: 'TOGGLE_APP', app: id })
+                    }
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

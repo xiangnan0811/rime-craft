@@ -9,6 +9,7 @@ import { PRESET_THEMES } from '@/data/preset-themes'
 import type { FormalEditorPlatform } from '@/lib/product/support-contract'
 import type { SwitchKeyAction } from '@/types/config'
 import { cn } from '@/lib/utils'
+import { getDefaultWizardAsciiModeApps } from './ascii-mode-apps'
 
 // ─── Wizard state ────────────────────────────────────────
 
@@ -39,16 +40,26 @@ const initialState: WizardState = {
   schemaId: 'rime_ice',
   pageSize: 9,
   shiftLBehavior: 'commit_code',
-  asciiModeApps: ['com.apple.Terminal', 'com.microsoft.VSCode'],
+  asciiModeApps: getDefaultWizardAsciiModeApps('macos'),
   themeName: firstTheme ? firstTheme.name : 'default',
 }
 
-function wizardReducer(state: WizardState, action: WizardAction): WizardState {
+export function wizardReducer(
+  state: WizardState,
+  action: WizardAction,
+): WizardState {
   switch (action.type) {
     case 'SET_STEP':
       return { ...state, step: action.step }
     case 'SET_PLATFORM':
-      return { ...state, platform: action.platform }
+      if (action.platform === state.platform) {
+        return state
+      }
+      return {
+        ...state,
+        platform: action.platform,
+        asciiModeApps: getDefaultWizardAsciiModeApps(action.platform),
+      }
     case 'SET_SCHEMA':
       return { ...state, schemaId: action.schemaId }
     case 'SET_PAGE_SIZE':
