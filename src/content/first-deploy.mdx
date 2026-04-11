@@ -1,89 +1,364 @@
-# 第一次部署
+# 首次部署
 
-安装 Rime 后，你需要执行一次「部署」操作才能正常使用输入法。每次修改配置文件后，也需要重新部署。
+## 这是什么
 
-## 什么是「部署」
+**部署（Deploy）** 是 RIME 将你编写的 YAML 文本配置编译成引擎可直接读取的二进制数据的过程。安装前端之后，必须至少执行一次部署，输入法才能正常工作。
 
-Rime 的配置是用 YAML 文本文件编写的，人类可读但计算机处理效率较低。「部署」（Deploy）是 Rime 将这些文本配置文件**编译成高效的二进制数据**的过程。
+**为什么需要部署？**
 
-具体来说，部署过程包括：
+RIME 的配置文件是人类可读的 YAML 文本，但引擎在运行时需要的是高效的二进制结构（前缀树、词典表、反查表等）。部署就是这个编译步骤。每次你修改了 `.custom.yaml`、`.dict.yaml` 或 Lua 脚本，都必须重新部署，否则改动不会生效。
 
-1. 读取用户目录下的所有配置文件（`*.yaml`、`*.custom.yaml`）
-2. 将 `.custom.yaml` 的补丁合并到对应的基础配置中
-3. 编译词典文件（`.dict.yaml`）为二进制格式
-4. 生成可供引擎直接使用的运行时数据，存放在 `build/` 子目录中
-
-**每次修改配置后必须重新部署**，否则改动不会生效。这是初学者最容易忽略的步骤。
-
-:::warning
-在修改配置文件之前，建议先备份整个用户配置目录。错误的 YAML 语法可能导致部署失败，备份可以让你随时恢复到正常状态。
+:::note
+「重新部署」和「重启输入法」是两件不同的事。重启只是重新加载 `build/` 中已编译的数据；部署才会重新编译配置文件并更新 `build/`。修改配置后必须执行部署，而不是仅仅重启。
 :::
 
-## 如何触发部署
+---
 
-### macOS（鼠须管）
+## 快速上手
 
-点击菜单栏右上角的输入法图标，在弹出菜单中选择**「重新部署」**。
+<StepGuide>
+  <Step title="确认输入方案已安装">
+    打开用户配置目录（见下方各平台说明），确认目录中至少有一个 `.schema.yaml` 文件或已安装方案包。
 
-部署过程中图标会出现短暂的旋转动画，完成后恢复正常。
+    如果你刚安装 RIME 前端，内置的 `luna_pinyin`（朙月拼音）方案已自动包含，无需额外操作。
+  </Step>
+  <Step title="触发部署">
+    根据你的平台，按下方「各平台部署方式」执行「重新部署」操作。
 
-### Windows（小狼毫）
+    :::tip
+    macOS 和 Windows 用户直接点击菜单栏或托盘图标 → 「重新部署」，是最常用也最简便的方式。
+    :::
+  </Step>
+  <Step title="等待编译完成">
+    部署过程中：
+    - **macOS**：菜单栏 Squirrel 图标短暂旋转或消失，复原后即完成
+    - **Windows**：托盘图标附近可能出现短暂的加载提示
+    - **Linux**：命令行会打印日志并返回提示符
 
-在系统托盘中找到小狼毫图标（通常在右下角），**右键点击**，选择**「重新部署」**。
+    小型方案（如朙月拼音）通常在 **3–10 秒**内完成；大型方案（如包含 150 万+ 词条的万象拼音）可能需要 **1–5 分钟**，请耐心等待。
+  </Step>
+  <Step title="验证部署成功">
+    部署成功后，用户配置目录下会出现 `build/` 子目录，里面包含 `.prism.bin`、`.table.bin`、`.reverse.bin` 等二进制文件。
+
+    如果 `build/` 目录为空或没有生成，说明部署失败，请查看「常见问题」章节排查原因。
+  </Step>
+  <Step title="开始输入测试">
+    切换到 RIME 输入法，在任意文本框输入拼音字母，验证候选词正常弹出。
+
+    按 `Ctrl+~`（鼠须管/小狼毫）或 `Ctrl+grave`（\`） 可呼出方案切换菜单，查看当前已启用的方案列表。
+  </Step>
+</StepGuide>
+
+---
+
+## 各平台部署方式
+
+| 平台 | 前端 | 触发方式 |
+|------|------|----------|
+| macOS | Squirrel（鼠须管） | 菜单栏图标 → 「重新部署」 |
+| Windows | Weasel（小狼毫） | 系统托盘图标右键 → 「重新部署」 |
+| Linux（IBus） | ibus-rime | 命令行：`ibus-daemon -rd` |
+| Linux（Fcitx5） | fcitx5-rime | 命令行：`fcitx5-remote -r` 或点击托盘 → 部署 |
+| Android | Trime（同文） | App 内「设置」→「重新部署」 |
+| iOS | Hamster（仓） | App 内「Rime」→「重新部署」 |
+
+### macOS（Squirrel 鼠须管）
+
+点击 macOS 菜单栏右上角的输入法图标，在弹出菜单中选择**「重新部署」**。部署过程中图标会短暂旋转，完成后自动恢复正常。
+
+也可以通过命令行手动触发：
+
+```bash
+# 手动调用 rime_deployer
+/Library/Input\ Methods/Squirrel.app/Contents/MacOS/rime_deployer \
+  --build ~/Library/Rime ~/Library/Rime/build
+```
+
+用户配置目录：`~/Library/Rime/`
+
+### Windows（Weasel 小狼毫）
+
+在系统托盘（任务栏右下角）找到小狼毫图标，**右键点击**，选择**「重新部署」**。
+
+用户配置目录：`%APPDATA%\Rime\`
 
 ### Linux（ibus-rime）
 
 ```bash
-# 方法一：命令行触发（推荐）
-ibus restart
+# 方法一：重启 ibus 守护进程并触发重新部署（推荐）
+ibus-daemon -rd
 
-# 方法二：如果安装了 rime-deploy 工具
-rime_deployer --build ~/.config/ibus/rime
+# 方法二：手动调用 rime_deployer
+rime_deployer --build ~/.config/ibus/rime ~/.config/ibus/rime/build
 ```
+
+用户配置目录：`~/.config/ibus/rime/`
 
 ### Linux（fcitx5-rime）
 
 ```bash
-# 重启 fcitx5 即可触发重新部署
+# 方法一：fcitx5-remote 远程命令
+fcitx5-remote -r
+
+# 方法二：重启 fcitx5
 fcitx5 -r
+
+# 方法三：手动调用 rime_deployer
+rime_deployer --build ~/.local/share/fcitx5/rime ~/.local/share/fcitx5/rime/build
 ```
 
-或者在 fcitx5 配置工具中找到「重新部署」按钮。
+或者在 fcitx5 配置工具（`fcitx5-configtool`）中找到 Rime 后端，点击「重新部署」。
 
-### Android（同文输入法）
+用户配置目录：`~/.local/share/fcitx5/rime/`
 
-打开同文输入法的设置界面，找到**「重新部署」**按钮，点击执行。
+### Android（Trime 同文输入法）
 
-### iOS（仓输入法）
+打开同文输入法的**设置界面**，找到并点击**「重新部署」**（Deploy）按钮。
 
-打开仓输入法的设置页面，在「Rime」选项中点击**「重新部署」**。
+### iOS（Hamster 仓输入法）
 
-## 第一次部署后的默认状态
+打开仓输入法 App，进入**「Rime」**设置页，点击**「重新部署」**。
 
-首次部署成功后，Rime 会加载内置的默认方案。不同平台略有差异，但通常会包含：
+---
 
-- **朙月拼音**（全拼）：最基础的拼音输入方案
-- **仓颉五代**（部分平台）
-- **注音符号**（部分平台）
+## 原理机制
 
-按 `Ctrl+~`（反引号配合 Control）可以呼出方案选单，查看当前已启用的方案。
+`rime_deployer` 在每次部署时按以下顺序执行编译步骤：
 
-## 常见问题
+1. **读取并合并 `default.yaml` + `default.custom.yaml`** — 应用用户的全局 patch 覆盖
+2. **读取并合并 `<schema>.schema.yaml` + `<schema>.custom.yaml`** — 应用方案级别的 patch 覆盖
+3. **处理所有 `patch:` 语法** — 将补丁合并到对应的基础配置节点
+4. **构建 prism（前缀树）** — 将 `speller/algebra` 中的拼写规则编译为高效的前缀索引，供 Segmentor 使用
+5. **构建 table（词典表）** — 将 `.dict.yaml` 中的词条及频率编译为二进制词典
+6. **构建 reverse_lookup_table（反查表）** — 为「以词定字」等反查功能建立反向索引
+7. **缓存到 `build/` 目录** — 所有编译产物写入用户配置目录的 `build/` 子目录
+8. **通知引擎重新加载** — 向运行中的 librime 实例发送信号，触发运行时热更新
 
-**问：部署后输入法没有响应，什么都输不出来？**
+**首次部署 vs 增量部署**
 
-答：检查配置文件中是否有 YAML 语法错误。Rime 对 YAML 格式要求严格，多一个空格或少一个冒号都会导致部署失败。打开日志文件（见下方）可以看到具体报错。
+首次部署需要从零构建所有数据结构，耗时较长。后续部署时，rime_deployer 会检测哪些源文件发生了变化，只重新编译受影响的方案——如果你只改了 `default.custom.yaml` 的全局配置，只有受影响方案的 prism/table 会重建；未修改的方案直接复用 `build/` 中的缓存。
 
-**问：日志文件在哪里？**
+---
 
-- macOS：`$TMPDIR/rime.squirrel.ERROR` 或 `~/Library/Logs/Rime/`
-- Windows：`%TEMP%\rime.weasel.ERROR`
-- Linux：`~/.config/ibus/rime/rime.ibus.ERROR` 或类似路径
+## 完整示例
 
-**问：部署速度很慢？**
+<YamlPreview title="部署前后 build/ 目录的变化" caption="部署后，build/ 目录新增了所有二进制编译产物">
 
-答：首次部署需要编译词典，如果启用了大词库（如雾凇拼音），可能需要 10–30 秒。后续部署如果词库未变化，速度会明显更快。
+```
+# 部署前：用户配置目录（~/Library/Rime/）
+~/Library/Rime/
+├── default.custom.yaml       # 全局补丁：启用方案列表
+├── rime_ice.schema.yaml      # 雾凇拼音主方案
+├── rime_ice.dict.yaml        # 雾凇拼音词典
+├── rime_ice.custom.yaml      # 用户对雾凇拼音的个人补丁
+└── lua/
+    └── my_translator.lua     # 用户自定义 Lua 翻译器
 
-**问：部署后之前的配置全部丢失了？**
+# 部署后：build/ 子目录新增了所有编译产物
+~/Library/Rime/
+├── default.custom.yaml
+├── rime_ice.schema.yaml
+├── rime_ice.dict.yaml
+├── rime_ice.custom.yaml
+├── lua/
+│   └── my_translator.lua
+└── build/
+    ├── default.yaml          # 合并后的全局配置快照
+    ├── rime_ice.schema.yaml  # 合并后的方案配置快照
+    ├── rime_ice.prism.bin    # 拼写规则前缀树（Segmentor 使用）
+    ├── rime_ice.table.bin    # 词典二进制表（Translator 使用）
+    └── rime_ice.reverse.bin  # 反查索引（反查功能使用）
+```
 
-答：Rime 不会删除你的配置文件。请检查用户配置目录中的文件是否还在。如果是使用 `.custom.yaml` 补丁的配置，请确认补丁语法正确（需要有 `patch:` 根键）。
+</YamlPreview>
+
+:::tip
+`build/` 目录中的文件是编译产物，**不需要手动修改或提交到 Git**。如果你用 Git 管理配置，在 `.gitignore` 中加入 `build/` 即可。
+:::
+
+---
+
+## 常见场景
+
+**场景一：新装方案后的首次部署**
+
+下载方案文件（`.schema.yaml` + `.dict.yaml`）放入用户配置目录后，直接触发「重新部署」。rime_deployer 会自动发现新文件并编译所有方案。如果方案较大（如雾凇拼音 200 万词条），首次编译可能需要数分钟。
+
+**场景二：修改 custom.yaml 后的增量部署**
+
+修改了 `rime_ice.custom.yaml`（如调整候选词个数、切换简繁）后，触发部署。rime_deployer 检测到只有这一个方案的配置发生了变化，只重新编译 `rime_ice` 的 prism 和 table，其他方案不受影响，速度比首次部署快很多。
+
+**场景三：导入词典后的完整重建**
+
+向 `.dict.yaml` 添加了大量词条（如导入自定义词库），触发部署后，table 和 reverse 表需要完整重建，耗时会明显增加。
+
+**场景四：升级 librime 后的全量部署**
+
+librime 大版本升级后，build/ 中的二进制文件格式可能不兼容新版本。建议先**删除整个 `build/` 目录**，再触发部署，让 rime_deployer 从头全量重建所有产物，避免因格式不兼容导致的奇怪问题。
+
+```bash
+# macOS 示例：清空 build/ 再重新部署
+rm -rf ~/Library/Rime/build/
+# 然后从菜单栏触发「重新部署」
+```
+
+**场景五：发现错误后的回滚重部署**
+
+如果部署后输入法行为异常，最快的恢复方式是撤销最近对 `.custom.yaml` 的修改，再重新部署，回到上一个正常状态。建议用 Git 管理配置目录，这样 `git revert` 后立即触发部署即可恢复。
+
+---
+
+<Details title="排错：部署失败的常见原因" level="advanced">
+
+部署失败后，RIME 通常会静默失败（输入法仍可用，但改动不生效），或完全无法输入。以下是最常见的失败原因及排查方法：
+
+**1. YAML 语法错误**
+
+RIME 对 YAML 格式极为严格。常见错误：
+- 缩进用了 Tab（YAML 要求空格）
+- 冒号后面缺少空格（`key:value` 应写成 `key: value`）
+- 字符串中包含冒号未加引号
+- `patch:` 根键缺失或拼写错误
+
+排查方法：用 YAML Lint 工具（如 `yamllint`）检查文件语法：
+
+```bash
+# 安装（Debian/Ubuntu）
+sudo apt install yamllint
+# 检查文件
+yamllint ~/Library/Rime/rime_ice.custom.yaml
+```
+
+**2. 方案文件缺失**
+
+`default.custom.yaml` 中启用了某个方案，但对应的 `.schema.yaml` 文件不在用户配置目录中。检查 `schema_list` 中列出的每个 `schema_id` 是否有对应文件。
+
+**3. librime 版本过旧**
+
+某些方案特性需要较新版本的 librime。如果方案要求 librime ≥ 1.9 而你安装的是 1.7，部署时会报错。检查前端版本（鼠须管 → 关于 → 显示 librime 版本），必要时升级前端。
+
+**4. 磁盘空间不足**
+
+大型方案的编译产物可能占用数百 MB。如果 `build/` 所在分区空间不足，部署会中途失败。检查磁盘空间：`df -h ~/Library/Rime/`
+
+**5. build/ 目录权限错误**
+
+`build/` 目录或其父目录权限不正确时，rime_deployer 无法写入。修复方法：
+
+```bash
+# macOS / Linux：修复用户配置目录权限
+chmod -R u+rw ~/Library/Rime/
+```
+
+**6. Lua 脚本错误**
+
+如果方案加载了 Lua 脚本（`lua_translator`、`lua_filter` 等），脚本中的语法错误会导致部署时引擎初始化失败。查看日志文件中带 `[ERROR]` 或 `[FATAL]` 的行定位问题。
+
+</Details>
+
+<Details title="原理：prism 编译机制" level="advanced">
+
+RIME 的 **prism**（棱镜，前缀树）是整个拼写转换系统的核心数据结构。
+
+**它解决什么问题？**
+
+用户输入 `zhongguo` 时，引擎需要快速回答：「这个字符串是哪些汉字编码的可能前缀？」直接遍历词典太慢，而 prism 是一个预先编译好的前缀索引树，可以在 O(k) 时间内（k = 输入长度）完成前缀匹配。
+
+**编译来源：`speller/algebra`**
+
+`algebra` 列表中的每条规则定义了从原始编码到实际可输入字符串的变换规则。例如：
+
+```yaml
+# 双拼方案中：将完整拼音变换为双拼编码
+speller:
+  algebra:
+    - xform/^([jqxy])u$/$1v/
+    - xform/^zh/V/
+    - xform/^ch/I/
+    - xform/^sh/U/
+    # ... 更多规则
+```
+
+rime_deployer 在编译 prism 时，会将 `.dict.yaml` 中的每个词条按这些规则变换，生成所有可能的输入编码，并构建前缀树。
+
+**复杂度与时间成本**
+
+prism 的编译时间主要取决于：
+- **词条数量**：词条越多，前缀树越大
+- **algebra 规则数量**：规则越复杂（如模糊音配置了大量替换规则），每个词条需要生成的变体越多
+- **磁盘 I/O**：在 HDD 上比 SSD 慢数倍
+
+雾凇拼音（200 万+ 词条）首次编译 prism 约需 30–90 秒，取决于硬件性能。
+
+</Details>
+
+<Details title="查看部署日志" level="advanced">
+
+当部署失败或行为异常时，查看 RIME 日志是最快的定位方式。
+
+**各平台日志位置**
+
+| 平台 | 日志路径 |
+|------|---------|
+| macOS（Squirrel） | `~/Library/Logs/Rime/` 或 `$TMPDIR/rime.squirrel.ERROR` |
+| Windows（Weasel） | `%TEMP%\rime.weasel.ERROR` |
+| Linux（ibus-rime） | `~/.config/ibus/rime/rime.ibus.ERROR` |
+| Linux（fcitx5-rime） | `~/.local/share/fcitx5/rime/rime.fcitx5.ERROR` |
+
+**实时监控日志（macOS / Linux）**
+
+```bash
+# macOS：实时查看最新日志
+tail -f $TMPDIR/rime.squirrel.INFO
+
+# Linux（ibus-rime）
+tail -f ~/.config/ibus/rime/rime.ibus.INFO
+```
+
+**日志级别说明**
+
+RIME 生成四个级别的日志文件：`.INFO`（所有信息）、`.WARNING`（警告以上）、`.ERROR`（错误以上）、`.FATAL`（致命错误）。部署失败时重点查看 `.ERROR` 文件，搜索 `deployer` 或 `schema` 关键词定位问题。
+
+**开启 debug 级别日志**
+
+在 `default.custom.yaml` 中加入以下配置，可获得更详细的部署日志：
+
+```yaml
+patch:
+  config_version: "debug"
+```
+
+注意：debug 日志会产生大量输出，排查完毕后建议移除此配置。
+
+</Details>
+
+<Details title="部署 vs 重启输入法的区别" level="intermediate">
+
+这是新用户最容易混淆的两个操作：
+
+| 操作 | 做了什么 | 何时使用 |
+|------|---------|---------|
+| **重新部署** | 重新编译所有配置文件，更新 `build/` 目录，然后重新加载 | 修改了任何 YAML 或 Lua 文件后 |
+| **重启输入法** | 退出并重新启动前端进程，重新加载已有的 `build/` 数据 | 输入法卡死、UI 异常、或更新了前端程序版本后 |
+
+**关键区别**：重启不会重新编译，只会重新加载上次部署的结果。如果你修改了配置却只重启了输入法，改动**不会生效**。
+
+**macOS 上的操作区分**：
+
+```
+菜单栏图标 → 「重新部署」  ← 编译 + 重载（修改配置后用这个）
+菜单栏图标 → 「退出」→ 重新打开  ← 仅重启进程（输入法卡死时用这个）
+```
+
+</Details>
+
+---
+
+## 下一步
+
+完成首次部署、输入法正常工作后，建议继续：
+
+- [输入方案管理](./schema-manager) — 安装雾凇拼音、万象拼音等社区方案
+- [配置结构](./config-structure) — 理解 RIME 配置文件的组织方式与 `patch:` 语法
+- [多设备同步](./multi-device-sync) — 用 Git 或 iCloud 在多台设备间同步配置
+- [安装](./installation) — 返回查看各平台安装步骤
