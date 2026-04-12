@@ -3,9 +3,9 @@ import type { EditorModule, EditorUIState, RimeProject } from '@/types/config';
 export interface PersistedSourceFile {
   id: string;
   fileName: string;
-  kind: string;
+  kind: 'default' | 'platform' | 'schema' | 'custom_phrase';
   content: string;
-  platform?: RimeProject['targetPlatform'];
+  platform?: 'macos' | 'windows';
   schemaId?: string;
   updatedAt: string;
 }

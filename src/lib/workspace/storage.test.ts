@@ -1,4 +1,3 @@
-import type { EditorModule, EditorUIState, RimeProject } from '@/types/config';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { WorkspaceSnapshot } from './types';
@@ -15,15 +14,33 @@ const createSnapshot = (): WorkspaceSnapshot => ({
   savedAt: '2026-04-12T00:00:00.000Z',
   project: {
     targetPlatform: 'macos',
-    defaultConfig: {} as RimeProject['defaultConfig'],
-    platformConfig: {} as RimeProject['platformConfig'],
+    defaultConfig: {
+      schemaList: [{ schema: 'rime_ice' }],
+      pageSize: 9,
+      selectKeys: '1234567890',
+      asciiComposer: {
+        goodOldCapsLock: true,
+        switchKey: {
+          shiftL: 'inline_ascii',
+          shiftR: 'commit_text',
+          controlL: 'noop',
+          controlR: 'noop',
+          capsLock: 'clear',
+        },
+      },
+      keyBinder: { bindings: [] },
+    },
+    platformConfig: {
+      platform: 'macos',
+      appOptions: {},
+    },
     schemaConfigs: {},
     customPhrases: [],
     preserved: {},
-  } as RimeProject,
+  },
   editorUI: {
-    activeModule: 'schema-manager' as EditorModule,
-    viewMode: 'panel' as EditorUIState['viewMode'],
+    activeModule: 'schema-manager',
+    viewMode: 'panel',
     tutorialCollapsed: false,
   },
   sourceFiles: {},
