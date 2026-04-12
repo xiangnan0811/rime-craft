@@ -1,10 +1,9 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
 import { useShareUrl } from '@/features/share/useShareUrl'
-import { parseShareUrl } from '@/lib/compress/share'
 import { useConfigStore } from '@/stores/config-store'
 
 const ThemePage = lazy(() =>
@@ -32,17 +31,12 @@ const SchemaDetailPage = lazy(() =>
 )
 
 export function App() {
-  useShareUrl()
   const restorePersistedWorkspace = useConfigStore((s) => s.restorePersistedWorkspace)
-  const shouldSkipInitialRestore = useRef(parseShareUrl(window.location.search) !== null)
 
   useEffect(() => {
-    if (shouldSkipInitialRestore.current) {
-      return
-    }
-
     restorePersistedWorkspace()
   }, [restorePersistedWorkspace])
+  useShareUrl()
 
   return (
     <BrowserRouter>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { compressConfig } from '@/lib/compress/share'
@@ -25,6 +26,7 @@ describe('<App>', () => {
   beforeEach(() => {
     restorePersistedWorkspace.mockClear()
     useShareUrl.mockClear()
+    useShareUrl.mockImplementation(() => {})
     window.history.replaceState({}, '', '/')
   })
 
@@ -35,17 +37,27 @@ describe('<App>', () => {
     expect(restorePersistedWorkspace).toHaveBeenCalledTimes(1)
   })
 
-  it('skips persisted workspace restore when the initial URL contains a valid share payload', () => {
+  it('restores the persisted workspace before the share import effect runs at startup', () => {
+    const startupOrder: string[] = []
     const sharePayload = compressConfig({
       module: 'schema-manager',
       yaml: 'patch:\n  menu/page_size: 9',
     })
 
+    restorePersistedWorkspace.mockImplementation(() => {
+      startupOrder.push('restore')
+    })
+    useShareUrl.mockImplementation(() => {
+      useEffect(() => {
+        startupOrder.push('share')
+      }, [])
+    })
     window.history.replaceState({}, '', `/?share=${sharePayload}`)
 
     render(<App />)
 
     expect(useShareUrl).toHaveBeenCalledTimes(1)
-    expect(restorePersistedWorkspace).not.toHaveBeenCalled()
+    expect(restorePersistedWorkspace).toHaveBeenCalledTimes(1)
+    expect(startupOrder).toEqual(['restore', 'share'])
   })
 })
