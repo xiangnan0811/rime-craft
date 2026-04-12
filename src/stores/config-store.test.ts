@@ -1,6 +1,52 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useConfigStore } from './config-store'
 import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
+import type { WorkspaceSnapshot } from '@/lib/workspace/types'
+
+const createWorkspaceSnapshot = (): WorkspaceSnapshot => ({
+  version: 1,
+  savedAt: '2026-04-12T00:00:00.000Z',
+  project: {
+    targetPlatform: 'macos',
+    defaultConfig: {
+      schemaList: [{ schema: 'rime_ice' }],
+      pageSize: 9,
+      selectKeys: '1234567890',
+      asciiComposer: {
+        goodOldCapsLock: true,
+        switchKey: {
+          shiftL: 'inline_ascii',
+          shiftR: 'commit_text',
+          controlL: 'noop',
+          controlR: 'noop',
+          capsLock: 'clear',
+        },
+      },
+      keyBinder: { bindings: [] },
+    },
+    platformConfig: {
+      platform: 'macos',
+      appOptions: {},
+    },
+    schemaConfigs: {},
+    customPhrases: [],
+    preserved: {},
+  },
+  editorUI: {
+    activeModule: 'key-bindings',
+    viewMode: 'immersive',
+    tutorialCollapsed: true,
+  },
+  sourceFiles: {
+    'default.custom.yaml': {
+      id: 'default.custom.yaml',
+      fileName: 'default.custom.yaml',
+      kind: 'default',
+      content: 'patch:',
+      updatedAt: '2026-04-12T00:00:00.000Z',
+    },
+  },
+})
 
 describe('useConfigStore', () => {
   beforeEach(() => {
@@ -54,6 +100,18 @@ describe('useConfigStore', () => {
     newProject.defaultConfig.pageSize = 7
     useConfigStore.getState().loadProject(newProject)
     expect(useConfigStore.getState().project.defaultConfig.pageSize).toBe(7)
+  })
+
+  it('hydrateWorkspace hydrates project and editor state from a snapshot', () => {
+    const snapshot = createWorkspaceSnapshot()
+
+    useConfigStore.getState().hydrateWorkspace(snapshot)
+
+    const state = useConfigStore.getState()
+    expect(state.project.defaultConfig.pageSize).toBe(9)
+    expect(state.activeModule).toBe('key-bindings')
+    expect(state.editorUI.tutorialCollapsed).toBe(true)
+    expect(state.sourceFiles).toEqual(snapshot.sourceFiles)
   })
 
   it('setFuzzyRules sets rules for a schema', () => {

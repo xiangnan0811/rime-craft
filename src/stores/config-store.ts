@@ -16,12 +16,47 @@ import type {
   LuaScript,
 } from '@/types/config'
 import { createEmptyProject } from '@/lib/config/defaults'
+import type { PersistedSourceFile, WorkspaceSnapshot } from '@/lib/workspace/types'
+import {
+  clearWorkspaceSnapshot,
+  loadWorkspaceSnapshot,
+  saveWorkspaceSnapshot,
+} from '@/lib/workspace/storage'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
+
+const createDefaultEditorUI = (): EditorUIState => ({
+  viewMode: 'panel',
+  tutorialCollapsed: false,
+  activeSection: undefined,
+})
+
+const createInitialProject = (): RimeProject => createEmptyProject()
+
+const persistCurrentState = (
+  project: RimeProject,
+  activeModule: EditorModule,
+  editorUI: EditorUIState,
+  sourceFiles: Record<string, PersistedSourceFile>,
+): void => {
+  saveWorkspaceSnapshot({
+    version: 1,
+    savedAt: new Date().toISOString(),
+    project,
+    editorUI: {
+      activeModule,
+      viewMode: editorUI.viewMode,
+      tutorialCollapsed: editorUI.tutorialCollapsed,
+    },
+    sourceFiles,
+  })
+}
 
 interface ConfigState {
   project: RimeProject;
   activeModule: EditorModule;
   isDirty: boolean;
   editorUI: EditorUIState;
+  sourceFiles: Record<string, PersistedSourceFile>;
   setViewMode: (mode: 'panel' | 'immersive') => void;
   setTutorialCollapsed: (collapsed: boolean) => void;
   setActiveSection: (section?: string) => void;
@@ -29,6 +64,9 @@ interface ConfigState {
 
   setActiveModule: (module: EditorModule) => void;
   loadProject: (project: RimeProject) => void;
+  hydrateWorkspace: (snapshot: WorkspaceSnapshot) => void;
+  restorePersistedWorkspace: () => void;
+  clearWorkspace: () => void;
   reset: () => void;
   setTargetPlatform: (platform: RimeProject['targetPlatform']) => void;
   updateDefaultConfig: (partial: Partial<DefaultConfig>) => void;
@@ -53,365 +91,543 @@ interface ConfigState {
   deleteLuaScript: (schemaId: string, id: string) => void;
 }
 
-export const useConfigStore = create<ConfigState>((set) => ({
-  project: createEmptyProject(),
+export const useConfigStore = create<ConfigState>((set, get) => ({
+  project: createInitialProject(),
   activeModule: 'schema-manager',
   isDirty: false,
-  editorUI: {
-    viewMode: 'panel' as const,
-    tutorialCollapsed: false,
-    activeSection: undefined,
+  editorUI: createDefaultEditorUI(),
+  sourceFiles: createSourceFilesFromProject(createInitialProject()),
+
+  setActiveModule: (module) => {
+    const state = get()
+    persistCurrentState(state.project, module, state.editorUI, state.sourceFiles)
+    set({ activeModule: module })
   },
 
-  setActiveModule: (module) => set({ activeModule: module }),
+  loadProject: (project) => {
+    const state = get()
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({ project, sourceFiles, isDirty: false })
+  },
 
-  loadProject: (project) => set({ project, isDirty: false }),
+  hydrateWorkspace: (snapshot) => {
+    const editorUI = {
+      ...createDefaultEditorUI(),
+      viewMode: snapshot.editorUI.viewMode,
+      tutorialCollapsed: snapshot.editorUI.tutorialCollapsed,
+    }
 
-  reset: () =>
+    persistCurrentState(
+      snapshot.project,
+      snapshot.editorUI.activeModule,
+      editorUI,
+      snapshot.sourceFiles,
+    )
     set({
-      project: createEmptyProject(),
+      project: snapshot.project,
+      activeModule: snapshot.editorUI.activeModule,
+      editorUI,
+      sourceFiles: snapshot.sourceFiles,
+      isDirty: false,
+    })
+  },
+
+  restorePersistedWorkspace: () => {
+    const snapshot = loadWorkspaceSnapshot()
+    if (!snapshot) {
+      return
+    }
+
+    get().hydrateWorkspace(snapshot)
+  },
+
+  clearWorkspace: () => {
+    clearWorkspaceSnapshot()
+    const project = createInitialProject()
+    set({
+      project,
       activeModule: 'schema-manager',
       isDirty: false,
-      editorUI: { viewMode: 'panel' as const, tutorialCollapsed: false, activeSection: undefined },
-    }),
+      editorUI: createDefaultEditorUI(),
+      sourceFiles: createSourceFilesFromProject(project),
+    })
+  },
 
-  setTargetPlatform: (platform) =>
-    set((s) => ({
-      project: { ...s.project, targetPlatform: platform },
+  reset: () =>
+    (() => {
+      const project = createInitialProject()
+      const editorUI = createDefaultEditorUI()
+      const sourceFiles = createSourceFilesFromProject(project)
+      persistCurrentState(project, 'schema-manager', editorUI, sourceFiles)
+      set({
+        project,
+        sourceFiles,
+        activeModule: 'schema-manager',
+        isDirty: false,
+        editorUI,
+      })
+    })(),
+
+  setTargetPlatform: (platform) => {
+    const state = get()
+    const project = { ...state.project, targetPlatform: platform }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  updateDefaultConfig: (partial) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        defaultConfig: { ...s.project.defaultConfig, ...partial },
-      },
+  updateDefaultConfig: (partial) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      defaultConfig: { ...state.project.defaultConfig, ...partial },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setSchemaList: (schemas) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        defaultConfig: { ...s.project.defaultConfig, schemaList: schemas },
-      },
+  setSchemaList: (schemas) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      defaultConfig: { ...state.project.defaultConfig, schemaList: schemas },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setAppOption: (bundleId, asciiMode) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        platformConfig: {
-          ...s.project.platformConfig,
-          appOptions: {
-            ...s.project.platformConfig.appOptions,
-            [bundleId]: { asciiMode },
-          },
+  setAppOption: (bundleId, asciiMode) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      platformConfig: {
+        ...state.project.platformConfig,
+        appOptions: {
+          ...state.project.platformConfig.appOptions,
+          [bundleId]: { asciiMode },
         },
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  removeAppOption: (bundleId) =>
-    set((s) => {
-      const entries = Object.entries(s.project.platformConfig.appOptions).filter(
-        ([key]) => key !== bundleId
-      )
-      return {
-        project: {
-          ...s.project,
-          platformConfig: {
-            ...s.project.platformConfig,
-            appOptions: Object.fromEntries(entries),
-          },
-        },
-        isDirty: true,
-      }
-    }),
-
-  setFuzzyRules: (schemaId, rules) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        schemaConfigs: {
-          ...s.project.schemaConfigs,
-          [schemaId]: {
-            ...(s.project.schemaConfigs[schemaId] ?? { schemaId }),
-            schemaId,
-            fuzzyRules: rules,
-          },
-        },
+  removeAppOption: (bundleId) => {
+    const state = get()
+    const entries = Object.entries(state.project.platformConfig.appOptions).filter(
+      ([key]) => key !== bundleId
+    )
+    const project = {
+      ...state.project,
+      platformConfig: {
+        ...state.project.platformConfig,
+        appOptions: Object.fromEntries(entries),
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setSwitches: (schemaId, switches) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        schemaConfigs: {
-          ...s.project.schemaConfigs,
-          [schemaId]: {
-            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            switches,
-          },
+  setFuzzyRules: (schemaId, rules) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId }),
+          schemaId,
+          fuzzyRules: rules,
         },
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setPunctuator: (schemaId, punctuator) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        schemaConfigs: {
-          ...s.project.schemaConfigs,
-          [schemaId]: {
-            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            punctuator,
-          },
+  setSwitches: (schemaId, switches) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+          schemaId,
+          switches,
         },
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setThemeStyle: (style) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        platformConfig: { ...s.project.platformConfig, style },
-      },
-      isDirty: true,
-    })),
-
-  updateThemeColors: (colors) =>
-    set((s) => {
-      const current = s.project.platformConfig.style
-      if (!current) return {}
-      return {
-        project: {
-          ...s.project,
-          platformConfig: {
-            ...s.project.platformConfig,
-            style: {
-              ...current,
-              colors: { ...current.colors, ...colors },
-            },
-          },
+  setPunctuator: (schemaId, punctuator) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+          schemaId,
+          punctuator,
         },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  updateThemeLayout: (layout) =>
-    set((s) => {
-      const current = s.project.platformConfig.style
-      if (!current) return {}
-      return {
-        project: {
-          ...s.project,
-          platformConfig: {
-            ...s.project.platformConfig,
-            style: { ...current, ...layout },
-          },
+  setThemeStyle: (style) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      platformConfig: { ...state.project.platformConfig, style },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
+
+  updateThemeColors: (colors) => {
+    const state = get()
+    const current = state.project.platformConfig.style
+    if (!current) return
+    const project = {
+      ...state.project,
+      platformConfig: {
+        ...state.project.platformConfig,
+        style: {
+          ...current,
+          colors: { ...current.colors, ...colors },
         },
-        isDirty: true,
-      }
-    }),
-
-  addCustomPhrase: (phrase) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        customPhrases: [...s.project.customPhrases, phrase],
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  removeCustomPhrase: (index) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        customPhrases: s.project.customPhrases.filter((_, i) => i !== index),
+  updateThemeLayout: (layout) => {
+    const state = get()
+    const current = state.project.platformConfig.style
+    if (!current) return
+    const project = {
+      ...state.project,
+      platformConfig: {
+        ...state.project.platformConfig,
+        style: { ...current, ...layout },
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  updateCustomPhrase: (index, phrase) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        customPhrases: s.project.customPhrases.map((p, i) => (i === index ? phrase : p)),
-      },
+  addCustomPhrase: (phrase) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      customPhrases: [...state.project.customPhrases, phrase],
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setCustomPhrases: (phrases) =>
-    set((s) => ({
-      project: { ...s.project, customPhrases: phrases },
+  removeCustomPhrase: (index) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      customPhrases: state.project.customPhrases.filter((_, i) => i !== index),
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  setViewMode: (mode) =>
-    set((s) => ({ editorUI: { ...s.editorUI, viewMode: mode } })),
+  updateCustomPhrase: (index, phrase) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      customPhrases: state.project.customPhrases.map((p, i) => (i === index ? phrase : p)),
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  setTutorialCollapsed: (collapsed) =>
-    set((s) => ({ editorUI: { ...s.editorUI, tutorialCollapsed: collapsed } })),
+  setCustomPhrases: (phrases) => {
+    const state = get()
+    const project = { ...state.project, customPhrases: phrases }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
+
+  setViewMode: (mode) => {
+    const state = get()
+    const editorUI = { ...state.editorUI, viewMode: mode }
+    persistCurrentState(state.project, state.activeModule, editorUI, state.sourceFiles)
+    set({ editorUI })
+  },
+
+  setTutorialCollapsed: (collapsed) => {
+    const state = get()
+    const editorUI = { ...state.editorUI, tutorialCollapsed: collapsed }
+    persistCurrentState(state.project, state.activeModule, editorUI, state.sourceFiles)
+    set({ editorUI })
+  },
 
   setActiveSection: (section) =>
-    set((s) => ({ editorUI: { ...s.editorUI, activeSection: section } })),
+    set((state) => ({ editorUI: { ...state.editorUI, activeSection: section } })),
 
-  updateSchemaConfig: (schemaId, partial) =>
-    set((s) => ({
-      project: {
-        ...s.project,
-        schemaConfigs: {
-          ...s.project.schemaConfigs,
-          [schemaId]: {
-            ...(s.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            ...partial,
+  updateSchemaConfig: (schemaId, partial) => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+          ...partial,
+        },
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
+
+  addCustomTrigger: (schemaId, trigger) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    const currentSpecial = existing?.specialInput ?? { enabledTriggers: [], customTriggers: [] }
+    const newTrigger: CustomTrigger = {
+      ...trigger,
+      id: crypto.randomUUID(),
+    }
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(existing ?? { schemaId, fuzzyRules: [] }),
+          specialInput: {
+            enabledTriggers: currentSpecial.enabledTriggers,
+            customTriggers: [...currentSpecial.customTriggers, newTrigger],
           },
         },
       },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
       isDirty: true,
-    })),
+    })
+  },
 
-  addCustomTrigger: (schemaId, trigger) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      const currentSpecial = existing?.specialInput ?? { enabledTriggers: [], customTriggers: [] }
-      const newTrigger: CustomTrigger = {
-        ...trigger,
-        id: crypto.randomUUID(),
-      }
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...(existing ?? { schemaId, fuzzyRules: [] }),
-              specialInput: {
-                enabledTriggers: currentSpecial.enabledTriggers,
-                customTriggers: [...currentSpecial.customTriggers, newTrigger],
-              },
-            },
+  updateCustomTrigger: (schemaId, id, partial) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    if (!existing?.specialInput) return
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...existing,
+          specialInput: {
+            ...existing.specialInput,
+            customTriggers: existing.specialInput.customTriggers.map((t) =>
+              t.id === id ? { ...t, ...partial } : t,
+            ),
           },
         },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  updateCustomTrigger: (schemaId, id, partial) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      if (!existing?.specialInput) return {}
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...existing,
-              specialInput: {
-                ...existing.specialInput,
-                customTriggers: existing.specialInput.customTriggers.map((t) =>
-                  t.id === id ? { ...t, ...partial } : t,
-                ),
-              },
-            },
+  deleteCustomTrigger: (schemaId, id) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    if (!existing?.specialInput) return
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...existing,
+          specialInput: {
+            ...existing.specialInput,
+            customTriggers: existing.specialInput.customTriggers.filter((t) => t.id !== id),
           },
         },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  deleteCustomTrigger: (schemaId, id) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      if (!existing?.specialInput) return {}
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...existing,
-              specialInput: {
-                ...existing.specialInput,
-                customTriggers: existing.specialInput.customTriggers.filter((t) => t.id !== id),
-              },
-            },
-          },
+  addLuaScript: (schemaId, script) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    const currentScripts = existing?.luaScripts ?? []
+    const newScript: LuaScript = {
+      ...script,
+      id: crypto.randomUUID(),
+    }
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(existing ?? { schemaId, fuzzyRules: [] }),
+          luaScripts: [...currentScripts, newScript],
         },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  addLuaScript: (schemaId, script) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      const currentScripts = existing?.luaScripts ?? []
-      const newScript: LuaScript = {
-        ...script,
-        id: crypto.randomUUID(),
-      }
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...(existing ?? { schemaId, fuzzyRules: [] }),
-              luaScripts: [...currentScripts, newScript],
-            },
-          },
+  updateLuaScript: (schemaId, id, partial) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    if (!existing?.luaScripts) return
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...existing,
+          luaScripts: existing.luaScripts.map((sc) =>
+            sc.id === id ? { ...sc, ...partial } : sc,
+          ),
         },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 
-  updateLuaScript: (schemaId, id, partial) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      if (!existing?.luaScripts) return {}
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...existing,
-              luaScripts: existing.luaScripts.map((sc) =>
-                sc.id === id ? { ...sc, ...partial } : sc,
-              ),
-            },
-          },
+  deleteLuaScript: (schemaId, id) => {
+    const state = get()
+    const existing = state.project.schemaConfigs[schemaId]
+    if (!existing?.luaScripts) return
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...existing,
+          luaScripts: existing.luaScripts.filter((sc) => sc.id !== id),
         },
-        isDirty: true,
-      }
-    }),
-
-  deleteLuaScript: (schemaId, id) =>
-    set((s) => {
-      const existing = s.project.schemaConfigs[schemaId]
-      if (!existing?.luaScripts) return {}
-      return {
-        project: {
-          ...s.project,
-          schemaConfigs: {
-            ...s.project.schemaConfigs,
-            [schemaId]: {
-              ...existing,
-              luaScripts: existing.luaScripts.filter((sc) => sc.id !== id),
-            },
-          },
-        },
-        isDirty: true,
-      }
-    }),
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+    persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
+    set({
+      project,
+      sourceFiles,
+      isDirty: true,
+    })
+  },
 }))

@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
 import { useShareUrl } from '@/features/share/useShareUrl'
+import { useConfigStore } from '@/stores/config-store'
 
 const ThemePage = lazy(() =>
   import('@/app/theme/ThemePage').then((m) => ({ default: m.ThemePage }))
@@ -31,6 +32,11 @@ const SchemaDetailPage = lazy(() =>
 
 export function App() {
   useShareUrl()
+  const restorePersistedWorkspace = useConfigStore((s) => s.restorePersistedWorkspace)
+
+  useEffect(() => {
+    restorePersistedWorkspace()
+  }, [restorePersistedWorkspace])
 
   return (
     <BrowserRouter>
