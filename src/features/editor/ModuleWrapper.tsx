@@ -1,7 +1,14 @@
 import { useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfigStore } from '@/stores/config-store'
-import { extractModuleYaml, applyModuleYaml } from '@/lib/yaml/module-yaml'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
+import {
+  extractModuleYaml,
+  extractModuleYamlFromSourceFile,
+  applyModuleYaml,
+  applyModuleYamlToSourceFile,
+  resolveModuleSourceFile,
+} from '@/lib/yaml/module-yaml'
 
 const YamlEditor = lazy(() =>
   import('@/components/shared/YamlEditor').then((m) => ({ default: m.YamlEditor }))
@@ -14,7 +21,8 @@ interface ModuleWrapperProps {
 
 export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
   const project = useConfigStore((s) => s.project)
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const sourceFiles = useConfigStore((s) => s.sourceFiles)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const [parseError, setParseError] = useState<string>()
   const [yamlValue, setYamlValue] = useState('')
   const sourceRef = useRef<'form' | 'yaml'>('form')
@@ -25,11 +33,16 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
     (value: string) => {
       if (value === 'yaml') {
         sourceRef.current = 'form'
-        setYamlValue(extractModuleYaml(module, project))
+        const sourceFile = resolveModuleSourceFile(module, project, sourceFiles)
+        setYamlValue(
+          sourceFile
+            ? extractModuleYamlFromSourceFile(module, sourceFile)
+            : extractModuleYaml(module, project),
+        )
         setParseError(undefined)
       }
     },
-    [module, project],
+    [module, project, sourceFiles],
   )
 
   const handleYamlChange = useCallback(
@@ -41,15 +54,45 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
 
       debounceRef.current = setTimeout(() => {
         sourceRef.current = 'yaml'
-        const result = applyModuleYaml(module, value, useConfigStore.getState().project)
+        const state = useConfigStore.getState()
+        const currentSourceFile = resolveModuleSourceFile(
+          module,
+          state.project,
+          state.sourceFiles,
+        )
+
+        let nextSourceFiles = state.sourceFiles
+        if (currentSourceFile) {
+          const artifactResult = applyModuleYamlToSourceFile(
+            module,
+            value,
+            currentSourceFile,
+          )
+          if (artifactResult.error) {
+            setParseError(artifactResult.error)
+            return
+          }
+
+          nextSourceFiles = {
+            ...state.sourceFiles,
+            [artifactResult.sourceFile.fileName]: artifactResult.sourceFile,
+          }
+        }
+
+        const result = applyModuleYaml(module, value, state.project)
         if (result.error) {
           setParseError(result.error)
         } else {
-          loadProject(result.project)
+          replaceWorkspace(
+            result.project,
+            currentSourceFile
+              ? nextSourceFiles
+              : createSourceFilesFromProject(result.project),
+          )
         }
       }, 300)
     },
-    [module, loadProject],
+    [module, replaceWorkspace],
   )
 
   return (

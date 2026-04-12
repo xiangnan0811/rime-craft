@@ -9,27 +9,47 @@ import { getFormalPlatformFileName, isFormalEditorPlatform } from '@/lib/product
 
 export function ExportButton() {
   const project = useConfigStore((s) => s.project)
+  const sourceFiles = useConfigStore((s) => s.sourceFiles)
 
   async function handleExport() {
     const zip = new JSZip()
 
     // default.custom.yaml
-    const defaultPatch = serializeDefaultConfig(project.defaultConfig)
-    const defaultPreserved = project.preserved['default.custom.yaml']
-    zip.file('default.custom.yaml', buildCustomYaml(defaultPatch, defaultPreserved as Record<string, unknown> | undefined))
+    const defaultFile = sourceFiles['default.custom.yaml']
+    if (defaultFile) {
+      zip.file('default.custom.yaml', defaultFile.content)
+    } else {
+      const defaultPatch = serializeDefaultConfig(project.defaultConfig)
+      const defaultPreserved = project.preserved['default.custom.yaml']
+      zip.file('default.custom.yaml', buildCustomYaml(defaultPatch, defaultPreserved as Record<string, unknown> | undefined))
+    }
 
     // Platform config
-    const platformPatch = serializePlatformConfig(project.platformConfig)
     const platformFile = isFormalEditorPlatform(project.targetPlatform)
       ? getFormalPlatformFileName(project.targetPlatform)
       : undefined
-    if (platformFile && Object.keys(platformPatch).length > 0) {
-      const platformPreserved = project.preserved[platformFile]
-      zip.file(platformFile, buildCustomYaml(platformPatch, platformPreserved as Record<string, unknown> | undefined))
+    if (platformFile) {
+      const persistedPlatformFile = sourceFiles[platformFile]
+      if (persistedPlatformFile) {
+        zip.file(platformFile, persistedPlatformFile.content)
+      } else {
+        const platformPatch = serializePlatformConfig(project.platformConfig)
+        if (Object.keys(platformPatch).length > 0) {
+          const platformPreserved = project.preserved[platformFile]
+          zip.file(platformFile, buildCustomYaml(platformPatch, platformPreserved as Record<string, unknown> | undefined))
+        }
+      }
     }
 
     // Schema-specific configs (fuzzy rules + switches + punctuator)
     for (const [schemaId, schemaConfig] of Object.entries(project.schemaConfigs)) {
+      const schemaFileName = `${schemaId}.custom.yaml`
+      const persistedSchemaFile = sourceFiles[schemaFileName]
+      if (persistedSchemaFile) {
+        zip.file(schemaFileName, persistedSchemaFile.content)
+        continue
+      }
+
       const schemaPatch: Record<string, unknown> = {}
 
       // Fuzzy rules
@@ -57,12 +77,15 @@ export function ExportButton() {
       Object.assign(schemaPatch, schemaExtra)
 
       if (Object.keys(schemaPatch).length > 0) {
-        zip.file(`${schemaId}.custom.yaml`, buildCustomYaml(schemaPatch))
+        zip.file(schemaFileName, buildCustomYaml(schemaPatch))
       }
     }
 
     // custom_phrase.txt
-    if (project.customPhrases.length > 0) {
+    const customPhraseFile = sourceFiles['custom_phrase.txt']
+    if (customPhraseFile) {
+      zip.file('custom_phrase.txt', customPhraseFile.content)
+    } else if (project.customPhrases.length > 0) {
       zip.file('custom_phrase.txt', serializeCustomPhrases(project.customPhrases))
     }
 

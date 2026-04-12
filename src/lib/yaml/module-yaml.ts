@@ -1,9 +1,10 @@
-import { stringify, parse } from 'yaml'
+import { stringify, parse, parseDocument } from 'yaml'
 import type { EditorModule, RimeProject } from '@/types/config'
 import {
   expandPatchPaths,
   mapToDefaultConfig,
   mapToPlatformConfig,
+  parseCustomYaml,
   mapToSchemaConfig,
 } from '@/lib/yaml/parser'
 import {
@@ -12,6 +13,11 @@ import {
   serializeSchemaConfig,
 } from '@/lib/yaml/serializer'
 import { parseCustomPhrases, serializeCustomPhrases } from '@/lib/config/custom-phrase'
+import {
+  getFormalPlatformFileName,
+  isFormalEditorPlatform,
+} from '@/lib/product/support-contract'
+import type { PersistedSourceFile } from '@/lib/workspace/types'
 
 interface ModuleKeyMapping {
   file: 'default' | 'platform' | 'schema' | 'custom_phrase';
@@ -47,6 +53,220 @@ const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
   'comment-hints': { file: 'schema', keys: ['super_comment'] },
 }
 
+function filterModulePatch(
+  patch: Record<string, unknown>,
+  mapping: ModuleKeyMapping,
+): Record<string, unknown> {
+  const filtered: Record<string, unknown> = {}
+
+  for (const [key, value] of Object.entries(patch)) {
+    const baseKey = key.split('/')[0]!
+    if (mapping.keys.includes(baseKey)) {
+      filtered[key] = value
+    }
+  }
+
+  return filtered
+}
+
+function parseModuleYamlString(
+  yamlString: string,
+): { parsed: Record<string, unknown>; error?: string } {
+  try {
+    const parsed = parse(yamlString) as unknown
+    if (parsed === null || parsed === undefined) {
+      return { parsed: {} }
+    }
+
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { parsed: {}, error: 'YAML 根节点必须是对象' }
+    }
+
+    if (
+      'patch' in parsed &&
+      Object.keys(parsed as Record<string, unknown>).length === 1 &&
+      typeof (parsed as { patch: unknown }).patch === 'object' &&
+      (parsed as { patch: unknown }).patch !== null &&
+      !Array.isArray((parsed as { patch: unknown }).patch)
+    ) {
+      return { parsed: (parsed as { patch: Record<string, unknown> }).patch }
+    }
+
+    return { parsed: parsed as Record<string, unknown> }
+  } catch (e) {
+    return { parsed: {}, error: `YAML 语法错误: ${String(e)}` }
+  }
+}
+
+function flattenPatchEntries(
+  value: Record<string, unknown>,
+  path: string[] = [],
+): Array<{ path: string[]; value: unknown }> {
+  const entries: Array<{ path: string[]; value: unknown }> = []
+
+  for (const [key, child] of Object.entries(value)) {
+    const nextPath = [...path, key]
+
+    if (
+      child &&
+      typeof child === 'object' &&
+      !Array.isArray(child) &&
+      Object.keys(child as Record<string, unknown>).length > 0
+    ) {
+      entries.push(...flattenPatchEntries(child as Record<string, unknown>, nextPath))
+      continue
+    }
+
+    entries.push({ path: nextPath, value: child })
+  }
+
+  return entries
+}
+
+function pathKey(path: string[]): string {
+  return path.join('\u0000')
+}
+
+function isYamlMapNodeEmpty(node: unknown): node is { items: unknown[] } {
+  return (
+    typeof node === 'object' &&
+    node !== null &&
+    'items' in node &&
+    Array.isArray((node as { items: unknown[] }).items) &&
+    (node as { items: unknown[] }).items.length === 0
+  )
+}
+
+function pruneEmptyParents(doc: ReturnType<typeof parseDocument>, path: string[]): void {
+  for (let depth = path.length - 1; depth > 0; depth -= 1) {
+    const currentPath = ['patch', ...path.slice(0, depth)]
+    const node = doc.getIn(currentPath, true)
+    if (!isYamlMapNodeEmpty(node)) {
+      break
+    }
+    doc.deleteIn(currentPath)
+  }
+}
+
+function getModuleSourceFileName(
+  module: EditorModule,
+  project: RimeProject,
+): string | undefined {
+  const mapping = MODULE_KEY_MAP[module]
+
+  if (!mapping) return undefined
+
+  if (mapping.file === 'default') {
+    return 'default.custom.yaml'
+  }
+
+  if (mapping.file === 'custom_phrase') {
+    return 'custom_phrase.txt'
+  }
+
+  if (mapping.file === 'platform') {
+    if (!isFormalEditorPlatform(project.targetPlatform)) {
+      return undefined
+    }
+    return getFormalPlatformFileName(project.targetPlatform)
+  }
+
+  const primarySchemaId = project.defaultConfig.schemaList[0]?.schema
+  return primarySchemaId ? `${primarySchemaId}.custom.yaml` : undefined
+}
+
+export function resolveModuleSourceFile(
+  module: EditorModule,
+  project: RimeProject,
+  sourceFiles: Record<string, PersistedSourceFile>,
+): PersistedSourceFile | undefined {
+  const fileName = getModuleSourceFileName(module, project)
+  return fileName ? sourceFiles[fileName] : undefined
+}
+
+export function extractModuleYamlFromSourceFile(
+  module: EditorModule,
+  sourceFile: PersistedSourceFile,
+): string {
+  const mapping = MODULE_KEY_MAP[module]
+
+  if (!mapping) return ''
+
+  if (mapping.file === 'custom_phrase') {
+    return sourceFile.content
+  }
+
+  const { patch, error } = parseCustomYaml(sourceFile.content)
+  if (error) return ''
+
+  const filtered = filterModulePatch(patch, mapping)
+  if (Object.keys(filtered).length === 0) return ''
+  return stringify(filtered, { lineWidth: 0 })
+}
+
+export function applyModuleYamlToSourceFile(
+  module: EditorModule,
+  yamlString: string,
+  sourceFile: PersistedSourceFile,
+): { sourceFile: PersistedSourceFile; error?: string } {
+  const mapping = MODULE_KEY_MAP[module]
+
+  if (!mapping) {
+    return { sourceFile, error: `未知模块: ${module}` }
+  }
+
+  if (mapping.file === 'custom_phrase') {
+    return {
+      sourceFile: {
+        ...sourceFile,
+        content: yamlString,
+        updatedAt: new Date().toISOString(),
+      },
+    }
+  }
+
+  const { parsed, error } = parseModuleYamlString(yamlString)
+  if (error) {
+    return { sourceFile, error }
+  }
+
+  const doc = parseDocument(sourceFile.content)
+  if (doc.errors.length > 0) {
+    return { sourceFile, error: `YAML 语法错误: ${doc.errors[0]}` }
+  }
+
+  if (doc.get('patch') === undefined) {
+    doc.set('patch', {})
+  }
+
+  const currentModuleYaml = extractModuleYamlFromSourceFile(module, sourceFile)
+  const currentModuleParsed = parseModuleYamlString(currentModuleYaml).parsed
+  const currentEntries = flattenPatchEntries(currentModuleParsed)
+  const nextEntries = flattenPatchEntries(parsed)
+  const nextEntryKeys = new Set(nextEntries.map((entry) => pathKey(entry.path)))
+
+  for (const entry of currentEntries) {
+    if (nextEntryKeys.has(pathKey(entry.path))) {
+      continue
+    }
+
+    doc.deleteIn(['patch', ...entry.path])
+    pruneEmptyParents(doc, entry.path)
+  }
+
+  for (const entry of nextEntries) {
+    doc.setIn(['patch', ...entry.path], entry.value)
+  }
+
+  return {
+    sourceFile: {
+      ...sourceFile,
+      content: doc.toString({ lineWidth: 0 }),
+      updatedAt: new Date().toISOString(),
+    },
+  }
+}
+
 /**
  * Extract YAML string for a specific module from the current project state.
  */
@@ -74,14 +294,7 @@ export function extractModuleYaml(module: EditorModule, project: RimeProject): s
     fullPatch = serializeSchemaConfig(schemaConfig)
   }
 
-  // Filter to only the keys relevant to this module
-  const filtered: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(fullPatch)) {
-    const baseKey = key.split('/')[0]!
-    if (mapping.keys.includes(baseKey)) {
-      filtered[key] = value
-    }
-  }
+  const filtered = filterModulePatch(fullPatch, mapping)
 
   if (Object.keys(filtered).length === 0) return ''
   return stringify(filtered, { lineWidth: 0 })
@@ -111,12 +324,9 @@ export function applyModuleYaml(
     }
   }
 
-  let parsed: Record<string, unknown>
-  try {
-    parsed = parse(yamlString) as Record<string, unknown>
-    if (parsed === null || parsed === undefined) parsed = {}
-  } catch (e) {
-    return { project, error: `YAML 语法错误: ${String(e)}` }
+  const { parsed, error } = parseModuleYamlString(yamlString)
+  if (error) {
+    return { project, error }
   }
 
   const expanded = expandPatchPaths(parsed)
