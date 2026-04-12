@@ -5,14 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useConfigStore } from '@/stores/config-store'
 import { createEmptyProject } from '@/lib/config/defaults'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
-import { getFormalPlatformFileName } from '@/lib/product/support-contract'
-import {
-  serializeDefaultConfig,
-  serializePlatformConfig,
-  buildCustomYaml,
-} from '@/lib/yaml/serializer'
 import type { RimeProject } from '@/types/config'
 import type { WizardState } from '../WizardPage'
 
@@ -33,6 +28,15 @@ function buildProject(state: WizardState): RimeProject {
   return project
 }
 
+function buildProjectArtifacts(state: WizardState) {
+  const project = buildProject(state)
+
+  return {
+    project,
+    sourceFiles: createSourceFilesFromProject(project),
+  }
+}
+
 interface ExportStepProps {
   state: WizardState
 }
@@ -45,16 +49,15 @@ export function ExportStep({ state }: ExportStepProps) {
     SCHEMA_REGISTRY.find((s) => s.id === state.schemaId)?.name ?? state.schemaId
 
   async function handleExport() {
-    const project = buildProject(state)
+    const { sourceFiles } = buildProjectArtifacts(state)
     const zip = new JSZip()
 
-    const defaultPatch = serializeDefaultConfig(project.defaultConfig)
-    zip.file('default.custom.yaml', buildCustomYaml(defaultPatch))
+    for (const sourceFile of Object.values(sourceFiles)) {
+      if (sourceFile.kind === 'schema' || sourceFile.kind === 'custom_phrase') {
+        continue
+      }
 
-    const platformPatch = serializePlatformConfig(project.platformConfig)
-    if (Object.keys(platformPatch).length > 0) {
-      const platformFile = getFormalPlatformFileName(state.platform)
-      zip.file(platformFile, buildCustomYaml(platformPatch))
+      zip.file(sourceFile.fileName, sourceFile.content)
     }
 
     const blob = await zip.generateAsync({ type: 'blob' })
@@ -62,7 +65,7 @@ export function ExportStep({ state }: ExportStepProps) {
   }
 
   function handleContinueEdit() {
-    const project = buildProject(state)
+    const { project } = buildProjectArtifacts(state)
     loadProject(project)
     navigate('/editor')
   }

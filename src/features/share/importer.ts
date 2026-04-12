@@ -1,5 +1,7 @@
 import type { RimeProject } from '@/types/config'
 import { createEmptyProject, DEFAULT_CONFIG, DEFAULT_PLATFORM_CONFIG } from '@/lib/config/defaults'
+import { createSourceFilesFromImport } from '@/lib/workspace/source-files'
+import type { PersistedSourceFile } from '@/lib/workspace/types'
 import {
   parseCustomYaml, expandPatchPaths, mapToDefaultConfig, mapToPlatformConfig,
   mapToSchemaConfig, extractPreservedFields, KNOWN_DEFAULT_KEYS, KNOWN_PLATFORM_KEYS,
@@ -9,24 +11,42 @@ import { parseCustomPhrases } from '@/lib/config/custom-phrase'
 
 export interface ImportResult {
   project: RimeProject;
+  sourceFiles: Record<string, PersistedSourceFile>;
   summary: { filesProcessed: number; customSettings: number; errors: string[] };
 }
 
 export function importFromYamlString(yamlString: string, fileName: string): ImportResult {
   const project = createEmptyProject()
+  const sourceFiles = createSourceFilesFromImport([{ name: fileName, content: yamlString }])
   const errors: string[] = []
   let customSettings = 0
 
   // Handle custom_phrase.txt (TSV, not YAML)
   if (fileName.includes('custom_phrase') && !fileName.endsWith('.yaml')) {
     project.customPhrases = parseCustomPhrases(yamlString)
-    return { project, summary: { filesProcessed: 1, customSettings: project.customPhrases.length, errors } }
+    return {
+      project,
+      sourceFiles,
+      summary: {
+        filesProcessed: 1,
+        customSettings: project.customPhrases.length,
+        errors,
+      },
+    }
   }
 
   const { patch, error } = parseCustomYaml(yamlString)
   if (error) {
     errors.push(`${fileName}: ${error}`)
-    return { project, summary: { filesProcessed: 1, customSettings: 0, errors } }
+    return {
+      project,
+      sourceFiles,
+      summary: {
+        filesProcessed: 1,
+        customSettings: 0,
+        errors,
+      },
+    }
   }
 
   const expanded = expandPatchPaths(patch)
@@ -55,11 +75,16 @@ export function importFromYamlString(yamlString: string, fileName: string): Impo
     project.preserved[fileName] = extractPreservedFields(patch, KNOWN_SCHEMA_KEYS)
   }
 
-  return { project, summary: { filesProcessed: 1, customSettings, errors } }
+  return {
+    project,
+    sourceFiles,
+    summary: { filesProcessed: 1, customSettings, errors },
+  }
 }
 
 export function importFromFiles(files: { name: string; content: string }[]): ImportResult {
   const project = createEmptyProject()
+  const sourceFiles = createSourceFilesFromImport(files)
   const errors: string[] = []
   let totalCustomSettings = 0
 
@@ -86,5 +111,13 @@ export function importFromFiles(files: { name: string; content: string }[]): Imp
     Object.assign(project.preserved, result.project.preserved)
   }
 
-  return { project, summary: { filesProcessed: files.length, customSettings: totalCustomSettings, errors } }
+  return {
+    project,
+    sourceFiles,
+    summary: {
+      filesProcessed: files.length,
+      customSettings: totalCustomSettings,
+      errors,
+    },
+  }
 }
