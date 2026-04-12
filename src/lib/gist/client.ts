@@ -1,5 +1,10 @@
 import type { RimeProject } from '@/types/config'
-import { createConfigSnapshot } from '@/lib/compress/share'
+import {
+  createConfigSnapshot,
+  parseConfigSnapshot,
+  type ParsedConfigSnapshot,
+} from '@/lib/compress/share'
+import type { PersistedSourceFile } from '@/lib/workspace/types'
 
 const GITHUB_API = 'https://api.github.com'
 
@@ -16,9 +21,10 @@ export interface GistResult {
 export async function createGist(
   token: string,
   project: RimeProject,
+  sourceFiles: Record<string, PersistedSourceFile>,
   description: string = 'Rime Craft 配置分享',
 ): Promise<GistResult> {
-  const snapshot = createConfigSnapshot(project)
+  const snapshot = createConfigSnapshot(project, sourceFiles)
 
   const response = await fetch(`${GITHUB_API}/gists`, {
     method: 'POST',
@@ -58,7 +64,9 @@ export async function createGist(
  * Load config from a public Gist. No authentication needed.
  * Accepts a Gist URL or Gist ID.
  */
-export async function loadPublicGist(gistInput: string): Promise<RimeProject> {
+export async function loadPublicGist(
+  gistInput: string,
+): Promise<ParsedConfigSnapshot> {
   // Extract Gist ID from URL or use as-is
   const gistId = extractGistId(gistInput)
 
@@ -81,12 +89,12 @@ export async function loadPublicGist(gistInput: string): Promise<RimeProject> {
     throw new Error('此 Gist 不包含 Rime Craft 配置文件 (rime-craft-config.json)')
   }
 
-  const parsed = JSON.parse(configFile.content) as { version?: number; project?: RimeProject }
-  if (!parsed.project) {
-    throw new Error('配置文件格式无效')
+  const parsed = parseConfigSnapshot(configFile.content)
+  if (!parsed.snapshot) {
+    throw new Error(parsed.error)
   }
 
-  return parsed.project
+  return parsed.snapshot
 }
 
 function extractGistId(input: string): string {

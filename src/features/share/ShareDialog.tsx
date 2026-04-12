@@ -2,13 +2,10 @@ import { useState } from 'react'
 import { saveAs } from 'file-saver'
 import { useConfigStore } from '@/stores/config-store'
 import {
-  type ConfigSnapshot,
   generateShareUrl,
   createConfigSnapshot,
   parseConfigSnapshot,
 } from '@/lib/compress/share'
-import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
-import type { PersistedSourceFile } from '@/lib/workspace/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,55 +16,6 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
-
-type SnapshotWithSourceFiles = ConfigSnapshot & {
-  sourceFiles?: Record<string, PersistedSourceFile>
-}
-
-const SOURCE_FILE_KINDS = new Set<string>([
-  'default',
-  'platform',
-  'schema',
-  'custom_phrase',
-])
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-
-const isPersistedSourceFile = (value: unknown): value is PersistedSourceFile => {
-  if (!isRecord(value)) {
-    return false
-  }
-
-  return (
-    typeof value.id === 'string' &&
-    typeof value.fileName === 'string' &&
-    typeof value.kind === 'string' &&
-    SOURCE_FILE_KINDS.has(value.kind) &&
-    typeof value.content === 'string' &&
-    typeof value.updatedAt === 'string' &&
-    (value.platform === undefined ||
-      value.platform === 'macos' ||
-      value.platform === 'windows') &&
-    (value.schemaId === undefined || typeof value.schemaId === 'string')
-  )
-}
-
-function getSnapshotSourceFiles(
-  snapshot: ConfigSnapshot,
-): Record<string, PersistedSourceFile> {
-  const candidate = (snapshot as SnapshotWithSourceFiles).sourceFiles
-
-  if (
-    candidate &&
-    isRecord(candidate) &&
-    Object.values(candidate).every(isPersistedSourceFile)
-  ) {
-    return candidate
-  }
-
-  return createSourceFilesFromProject(snapshot.project)
-}
 
 export function ShareDialog() {
   const project = useConfigStore((s) => s.project)
@@ -95,10 +43,7 @@ export function ShareDialog() {
   }
 
   function handleJsonExport() {
-    const snapshot: SnapshotWithSourceFiles = {
-      ...createConfigSnapshot(project),
-      sourceFiles,
-    }
+    const snapshot = createConfigSnapshot(project, sourceFiles)
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
       type: 'application/json',
     })
@@ -116,10 +61,9 @@ export function ShareDialog() {
     reader.onload = () => {
       const result = parseConfigSnapshot(reader.result as string)
       if ('snapshot' in result && result.snapshot) {
-        const importedSourceFiles = getSnapshotSourceFiles(result.snapshot)
-        replaceWorkspace(result.snapshot.project, importedSourceFiles)
+        replaceWorkspace(result.snapshot.project, result.snapshot.sourceFiles)
         setImportFeedback(
-          `配置快照导入成功！已解析 ${Object.keys(importedSourceFiles).length} 个源文件工件。`,
+          `配置快照导入成功！已解析 ${Object.keys(result.snapshot.sourceFiles).length} 个源文件工件。`,
         )
       } else {
         setImportFeedback(`导入失败：${result.error}`)

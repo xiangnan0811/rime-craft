@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { createGist, loadPublicGist } from '@/lib/gist/client'
-import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -10,6 +9,7 @@ import { Label } from '@/components/ui/label'
 
 export function GistDialog() {
   const project = useConfigStore((s) => s.project)
+  const sourceFiles = useConfigStore((s) => s.sourceFiles)
   const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const [open, setOpen] = useState(false)
 
@@ -35,7 +35,7 @@ export function GistDialog() {
     sessionStorage.setItem('gh_gist_token', token)
 
     try {
-      const result = await createGist(token, project, description)
+      const result = await createGist(token, project, sourceFiles, description)
       setExportResult({ url: result.htmlUrl })
     } catch (e) {
       setExportError(e instanceof Error ? e.message : '导出失败')
@@ -50,11 +50,8 @@ export function GistDialog() {
     setImportFeedback('')
 
     try {
-      const importedProject = await loadPublicGist(gistUrl)
-      replaceWorkspace(
-        importedProject,
-        createSourceFilesFromProject(importedProject),
-      )
+      const snapshot = await loadPublicGist(gistUrl)
+      replaceWorkspace(snapshot.project, snapshot.sourceFiles)
       setImportFeedback('配置导入成功！')
     } catch (e) {
       setImportFeedback(e instanceof Error ? e.message : '导入失败')
