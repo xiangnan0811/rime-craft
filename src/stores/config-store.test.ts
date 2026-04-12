@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useConfigStore } from './config-store'
 import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
+import { saveWorkspaceSnapshot } from '@/lib/workspace/storage'
 import type { WorkspaceSnapshot } from '@/lib/workspace/types'
 
 const createWorkspaceSnapshot = (): WorkspaceSnapshot => ({
@@ -112,6 +113,35 @@ describe('useConfigStore', () => {
     expect(state.activeModule).toBe('key-bindings')
     expect(state.editorUI.tutorialCollapsed).toBe(true)
     expect(state.sourceFiles).toEqual(snapshot.sourceFiles)
+  })
+
+  it('restorePersistedWorkspace hydrates the stored workspace snapshot', () => {
+    const snapshot = createWorkspaceSnapshot()
+    const baseline = useConfigStore.getState()
+
+    saveWorkspaceSnapshot(snapshot)
+    useConfigStore.setState({
+      ...baseline,
+      project: createEmptyProject(),
+      activeModule: 'schema-manager',
+      editorUI: {
+        ...baseline.editorUI,
+        viewMode: 'panel',
+        tutorialCollapsed: false,
+      },
+      sourceFiles: {},
+      isDirty: true,
+    })
+
+    useConfigStore.getState().restorePersistedWorkspace()
+
+    const state = useConfigStore.getState()
+    expect(state.project.defaultConfig.pageSize).toBe(9)
+    expect(state.activeModule).toBe('key-bindings')
+    expect(state.editorUI.viewMode).toBe('immersive')
+    expect(state.editorUI.tutorialCollapsed).toBe(true)
+    expect(state.sourceFiles).toEqual(snapshot.sourceFiles)
+    expect(state.isDirty).toBe(false)
   })
 
   it('setFuzzyRules sets rules for a schema', () => {
