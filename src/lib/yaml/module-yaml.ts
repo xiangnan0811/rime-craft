@@ -4,7 +4,6 @@ import {
   expandPatchPaths,
   mapToDefaultConfig,
   mapToPlatformConfig,
-  parseCustomYaml,
   mapToSchemaConfig,
 } from '@/lib/yaml/parser'
 import {
@@ -67,6 +66,176 @@ function filterModulePatch(
   }
 
   return filtered
+}
+
+function getBasePatchKey(key: string): string {
+  return key.replace(/^['"]|['"]$/g, '').split('/')[0]!
+}
+
+function lineIndent(line: string): number {
+  return line.match(/^\s*/)![0].length
+}
+
+function isBlankLine(line: string): boolean {
+  return line.trim() === ''
+}
+
+function isCommentLine(line: string): boolean {
+  return line.trimStart().startsWith('#')
+}
+
+function getPatchBlockLines(source: string): { lines: string[]; childIndent?: number } {
+  const lines = source.split(/\r?\n/)
+  const patchIndex = lines.findIndex((line) => /^(\s*)patch:\s*(?:#.*)?$/.test(line))
+  if (patchIndex < 0) {
+    return { lines: [] }
+  }
+
+  const patchIndent = lineIndent(lines[patchIndex]!)
+  const blockLines: string[] = []
+
+  for (let index = patchIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index]!
+    if (!isBlankLine(line) && lineIndent(line) <= patchIndent) {
+      break
+    }
+    blockLines.push(line)
+  }
+
+  const childIndent = blockLines.reduce<number | undefined>((minIndent, line) => {
+    if (isBlankLine(line)) {
+      return minIndent
+    }
+
+    const indent = lineIndent(line)
+    if (indent <= patchIndent) {
+      return minIndent
+    }
+
+    if (minIndent === undefined || indent < minIndent) {
+      return indent
+    }
+
+    return minIndent
+  }, undefined)
+
+  return { lines: blockLines, childIndent }
+}
+
+function getTopLevelPatchKey(line: string, childIndent: number): string | undefined {
+  if (isBlankLine(line) || isCommentLine(line) || lineIndent(line) !== childIndent) {
+    return undefined
+  }
+
+  const trimmed = line.trim()
+  const separatorIndex = trimmed.indexOf(':')
+  if (separatorIndex <= 0) {
+    return undefined
+  }
+
+  return trimmed.slice(0, separatorIndex).trim()
+}
+
+function dedentExtractedLine(line: string, childIndent: number): string {
+  if (isBlankLine(line)) {
+    return ''
+  }
+
+  return line.startsWith(' '.repeat(childIndent))
+    ? line.slice(childIndent)
+    : line
+}
+
+function trimBlankEdges(lines: string[]): string[] {
+  let start = 0
+  let end = lines.length
+
+  while (start < end && lines[start] === '') {
+    start += 1
+  }
+
+  while (end > start && lines[end - 1] === '') {
+    end -= 1
+  }
+
+  return lines.slice(start, end)
+}
+
+function extractRawModuleYamlSlice(
+  source: string,
+  mapping: ModuleKeyMapping,
+): string | undefined {
+  const { lines, childIndent } = getPatchBlockLines(source)
+  if (!childIndent) {
+    return undefined
+  }
+
+  const relevantBaseKeys = new Set(mapping.keys)
+  const extractedBlocks: string[][] = []
+  let pendingPrefix: string[] = []
+  let separatorBuffer: string[] = []
+  let currentBlock:
+    | {
+        key: string;
+        lines: string[];
+      }
+    | undefined
+
+  const finalizeCurrentBlock = (): void => {
+    if (!currentBlock) {
+      return
+    }
+
+    if (relevantBaseKeys.has(getBasePatchKey(currentBlock.key))) {
+      extractedBlocks.push(currentBlock.lines.map((line) => dedentExtractedLine(line, childIndent)))
+    }
+
+    currentBlock = undefined
+  }
+
+  for (const line of lines) {
+    const topLevelKey = getTopLevelPatchKey(line, childIndent)
+
+    if (topLevelKey) {
+      const prefixLines = [...pendingPrefix, ...separatorBuffer]
+      finalizeCurrentBlock()
+      separatorBuffer = []
+      currentBlock = {
+        key: topLevelKey,
+        lines: [...prefixLines, line],
+      }
+      pendingPrefix = []
+      continue
+    }
+
+    if (!currentBlock) {
+      if (isBlankLine(line) || isCommentLine(line)) {
+        pendingPrefix.push(line)
+      }
+      continue
+    }
+
+    if ((isBlankLine(line) || isCommentLine(line)) && lineIndent(line) === childIndent) {
+      separatorBuffer.push(line)
+      continue
+    }
+
+    if (separatorBuffer.length > 0) {
+      currentBlock.lines.push(...separatorBuffer)
+      separatorBuffer = []
+    }
+
+    currentBlock.lines.push(line)
+  }
+
+  finalizeCurrentBlock()
+
+  const outputLines = trimBlankEdges(extractedBlocks.flat())
+  if (outputLines.length === 0) {
+    return ''
+  }
+
+  return `${outputLines.join('\n')}\n`
 }
 
 function parseModuleYamlString(
@@ -196,12 +365,12 @@ export function extractModuleYamlFromSourceFile(
     return sourceFile.content
   }
 
-  const { patch, error } = parseCustomYaml(sourceFile.content)
-  if (error) return ''
+  const rawSlice = extractRawModuleYamlSlice(sourceFile.content, mapping)
+  if (rawSlice !== undefined) {
+    return rawSlice
+  }
 
-  const filtered = filterModulePatch(patch, mapping)
-  if (Object.keys(filtered).length === 0) return ''
-  return stringify(filtered, { lineWidth: 0 })
+  return ''
 }
 
 export function applyModuleYamlToSourceFile(
