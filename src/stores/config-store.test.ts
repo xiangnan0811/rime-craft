@@ -103,6 +103,19 @@ describe('useConfigStore', () => {
     expect(useConfigStore.getState().project.defaultConfig.pageSize).toBe(7)
   })
 
+  it('replaceWorkspace swaps the project and preserves a clean workspace state', () => {
+    const newProject = createEmptyProject()
+    newProject.defaultConfig.pageSize = 11
+
+    useConfigStore.getState().updateDefaultConfig({ pageSize: 8 })
+    useConfigStore.getState().replaceWorkspace(newProject, {})
+
+    const state = useConfigStore.getState()
+    expect(state.project.defaultConfig.pageSize).toBe(11)
+    expect(state.sourceFiles).toEqual({})
+    expect(state.isDirty).toBe(false)
+  })
+
   it('hydrateWorkspace hydrates project and editor state from a snapshot', () => {
     const snapshot = createWorkspaceSnapshot()
 

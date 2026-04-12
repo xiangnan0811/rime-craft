@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { parseShareUrl } from '@/lib/compress/share'
 import { applyModuleYaml } from '@/lib/yaml/module-yaml'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 
 export function useShareUrl() {
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const setActiveModule = useConfigStore((s) => s.setActiveModule)
   const applied = useRef(false)
 
@@ -18,10 +19,13 @@ export function useShareUrl() {
     const project = useConfigStore.getState().project
     const result = applyModuleYaml(shared.module, shared.yaml, project)
     if (!result.error) {
-      loadProject(result.project)
+      replaceWorkspace(
+        result.project,
+        createSourceFilesFromProject(result.project),
+      )
       setActiveModule(shared.module)
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname)
     }
-  }, [loadProject, setActiveModule])
+  }, [replaceWorkspace, setActiveModule])
 }

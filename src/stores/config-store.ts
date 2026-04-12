@@ -63,6 +63,10 @@ interface ConfigState {
   updateSchemaConfig: (schemaId: string, partial: Partial<SchemaConfig>) => void;
 
   setActiveModule: (module: EditorModule) => void;
+  replaceWorkspace: (
+    project: RimeProject,
+    sourceFiles: Record<string, PersistedSourceFile>,
+  ) => void;
   loadProject: (project: RimeProject) => void;
   hydrateWorkspace: (snapshot: WorkspaceSnapshot) => void;
   restorePersistedWorkspace: () => void;
@@ -104,11 +108,14 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     set({ activeModule: module })
   },
 
-  loadProject: (project) => {
+  replaceWorkspace: (project, sourceFiles) => {
     const state = get()
-    const sourceFiles = createSourceFilesFromProject(project)
     persistCurrentState(project, state.activeModule, state.editorUI, sourceFiles)
     set({ project, sourceFiles, isDirty: false })
+  },
+
+  loadProject: (project) => {
+    get().replaceWorkspace(project, createSourceFilesFromProject(project))
   },
 
   hydrateWorkspace: (snapshot) => {

@@ -9,19 +9,25 @@ import { ShareDialog } from '@/features/share/ShareDialog'
 import { GistDialog } from '@/features/share/GistDialog'
 import { PRESETS } from '@/data/presets'
 import { useConfigStore } from '@/stores/config-store'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 
 export function EditorPage() {
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const editorUI = useConfigStore((s) => s.editorUI)
   const setViewMode = useConfigStore((s) => s.setViewMode)
   const setTutorialCollapsed = useConfigStore((s) => s.setTutorialCollapsed)
 
   function handlePresetChange(presetId: string) {
     const preset = PRESETS.find((p) => p.id === presetId)
-    if (preset) loadProject(preset.createProject())
+    if (!preset) {
+      return
+    }
+
+    const project = preset.createProject()
+    replaceWorkspace(project, createSourceFilesFromProject(project))
   }
 
   return (

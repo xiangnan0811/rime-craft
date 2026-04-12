@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 
 export function ImportDialog() {
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const [open, setOpen] = useState(false)
   const [yamlText, setYamlText] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -22,17 +22,17 @@ export function ImportDialog() {
         files.push({ name: file.name, content })
       }
       const result = importFromFiles(files)
-      loadProject(result.project)
+      replaceWorkspace(result.project, result.sourceFiles)
       const msg = `已导入 ${result.summary.filesProcessed} 个文件，识别到 ${result.summary.customSettings} 项自定义配置。`
       setFeedback(result.summary.errors.length > 0 ? `${msg}\n错误：${result.summary.errors.join('; ')}` : msg)
     },
-    [loadProject],
+    [replaceWorkspace],
   )
 
   function handlePasteImport() {
     if (!yamlText.trim()) return
     const result = importFromYamlString(yamlText, 'default.custom.yaml')
-    loadProject(result.project)
+    replaceWorkspace(result.project, result.sourceFiles)
     setFeedback(`已导入 ${result.summary.customSettings} 项自定义配置。`)
     setYamlText('')
   }

@@ -42,7 +42,7 @@ interface ExportStepProps {
 }
 
 export function ExportStep({ state }: ExportStepProps) {
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const navigate = useNavigate()
 
   const schemaName =
@@ -65,8 +65,8 @@ export function ExportStep({ state }: ExportStepProps) {
   }
 
   function handleContinueEdit() {
-    const { project } = buildProjectArtifacts(state)
-    loadProject(project)
+    const { project, sourceFiles } = buildProjectArtifacts(state)
+    replaceWorkspace(project, sourceFiles)
     navigate('/editor')
   }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { createGist, loadPublicGist } from '@/lib/gist/client'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label'
 
 export function GistDialog() {
   const project = useConfigStore((s) => s.project)
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const [open, setOpen] = useState(false)
 
   // Export state
@@ -50,7 +51,10 @@ export function GistDialog() {
 
     try {
       const importedProject = await loadPublicGist(gistUrl)
-      loadProject(importedProject)
+      replaceWorkspace(
+        importedProject,
+        createSourceFilesFromProject(importedProject),
+      )
       setImportFeedback('配置导入成功！')
     } catch (e) {
       setImportFeedback(e instanceof Error ? e.message : '导入失败')

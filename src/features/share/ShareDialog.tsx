@@ -71,8 +71,9 @@ function getSnapshotSourceFiles(
 
 export function ShareDialog() {
   const project = useConfigStore((s) => s.project)
+  const sourceFiles = useConfigStore((s) => s.sourceFiles)
   const activeModule = useConfigStore((s) => s.activeModule)
-  const loadProject = useConfigStore((s) => s.loadProject)
+  const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
 
   const [open, setOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState('')
@@ -96,7 +97,7 @@ export function ShareDialog() {
   function handleJsonExport() {
     const snapshot: SnapshotWithSourceFiles = {
       ...createConfigSnapshot(project),
-      sourceFiles: createSourceFilesFromProject(project),
+      sourceFiles,
     }
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
       type: 'application/json',
@@ -115,10 +116,10 @@ export function ShareDialog() {
     reader.onload = () => {
       const result = parseConfigSnapshot(reader.result as string)
       if ('snapshot' in result && result.snapshot) {
-        const sourceFiles = getSnapshotSourceFiles(result.snapshot)
-        loadProject(result.snapshot.project)
+        const importedSourceFiles = getSnapshotSourceFiles(result.snapshot)
+        replaceWorkspace(result.snapshot.project, importedSourceFiles)
         setImportFeedback(
-          `配置快照导入成功！已解析 ${Object.keys(sourceFiles).length} 个源文件工件。`,
+          `配置快照导入成功！已解析 ${Object.keys(importedSourceFiles).length} 个源文件工件。`,
         )
       } else {
         setImportFeedback(`导入失败：${result.error}`)
