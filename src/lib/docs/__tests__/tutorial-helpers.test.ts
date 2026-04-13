@@ -41,7 +41,7 @@ describe('getPrevNext', () => {
 
   it('returns null next for last item', () => {
     const { prev, next } = getPrevNext('multi-device-sync')
-    expect(prev?.slug).toBe('lua-scripting')
+    expect(prev?.slug).toBe('lua-extensions')
     expect(next).toBeNull()
   })
 

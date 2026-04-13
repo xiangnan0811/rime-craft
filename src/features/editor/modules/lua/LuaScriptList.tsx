@@ -11,12 +11,14 @@ import { LuaScriptYamlPreview } from './LuaScriptYamlPreview'
 import { renderLuaTemplate } from '@/data/lua-script-templates'
 import type { LuaScript } from '@/types/config'
 
+const EMPTY_SCRIPTS: LuaScript[] = []
+
 interface LuaScriptListProps {
   schemaId: string
 }
 
 export function LuaScriptList({ schemaId }: LuaScriptListProps) {
-  const scripts = useConfigStore((s) => s.project.schemaConfigs[schemaId]?.luaScripts ?? [])
+  const scripts = useConfigStore((s) => s.project.schemaConfigs[schemaId]?.luaScripts ?? EMPTY_SCRIPTS)
   const addLuaScript = useConfigStore((s) => s.addLuaScript)
   const updateLuaScript = useConfigStore((s) => s.updateLuaScript)
   const deleteLuaScript = useConfigStore((s) => s.deleteLuaScript)

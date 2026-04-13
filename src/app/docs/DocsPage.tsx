@@ -22,7 +22,7 @@ const MDX_MODULES: Record<string, () => Promise<{ default: ComponentType }>> = {
   'double-pinyin-guide': () => import('@/content/double-pinyin-guide.mdx'),
   'auxiliary-code': () => import('@/content/auxiliary-code-config.mdx'),
   'custom-dictionary': () => import('@/content/custom-dictionary.mdx'),
-  'lua-scripting': () => import('@/content/lua-extensions.mdx'),
+  'lua-extensions': () => import('@/content/lua-extensions.mdx'),
   'multi-device-sync': () => import('@/content/multi-device-sync.mdx'),
 }
 
