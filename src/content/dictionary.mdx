@@ -95,11 +95,11 @@ RIME 启动或重新部署时，词典按以下流程加载：
 
 ### custom_phrase 的加载方式
 
-自定义短语通过独立的 `table_translator@custom_phrase` 翻译器加载，与主词典翻译器**并列**注册在 `engine/translators` 链中。
+在朙月拼音等采用该约定的方案里，自定义短语常见地通过独立的 `table_translator@custom_phrase` 翻译器加载，并与主词典翻译器**并列**注册在 `engine/translators` 链中。具体 translator 名称和挂载方式仍要以目标方案源码为准。
 
 关键区别：
 - 主词典翻译器走 `.table.bin` 二进制索引，启动时一次性加载
-- `custom_phrase` 使用 `db_class: stabledb`，即稳定键值数据库（非 B+ 树），**每次输入时实时查询**，改完 `custom_phrase.txt` 重新部署后立即生效，不需要重建二进制索引
+- 在采用 `custom_phrase` 节点约定的方案里，常见做法是配合 `db_class: stabledb` 这类稳定键值库使用；修改 `custom_phrase.txt` 后通常只需重新部署，不必像主词典那样重建完整词典索引
 
 由于 custom_phrase 翻译器设置了 `initial_quality: 1`，其候选的初始质量分高于普通词典候选，加上你手动设置的 weight，高权重词条几乎总会排在候选列表前列。
 
@@ -262,7 +262,7 @@ import_tables:
 
 **5. 翻译器未注册**
 
-确认 `engine/translators` 中包含 `table_translator@custom_phrase`。使用 `+` 追加而非直接覆盖：
+如果你的方案采用 `custom_phrase` translator 的这套约定，确认 `engine/translators` 中包含 `table_translator@custom_phrase`。使用 `+` 追加而非直接覆盖：
 
 ```yaml
 patch:
@@ -334,7 +334,7 @@ table_translator@custom_phrase  → 自定义短语候选
 2. 将快照复制到新设备的同步目录
 3. 在新设备执行「同步用户数据」，RIME 自动合并
 
-注意：两台设备的 `installation_id` 必须不同，同步目录相同。RIME 会将两台设备的 `.userdb.txt` 合并，取各词条频率的较大值。
+注意：两台设备的 `installation_id` 必须不同，同步目录相同。常见现象是 RIME 会把两台设备的 `.userdb.txt` 快照重新合并，较高的学习频率通常会保留下来，但不宜把这理解为稳定公开的逐字段算法承诺。
 
 **清理用户词典**
 

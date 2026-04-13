@@ -66,7 +66,7 @@ RIME 的配置文件是人类可读的 YAML 文本，但引擎在运行时需要
 
 点击 macOS 菜单栏右上角的输入法图标，在弹出菜单中选择**「重新部署」**。部署过程中图标会短暂旋转，完成后自动恢复正常。
 
-也可以通过命令行手动触发：
+也可以通过命令行手动触发。下面的 `rime_deployer` 路径是鼠须管打包中的常见示例，不应把它理解为所有前端都共享的标准命令位置：
 
 ```bash
 # 手动调用 rime_deployer
@@ -84,6 +84,8 @@ RIME 的配置文件是人类可读的 YAML 文本，但引擎在运行时需要
 
 ### Linux（ibus-rime）
 
+如果你的发行版暴露了 `rime_deployer` 命令，可以参考下面的手动方式；不同发行版的可执行文件位置和包装方式可能不同，优先使用前端自身提供的「重新部署」入口。
+
 ```bash
 # 方法一：重启 ibus 守护进程并触发重新部署（推荐）
 ibus-daemon -rd
@@ -95,6 +97,8 @@ rime_deployer --build ~/.config/ibus/rime ~/.config/ibus/rime/build
 用户配置目录：`~/.config/ibus/rime/`
 
 ### Linux（fcitx5-rime）
+
+如果系统中提供了 `rime_deployer` CLI，也可以手动调用；下面更适合视为环境相关示例，而不是统一的跨前端命令契约。
 
 ```bash
 # 方法一：fcitx5-remote 远程命令

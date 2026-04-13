@@ -126,7 +126,7 @@ patch:
   # 辅助码方案：墨奇码
   auxiliary_code/scheme: moqi
   # 触发方式：间接（; 分隔拼音和辅助码）
-  auxiliary_code/trigger: indirect
+  auxiliary_code/trigger_mode: indirect
   # 开启辅助码提示
   auxiliary_code/show_hint: true
   # 提示长度：2（单字和两字词都显示辅助码）
@@ -138,7 +138,7 @@ patch:
 </YamlPreview>
 
 :::note
-以上 YAML 路径（`auxiliary_code/scheme` 等）对应 rime-ice / 万象拼音方案的实际字段名。如果你使用其他方案，字段名可能不同，请参照方案文档或查看方案 schema 文件中的 `auxiliary_code` 节点。
+以上 YAML 路径以当前编辑器支持的辅助码字段为例。不同方案的 schema 可能使用同名字段，也可能把部分能力拆到其他节点或 Lua 参数中；如果你直接手改某个具体方案，请优先以该方案自己的 schema 文件和文档为准。
 :::
 
 随着熟练度提升，提示级别也应随之调整。下面给出学习期和熟练期的两段配置供参考：
@@ -218,7 +218,7 @@ patch:
 
 4. **结果排序**：过滤后的候选词按原有的频率权重重新排序后呈现。辅助码过滤是在排序之前进行的纯过滤操作，不改变权重。
 
-辅助码方案（`aux_code_scheme`）决定词典加载时使用哪张辅助码映射表。映射表文件通常位于方案数据目录（如 `rime-ice/` 下的 `lua/auxiliary_code/` 目录），每种方案一个文件，格式为 `字 → 辅助码` 的键值对。
+辅助码方案字段（如本例中的 `auxiliary_code/scheme`）决定词典加载时使用哪张辅助码映射表。映射表文件和加载路径高度依赖具体方案实现；常见做法是在方案数据目录中放一份 `字 → 辅助码` 的映射表，再由 schema 或 Lua 组件引用。
 
 </Details>
 
