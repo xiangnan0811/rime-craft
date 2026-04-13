@@ -4,10 +4,10 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { SettingHelp } from '@/components/shared/SettingHelp'
-import type { LuaExtensionsConfig } from '@/types/config'
+import { type LuaExtensionsConfig } from '@/types/config'
+import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 
 const DEFAULT_CONFIG: LuaExtensionsConfig = {
-  superComment: { candidateLength: 2, correctorType: '〔纠错〕' },
   superProcessor: { backspaceLimit: true, segLoop: true, toneFallback: true, limitRepeated: '8,40' },
   userPredict: { maxCandidates: 10, expiryDays: 90, activationDays: 7 },
   superReplacer: { chain: true, delimiter: '|' },
@@ -32,38 +32,32 @@ export function BuiltinEnhancementsTab() {
 
   return (
     <div className="space-y-6">
-      {/* 超级注释 */}
+      {/* 超级注释入口 */}
       <div className="rounded-lg border p-5 space-y-4">
         <div>
           <div className="flex items-center gap-2">
             <h4 className="font-semibold">超级注释</h4>
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Filter</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">为候选词添加辅助码编码、纠错提示、拼音标注等注释信息，是辅助码学习阶段最有价值的功能。</p>
+          <p className="mt-1 text-sm text-gray-500">
+            超级注释的持久化配置已统一收口到「注释与提示」模块，避免同一组 YAML 字段在两个模块里重复编辑。
+          </p>
         </div>
-        <div>
-          <div className="flex flex-wrap items-center gap-x-1.5">
-            <Label>注释候选长度</Label>
-            <SettingHelp>
-              <p>设为 1 仅单字显示注释，设为 2 则两字词也会显示。值越大，显示注释的候选词范围越广。</p>
-              <p>超级注释的显示/隐藏由「开关」中的注释模式控制，这里配置的是注释的内容范围。</p>
-            </SettingHelp>
+        <div className="rounded-md border border-dashed p-4 text-sm text-gray-500">
+          <p>
+            请前往
+            {' '}
+            <span className="font-medium">注释与提示</span>
+            {' '}
+            调整：
+          </p>
+          <ul className="mt-2 list-disc pl-5">
+            <li><code>super_comment/candidate_length</code></li>
+            <li><code>super_comment/corrector_type</code></li>
+          </ul>
+          <div className="mt-3">
+            <LearnMoreLink module="comment-hints" />
           </div>
-          <Input type="number" min={1} max={10} className="mt-1 w-24"
-            value={config.superComment?.candidateLength ?? 2}
-            onChange={(e) => update({ superComment: { ...config.superComment!, candidateLength: Number(e.target.value) } })} />
-          <p className="mt-1 text-sm text-gray-500">显示注释的候选词最大字数</p>
-        </div>
-        <div>
-          <div className="flex flex-wrap items-center gap-x-1.5">
-            <Label>纠错提示格式</Label>
-            <SettingHelp>
-              <p>当输入的拼音有误时，超级注释会在候选词旁显示纠错提示。此项控制纠错提示的包裹格式，例如默认的〔纠错〕。</p>
-            </SettingHelp>
-          </div>
-          <Input className="mt-1 w-48" value={config.superComment?.correctorType ?? '〔纠错〕'}
-            onChange={(e) => update({ superComment: { ...config.superComment!, correctorType: e.target.value } })} />
-          <p className="mt-1 text-sm text-gray-500">纠错提示的显示格式</p>
         </div>
       </div>
 

@@ -17,10 +17,13 @@ import {
   isFormalEditorPlatform,
 } from '@/lib/product/support-contract'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
+import { DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 
 interface ModuleKeyMapping {
   file: 'default' | 'platform' | 'schema' | 'custom_phrase';
   keys: string[];
+  exactPaths?: string[];
+  excludePaths?: string[];
 }
 
 const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
@@ -34,22 +37,34 @@ const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
   'switches': { file: 'schema', keys: ['switches'] },
   'spelling-scheme': { file: 'schema', keys: ['speller'] },
   'auxiliary-code': { file: 'schema', keys: ['speller'] },
-  'reverse-lookup': { file: 'schema', keys: ['reverse_lookup', 'wanxiang_lookup'] },
+  'reverse-lookup': {
+    file: 'schema',
+    keys: ['reverse_lookup'],
+    exactPaths: ['recognizer/patterns/reverse_lookup'],
+  },
   'lua-extensions': {
     file: 'schema',
     keys: [
       // From original special-input
       'recognizer',
       // From original lua-extensions
-      'super_comment',
       'super_processor',
       'user_predict',
       'super_replacer',
       'input_statistics',
     ],
+    excludePaths: ['recognizer/patterns/reverse_lookup'],
   },
-  'candidate-display': { file: 'schema', keys: ['translator'] },
-  'comment-hints': { file: 'schema', keys: ['super_comment'] },
+  'candidate-display': {
+    file: 'platform',
+    keys: [],
+    exactPaths: ['style/horizontal'],
+  },
+  'comment-hints': {
+    file: 'schema',
+    keys: ['super_comment'],
+    exactPaths: ['translator/spelling_hints', 'translator/always_show_comments'],
+  },
 }
 
 function filterModulePatch(
@@ -59,9 +74,20 @@ function filterModulePatch(
   const filtered: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(patch)) {
-    const baseKey = key.split('/')[0]!
-    if (mapping.keys.includes(baseKey)) {
+    if (moduleOwnsPatchKey(key, mapping)) {
       filtered[key] = value
+      continue
+    }
+
+    if (!mapping.exactPaths || typeof value !== 'object' || value === null || Array.isArray(value)) {
+      continue
+    }
+
+    for (const entry of flattenPatchEntries({ [key]: value })) {
+      const entryKey = entry.path.join('/')
+      if (moduleOwnsPatchKey(entryKey, mapping)) {
+        filtered[entryKey] = entry.value
+      }
     }
   }
 
@@ -70,6 +96,23 @@ function filterModulePatch(
 
 function getBasePatchKey(key: string): string {
   return key.replace(/^['"]|['"]$/g, '').split('/')[0]!
+}
+
+function normalizePatchKey(key: string): string {
+  return key.replace(/^['"]|['"]$/g, '')
+}
+
+function moduleOwnsPatchKey(key: string, mapping: ModuleKeyMapping): boolean {
+  const normalizedKey = normalizePatchKey(key)
+  if (mapping.excludePaths?.includes(normalizedKey)) {
+    return false
+  }
+
+  if (mapping.exactPaths?.includes(normalizedKey)) {
+    return true
+  }
+
+  return mapping.keys.includes(getBasePatchKey(normalizedKey))
 }
 
 function lineIndent(line: string): number {
@@ -170,7 +213,6 @@ function extractRawModuleYamlSlice(
     return undefined
   }
 
-  const relevantBaseKeys = new Set(mapping.keys)
   const extractedBlocks: string[][] = []
   let pendingPrefix: string[] = []
   let separatorBuffer: string[] = []
@@ -186,7 +228,7 @@ function extractRawModuleYamlSlice(
       return
     }
 
-    if (relevantBaseKeys.has(getBasePatchKey(currentBlock.key))) {
+    if (moduleOwnsPatchKey(currentBlock.key, mapping)) {
       extractedBlocks.push(currentBlock.lines.map((line) => dedentExtractedLine(line, childIndent)))
     }
 
@@ -236,6 +278,47 @@ function extractRawModuleYamlSlice(
   }
 
   return `${outputLines.join('\n')}\n`
+}
+
+function extractMissingExactPathEntries(
+  source: string,
+  mapping: ModuleKeyMapping,
+  currentYaml: string,
+): string {
+  if (!mapping.exactPaths || mapping.exactPaths.length === 0) {
+    return ''
+  }
+
+  const { parsed } = parseModuleYamlString(currentYaml)
+  const existingEntries = new Set(flattenPatchEntries(parsed).map((entry) => entry.path.join('/')))
+  const doc = parseDocument(source)
+  if (doc.errors.length > 0) {
+    return ''
+  }
+
+  const extracted: Record<string, unknown> = {}
+  for (const path of mapping.exactPaths) {
+    if (existingEntries.has(path)) {
+      continue
+    }
+
+    const value = doc.getIn(['patch', ...path.split('/')]) as
+      | { toJSON?: () => unknown }
+      | undefined
+    if (value === undefined) {
+      continue
+    }
+
+    extracted[path] = typeof value === 'object' && value !== null && 'toJSON' in value
+      ? value.toJSON!()
+      : value
+  }
+
+  if (Object.keys(extracted).length === 0) {
+    return ''
+  }
+
+  return stringify(extracted, { lineWidth: 0 })
 }
 
 function parseModuleYamlString(
@@ -367,7 +450,20 @@ export function extractModuleYamlFromSourceFile(
 
   const rawSlice = extractRawModuleYamlSlice(sourceFile.content, mapping)
   if (rawSlice !== undefined) {
-    return rawSlice
+    const exactPathFallback = extractMissingExactPathEntries(
+      sourceFile.content,
+      mapping,
+      rawSlice,
+    )
+    if (!exactPathFallback) {
+      return rawSlice
+    }
+
+    if (!rawSlice) {
+      return exactPathFallback
+    }
+
+    return `${rawSlice.trimEnd()}\n${exactPathFallback}`
   }
 
   return ''
@@ -506,6 +602,29 @@ export function applyModuleYaml(
   }
 
   if (mapping.file === 'platform') {
+    if (module === 'candidate-display') {
+      const nextHorizontal = expanded.style && typeof (expanded.style as Record<string, unknown>).horizontal === 'boolean'
+        ? ((expanded.style as Record<string, unknown>).horizontal as boolean)
+        : typeof expanded['style/horizontal'] === 'boolean'
+          ? (expanded['style/horizontal'] as boolean)
+          : project.platformConfig.style?.horizontal
+
+      if (typeof nextHorizontal === 'boolean') {
+        const currentStyle = project.platformConfig.style
+        return {
+          project: {
+            ...project,
+            platformConfig: {
+              ...project.platformConfig,
+              style: currentStyle
+                ? { ...currentStyle, horizontal: nextHorizontal }
+                : { ...DEFAULT_THEME_STYLE, horizontal: nextHorizontal },
+            },
+          },
+        }
+      }
+    }
+
     const platformConfig = mapToPlatformConfig(expanded, project.platformConfig)
     return { project: { ...project, platformConfig } }
   }
@@ -519,7 +638,50 @@ export function applyModuleYaml(
     fuzzyRules: [],
   }
   const schemaUpdates = mapToSchemaConfig(expanded, primarySchemaId)
-  const updatedSchemaConfig = { ...existingConfig, ...schemaUpdates }
+  const updatedSchemaConfig = {
+    ...existingConfig,
+    ...schemaUpdates,
+    ...(schemaUpdates.auxiliaryCode
+      ? {
+          auxiliaryCode: {
+            ...existingConfig.auxiliaryCode,
+            ...schemaUpdates.auxiliaryCode,
+          },
+        }
+      : {}),
+    ...(schemaUpdates.reverseLookup
+      ? {
+          reverseLookup: {
+            ...existingConfig.reverseLookup,
+            ...schemaUpdates.reverseLookup,
+          },
+        }
+      : {}),
+    ...(schemaUpdates.translator
+      ? {
+          translator: {
+            ...existingConfig.translator,
+            ...schemaUpdates.translator,
+          },
+        }
+      : {}),
+    ...(schemaUpdates.luaExtensions
+      ? {
+          luaExtensions: {
+            ...existingConfig.luaExtensions,
+            ...schemaUpdates.luaExtensions,
+            ...(schemaUpdates.luaExtensions.superComment
+              ? {
+                  superComment: {
+                    ...existingConfig.luaExtensions?.superComment,
+                    ...schemaUpdates.luaExtensions.superComment,
+                  },
+                }
+              : {}),
+          },
+        }
+      : {}),
+  }
 
   return {
     project: {
