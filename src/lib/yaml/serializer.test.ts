@@ -222,6 +222,40 @@ describe('serializeSchemaConfig', () => {
     const switches = result.switches as Array<Record<string, unknown>>
     expect(switches[0]).toEqual({ options: ['s2s', 's2t'], reset: 0, states: ['简体', '繁体'] })
   })
+
+  it('serializes spelling scheme, auxiliary code, and fuzzy rules through the schema patch', () => {
+    const config: SchemaConfig = {
+      schemaId: 'double_pinyin_flypy',
+      fuzzyRules: [
+        { ruleId: 'l_n', enabled: true },
+        { ruleId: 'ian_iang', enabled: true },
+        { ruleId: 'r_l', enabled: false },
+      ],
+      spellingScheme: 'flypy',
+      auxiliaryCode: {
+        scheme: 'hexing',
+        triggerMode: 'direct',
+        hintEnabled: true,
+        hintLength: 2,
+        splitHintEnabled: true,
+      },
+    }
+
+    const patch = serializeSchemaConfig(config)
+
+    expect(patch['speller/spelling_scheme']).toBe('flypy')
+    expect(patch['auxiliary_code/scheme']).toBe('hexing')
+    expect(patch['auxiliary_code/trigger_mode']).toBe('direct')
+    expect(patch['auxiliary_code/show_hint']).toBe(true)
+    expect(patch['auxiliary_code/hint_length']).toBe(2)
+    expect(patch['auxiliary_code/split_hint']).toBe(true)
+    expect(patch['speller/algebra/@before 0']).toEqual([
+      'derive/^l/n/',
+      'derive/^n/l/',
+      'derive/ian$/iang/',
+      'derive/iang$/ian/',
+    ])
+  })
 })
 
 describe('buildCustomYaml', () => {

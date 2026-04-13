@@ -1,9 +1,37 @@
 import { Document, Scalar } from 'yaml'
 import type { DefaultConfig, PlatformConfig, SchemaConfig, SimpleSwitchItem, MultiStateSwitchItem } from '@/types/config'
 import { hexToBgrInt } from '@/lib/color/convert'
+import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules'
 
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function serializeFuzzyRuleAlgebra(fuzzyRules: SchemaConfig['fuzzyRules']): string[] {
+  const algebraRules: string[] = []
+  const seenRules = new Set<string>()
+
+  for (const rule of fuzzyRules) {
+    if (!rule.enabled) {
+      continue
+    }
+
+    const definition = FUZZY_RULE_DEFINITIONS.find((item) => item.id === rule.ruleId)
+    if (!definition) {
+      continue
+    }
+
+    for (const expression of definition.algebraRules) {
+      if (seenRules.has(expression)) {
+        continue
+      }
+
+      seenRules.add(expression)
+      algebraRules.push(expression)
+    }
+  }
+
+  return algebraRules
 }
 
 export function serializeDefaultConfig(
@@ -85,6 +113,24 @@ export function serializePlatformConfig(
 
 export function serializeSchemaConfig(config: SchemaConfig): Record<string, unknown> {
   const patch: Record<string, unknown> = {}
+
+  if (config.spellingScheme) {
+    patch['speller/spelling_scheme'] = config.spellingScheme
+  }
+
+  const fuzzyAlgebra = serializeFuzzyRuleAlgebra(config.fuzzyRules)
+  if (fuzzyAlgebra.length > 0) {
+    patch['speller/algebra/@before 0'] = fuzzyAlgebra
+  }
+
+  if (config.auxiliaryCode) {
+    const ac = config.auxiliaryCode
+    if (ac.scheme !== undefined) patch['auxiliary_code/scheme'] = ac.scheme
+    if (ac.triggerMode !== undefined) patch['auxiliary_code/trigger_mode'] = ac.triggerMode
+    if (ac.hintEnabled !== undefined) patch['auxiliary_code/show_hint'] = ac.hintEnabled
+    if (ac.hintLength !== undefined) patch['auxiliary_code/hint_length'] = ac.hintLength
+    if (ac.splitHintEnabled !== undefined) patch['auxiliary_code/split_hint'] = ac.splitHintEnabled
+  }
 
   // Switches
   if (config.switches && config.switches.length > 0) {

@@ -10,9 +10,13 @@ import type {
   SimpleSwitchItem,
   MultiStateSwitchItem,
   CustomTrigger,
+  AuxiliaryCodeConfig,
+  FuzzyRuleState,
+  SpellingScheme,
 } from '@/types/config'
 import { bgrIntToHex } from '@/lib/color/convert'
 import { SPECIAL_TRIGGER_DEFINITIONS } from '@/data/special-trigger-definitions'
+import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules'
 
 // ─── Parse raw YAML ──────────────────────────────────────
 
@@ -74,6 +78,67 @@ function setNestedValue(
     current = current[key] as Record<string, unknown>
   }
   current[path[path.length - 1]!] = value
+}
+
+const DEFAULT_AUXILIARY_CODE_CONFIG: AuxiliaryCodeConfig = {
+  scheme: 'zrm',
+  triggerMode: 'direct',
+  hintEnabled: true,
+  hintLength: 1,
+  splitHintEnabled: false,
+}
+
+const FUZZY_RULE_SIGNATURE_COUNTS = FUZZY_RULE_DEFINITIONS.reduce(
+  (counts, definition) => {
+    const signature = definition.algebraRules.join('\u0000')
+    counts.set(signature, (counts.get(signature) ?? 0) + 1)
+    return counts
+  },
+  new Map<string, number>(),
+)
+
+function collectAlgebraExpressions(rawAlgebra: unknown): string[] {
+  if (Array.isArray(rawAlgebra)) {
+    return rawAlgebra.filter((value): value is string => typeof value === 'string')
+  }
+
+  if (!rawAlgebra || typeof rawAlgebra !== 'object') {
+    return []
+  }
+
+  const expressions: string[] = []
+  for (const value of Object.values(rawAlgebra as Record<string, unknown>)) {
+    if (!Array.isArray(value)) {
+      continue
+    }
+
+    expressions.push(...value.filter((item): item is string => typeof item === 'string'))
+  }
+
+  return expressions
+}
+
+function recoverFuzzyRules(rawAlgebra: unknown): FuzzyRuleState[] {
+  const algebraRules = new Set(collectAlgebraExpressions(rawAlgebra))
+  if (algebraRules.size === 0) {
+    return []
+  }
+
+  const recovered: FuzzyRuleState[] = []
+  for (const definition of FUZZY_RULE_DEFINITIONS) {
+    const signature = definition.algebraRules.join('\u0000')
+    if ((FUZZY_RULE_SIGNATURE_COUNTS.get(signature) ?? 0) !== 1) {
+      continue
+    }
+
+    if (!definition.algebraRules.every((rule) => algebraRules.has(rule))) {
+      continue
+    }
+
+    recovered.push({ ruleId: definition.id, enabled: true })
+  }
+
+  return recovered
 }
 
 // ─── Map to DefaultConfig ────────────────────────────────
@@ -238,6 +303,37 @@ export function mapToSchemaConfig(
   schemaId: string,
 ): Partial<SchemaConfig> {
   const result: Partial<SchemaConfig> = { schemaId }
+  const rawSpeller = expanded.speller as Record<string, unknown> | undefined
+  const rawAuxiliaryCode = expanded.auxiliary_code as Record<string, unknown> | undefined
+
+  if (typeof rawSpeller?.spelling_scheme === 'string') {
+    result.spellingScheme = rawSpeller.spelling_scheme as SpellingScheme
+  }
+
+  const fuzzyRules = recoverFuzzyRules(rawSpeller?.algebra)
+  if (fuzzyRules.length > 0) {
+    result.fuzzyRules = fuzzyRules
+  }
+
+  if (rawAuxiliaryCode) {
+    result.auxiliaryCode = {
+      scheme:
+        (rawAuxiliaryCode.scheme as AuxiliaryCodeConfig['scheme']) ??
+        DEFAULT_AUXILIARY_CODE_CONFIG.scheme,
+      triggerMode:
+        (rawAuxiliaryCode.trigger_mode as AuxiliaryCodeConfig['triggerMode']) ??
+        DEFAULT_AUXILIARY_CODE_CONFIG.triggerMode,
+      hintEnabled:
+        (rawAuxiliaryCode.show_hint as boolean) ??
+        DEFAULT_AUXILIARY_CODE_CONFIG.hintEnabled,
+      hintLength:
+        (rawAuxiliaryCode.hint_length as number) ??
+        DEFAULT_AUXILIARY_CODE_CONFIG.hintLength,
+      splitHintEnabled:
+        (rawAuxiliaryCode.split_hint as boolean) ??
+        DEFAULT_AUXILIARY_CODE_CONFIG.splitHintEnabled,
+    }
+  }
 
   // Switches
   const rawSwitches = expanded.switches as Array<Record<string, unknown>> | undefined
@@ -379,4 +475,4 @@ export function mapToSchemaConfig(
   return result
 }
 
-export const KNOWN_SCHEMA_KEYS = ['speller', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics']
+export const KNOWN_SCHEMA_KEYS = ['speller', 'auxiliary_code', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics']

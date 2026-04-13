@@ -90,7 +90,18 @@ describe('source file helpers', () => {
     };
     project.schemaConfigs.double_pinyin_flypy = {
       schemaId: 'double_pinyin_flypy',
-      fuzzyRules: [],
+      fuzzyRules: [
+        { ruleId: 'l_n', enabled: true },
+        { ruleId: 'ian_iang', enabled: true },
+      ],
+      spellingScheme: 'flypy',
+      auxiliaryCode: {
+        scheme: 'hexing',
+        triggerMode: 'direct',
+        hintEnabled: true,
+        hintLength: 2,
+        splitHintEnabled: true,
+      },
       switches: [{ name: 'ascii_mode', reset: 0 }],
     };
     project.customPhrases = [

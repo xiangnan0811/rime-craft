@@ -196,6 +196,43 @@ describe('mapToSchemaConfig', () => {
     expect(config.luaExtensions!.superComment!.candidateLength).toBe(10)
     expect(config.luaExtensions!.superComment!.correctorType).toBe('pinyin')
   })
+
+  it('maps spelling scheme, auxiliary code, and recoverable fuzzy rules from schema patch', () => {
+    const patch = {
+      speller: {
+        spelling_scheme: 'flypy',
+        algebra: {
+          '@before 0': [
+            'derive/^l/n/',
+            'derive/^n/l/',
+            'derive/ian$/iang/',
+            'derive/iang$/ian/',
+            'xform/^([nl])ve$/$1ue/',
+          ],
+        },
+      },
+      auxiliary_code: {
+        scheme: 'hexing',
+        trigger_mode: 'direct',
+        show_hint: true,
+        hint_length: 2,
+        split_hint: true,
+      },
+    }
+    const config = mapToSchemaConfig(patch, 'double_pinyin_flypy')
+    expect(config.spellingScheme).toBe('flypy')
+    expect(config.auxiliaryCode).toEqual({
+      scheme: 'hexing',
+      triggerMode: 'direct',
+      hintEnabled: true,
+      hintLength: 2,
+      splitHintEnabled: true,
+    })
+    expect(config.fuzzyRules).toEqual([
+      { ruleId: 'l_n', enabled: true },
+      { ruleId: 'ian_iang', enabled: true },
+    ])
+  })
 })
 
 describe('mapToPlatformConfig with style', () => {

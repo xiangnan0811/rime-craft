@@ -1,10 +1,9 @@
-import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules';
 import { serializeCustomPhrases } from '@/lib/config/custom-phrase';
 import {
   getFormalPlatformFileName,
   isFormalEditorPlatform,
 } from '@/lib/product/support-contract';
-import type { RimeProject, SchemaConfig } from '@/types/config';
+import type { RimeProject } from '@/types/config';
 import {
   buildCustomYaml,
   serializeDefaultConfig,
@@ -89,42 +88,6 @@ const getSourceFileMetadata = (fileName: string): SourceFileMetadata | null => {
 const hasEntries = (value?: Record<string, unknown>): boolean =>
   Boolean(value && Object.keys(value).length > 0);
 
-const buildSchemaPatch = (schemaConfig: SchemaConfig): Record<string, unknown> => {
-  const patch: Record<string, unknown> = {};
-  const enabledRules = schemaConfig.fuzzyRules.filter((rule) => rule.enabled);
-
-  if (enabledRules.length > 0) {
-    const algebraRules: string[] = [];
-    const seenRules = new Set<string>();
-
-    for (const rule of enabledRules) {
-      const definition = FUZZY_RULE_DEFINITIONS.find(
-        (item) => item.id === rule.ruleId,
-      );
-
-      if (!definition) {
-        continue;
-      }
-
-      for (const expression of definition.algebraRules) {
-        if (seenRules.has(expression)) {
-          continue;
-        }
-
-        seenRules.add(expression);
-        algebraRules.push(expression);
-      }
-    }
-
-    if (algebraRules.length > 0) {
-      patch['speller/algebra/@before 0'] = algebraRules;
-    }
-  }
-
-  Object.assign(patch, serializeSchemaConfig(schemaConfig));
-  return patch;
-};
-
 const addYamlSourceFile = (
   sourceFiles: SourceFileMap,
   metadata: SourceFileMetadata,
@@ -202,7 +165,7 @@ export function createSourceFilesFromProject(project: RimeProject): SourceFileMa
         kind: 'schema',
         schemaId,
       },
-      buildSchemaPatch(schemaConfig),
+      serializeSchemaConfig(schemaConfig),
       project.preserved[fileName],
       updatedAt,
     );
