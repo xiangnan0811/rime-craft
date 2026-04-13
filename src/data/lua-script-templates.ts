@@ -48,6 +48,12 @@ return {name}
 `,
 }
 
+function assertValidLuaIdentifier(identifier: string): void {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(identifier)) {
+    throw new Error(`Invalid Lua identifier "${identifier}"`)
+  }
+}
+
 /**
  * Generate a Lua script from a template, replacing {name} with the script identifier.
  * @param scriptType The type of script to generate.
@@ -57,5 +63,6 @@ export function renderLuaTemplate(
   scriptType: LuaScript['scriptType'],
   identifier: string,
 ): string {
+  assertValidLuaIdentifier(identifier)
   return LUA_SCRIPT_TEMPLATES[scriptType].split('{name}').join(identifier)
 }

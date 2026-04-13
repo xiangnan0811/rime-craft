@@ -19,4 +19,13 @@ describe('renderLuaTemplate', () => {
     expect(LUA_SCRIPT_TEMPLATES.filter).toBeTruthy()
     expect(LUA_SCRIPT_TEMPLATES.processor).toBeTruthy()
   })
+
+  it('throws for invalid Lua identifiers', () => {
+    expect(() => renderLuaTemplate('translator', '123bad')).toThrow(
+      /Invalid Lua identifier/,
+    )
+    expect(() => renderLuaTemplate('translator', 'bad-name')).toThrow(
+      /Invalid Lua identifier/,
+    )
+  })
 })

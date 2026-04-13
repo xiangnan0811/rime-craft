@@ -116,7 +116,7 @@ export function LuaScriptList({ schemaId }: LuaScriptListProps) {
                     value={selected.fileName}
                     onChange={(e) => {
                       const v = e.target.value
-                      if (!/^[a-zA-Z0-9_-]*\.?l?u?a?$/.test(v)) return
+                      if (!/^[a-zA-Z_][a-zA-Z0-9_]*\.?l?u?a?$/.test(v)) return
                       updateLuaScript(schemaId, selected.id, { fileName: v })
                     }}
                   />
