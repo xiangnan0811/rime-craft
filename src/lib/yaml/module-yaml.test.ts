@@ -190,6 +190,45 @@ describe('extractModuleYaml', () => {
     expect(yaml).toContain('"translator/initial_quality": 1.8')
     expect(yaml).not.toContain('spelling_hints')
   })
+
+  it('fills missing candidate-settings artifact slices from project state', () => {
+    const project = createEmptyProject()
+    project.defaultConfig.pageSize = 9
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: false,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.8,
+        coreWordLength: 5,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+
+    const sourceFiles = {
+      'default.custom.yaml': {
+        id: 'default.custom.yaml',
+        fileName: 'default.custom.yaml',
+        kind: 'default' as const,
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  "menu/page_size": 9
+`,
+      },
+    }
+
+    const yaml = extractModuleYamlFromWorkspace('candidate-settings', project, sourceFiles)
+
+    expect(yaml).toContain('"menu/page_size": 9')
+    expect(yaml).toContain('translator/enable_completion: false')
+    expect(yaml).toContain('translator/initial_quality: 1.8')
+  })
 })
 
 describe('applyModuleYaml', () => {
@@ -362,7 +401,7 @@ translator/max_word_length: 12
     expect(result.error).toBeUndefined()
     expect(
       result.project.schemaConfigs.luna_pinyin?.translator?.spellingHints,
-    ).toBeUndefined()
+    ).toBe(30)
     expect(
       result.project.schemaConfigs.luna_pinyin?.translator?.alwaysShowComments,
     ).toBe(false)
@@ -415,6 +454,48 @@ translator/enable_completion: false
     )
     expect(result.sourceFiles['luna_pinyin.custom.yaml']?.content).toContain(
       'translator/enable_completion: false',
+    )
+  })
+
+  it('normalizes deleted candidate-settings translator fields back to defaults in semantic state', () => {
+    const project = createEmptyProject()
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: false,
+        enableSentence: false,
+        enableUserDict: false,
+        initialQuality: 2.2,
+        coreWordLength: 6,
+        maxWordLength: 12,
+        maxHomophones: 3,
+        maxHomographs: 4,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+
+    const result = applyModuleYamlToWorkspace(
+      'candidate-settings',
+      'translator/enable_completion: false\n',
+      project,
+      sourceFiles,
+    )
+
+    expect(result.error).toBeUndefined()
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.enableCompletion,
+    ).toBe(false)
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.maxWordLength,
+    ).toBe(7)
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.enableSentence,
+    ).toBe(true)
+    expect(result.sourceFiles['luna_pinyin.custom.yaml']?.content).not.toContain(
+      'translator/max_word_length',
     )
   })
 

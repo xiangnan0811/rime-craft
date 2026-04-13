@@ -34,6 +34,7 @@ import {
   DEFAULT_PLATFORM_CONFIG,
   DEFAULT_THEME_STYLE,
 } from '@/lib/config/defaults'
+import { DEFAULT_SUPER_COMMENT_CONFIG } from '@/types/config'
 
 interface ModuleKeyMapping {
   file: 'default' | 'platform' | 'schema' | 'custom_phrase';
@@ -120,6 +121,27 @@ const REVERSE_LOOKUP_FIELDS: Array<keyof ReverseLookupConfig> = [
   'preeditFormat',
   'recognizerPattern',
 ]
+
+const DEFAULT_TRANSLATOR_CONFIG: TranslatorConfig = {
+  enableCompletion: true,
+  enableSentence: true,
+  enableUserDict: true,
+  initialQuality: 1.2,
+  coreWordLength: 4,
+  maxWordLength: 7,
+  maxHomophones: 8,
+  maxHomographs: 8,
+  spellingHints: 30,
+  alwaysShowComments: true,
+}
+
+const DEFAULT_REVERSE_LOOKUP_CONFIG: ReverseLookupConfig = {
+  prefix: '`',
+  dictionary: 'stroke',
+  tips: '〔笔画〕',
+  enableCompletion: false,
+  preeditFormat: [],
+}
 
 function filterModulePatch(
   patch: Record<string, unknown>,
@@ -534,28 +556,6 @@ export function resolveModuleSourceFile(
   return fileName ? sourceFiles[fileName] : undefined
 }
 
-function resolveModuleSourceFiles(
-  module: EditorModule,
-  project: RimeProject,
-  sourceFiles: Record<string, PersistedSourceFile>,
-): PersistedSourceFile[] {
-  const files: PersistedSourceFile[] = []
-
-  for (const mapping of getModuleMappings(module)) {
-    const fileName = getModuleSourceFileName(mapping, project)
-    if (!fileName) {
-      continue
-    }
-
-    const sourceFile = sourceFiles[fileName]
-    if (sourceFile) {
-      files.push(sourceFile)
-    }
-  }
-
-  return files
-}
-
 function extractModuleYamlFromMappingSourceFile(
   mapping: ModuleKeyMapping,
   sourceFile: PersistedSourceFile,
@@ -728,9 +728,22 @@ function serializePatchForMapping(
   return {}
 }
 
-function mergeOwnedObjectFields<T extends object>(
+function serializeYamlSliceForMapping(
+  mapping: ModuleKeyMapping,
+  project: RimeProject,
+): string {
+  const patch = serializePatchForMapping(mapping, project)
+  if (Object.keys(patch).length === 0) {
+    return ''
+  }
+
+  return stringify(patch, { lineWidth: 0 })
+}
+
+function replaceOwnedObjectFields<T extends object>(
   current: T | undefined,
   nextOwned: Partial<T> | undefined,
+  defaults: Partial<T>,
   ownedFields: Array<keyof T>,
 ): T | undefined {
   const merged: Record<string, unknown> = {
@@ -738,15 +751,7 @@ function mergeOwnedObjectFields<T extends object>(
   }
 
   for (const field of ownedFields) {
-    delete merged[String(field)]
-  }
-
-  if (nextOwned) {
-    for (const [key, value] of Object.entries(nextOwned)) {
-      if (value !== undefined) {
-        merged[key] = value
-      }
-    }
+    merged[String(field)] = nextOwned?.[field] ?? defaults[field]
   }
 
   return Object.keys(merged).length > 0 ? (merged as T) : undefined
@@ -845,15 +850,17 @@ export function extractModuleYamlFromWorkspace(
   project: RimeProject,
   sourceFiles: Record<string, PersistedSourceFile>,
 ): string {
-  const sourceSlices = resolveModuleSourceFiles(module, project, sourceFiles)
-    .map((sourceFile) => extractModuleYamlFromSourceFile(module, sourceFile))
+  const slices = getModuleMappings(module)
+    .map((mapping) => {
+      const fileName = getModuleSourceFileName(mapping, project)
+      const sourceFile = fileName ? sourceFiles[fileName] : undefined
+      return sourceFile
+        ? extractModuleYamlFromMappingSourceFile(mapping, sourceFile)
+        : serializeYamlSliceForMapping(mapping, project)
+    })
     .filter(Boolean)
 
-  if (sourceSlices.length > 0) {
-    return joinYamlSlices(sourceSlices)
-  }
-
-  return extractModuleYaml(module, project)
+  return slices.length > 0 ? joinYamlSlices(slices) : extractModuleYaml(module, project)
 }
 
 /**
@@ -936,9 +943,10 @@ export function applyModuleYaml(
       )
       const nextSchemaConfig: SchemaConfig = {
         ...schemaContext.schemaConfig,
-        translator: mergeOwnedObjectFields(
+        translator: replaceOwnedObjectFields(
           schemaContext.schemaConfig.translator,
           schemaUpdates.translator,
+          DEFAULT_TRANSLATOR_CONFIG,
           CANDIDATE_SETTINGS_TRANSLATOR_FIELDS,
         ),
       }
@@ -1064,9 +1072,10 @@ export function applyModuleYaml(
       if (module === 'reverse-lookup') {
         nextSchemaConfig = {
           ...currentSchema,
-          reverseLookup: mergeOwnedObjectFields(
+          reverseLookup: replaceOwnedObjectFields(
             currentSchema.reverseLookup,
             schemaUpdates.reverseLookup,
+            DEFAULT_REVERSE_LOOKUP_CONFIG,
             REVERSE_LOOKUP_FIELDS,
           ) as ReverseLookupConfig | undefined,
         }
@@ -1075,14 +1084,16 @@ export function applyModuleYaml(
       if (module === 'comment-hints') {
         nextSchemaConfig = {
           ...currentSchema,
-          translator: mergeOwnedObjectFields(
+          translator: replaceOwnedObjectFields(
             currentSchema.translator,
             schemaUpdates.translator,
+            DEFAULT_TRANSLATOR_CONFIG,
             COMMENT_HINT_TRANSLATOR_FIELDS,
           ),
-          luaExtensions: mergeOwnedObjectFields(
+          luaExtensions: replaceOwnedObjectFields(
             currentSchema.luaExtensions,
             schemaUpdates.luaExtensions,
+            { superComment: DEFAULT_SUPER_COMMENT_CONFIG },
             ['superComment'],
           ),
         }
@@ -1099,9 +1110,10 @@ export function applyModuleYaml(
 
         nextSchemaConfig = {
           ...currentSchema,
-          luaExtensions: mergeOwnedObjectFields(
+          luaExtensions: replaceOwnedObjectFields(
             currentSchema.luaExtensions as LuaExtensionsConfig | undefined,
             schemaUpdates.luaExtensions,
+            {},
             LUA_EXTENSION_FIELDS,
           ),
           specialInput:

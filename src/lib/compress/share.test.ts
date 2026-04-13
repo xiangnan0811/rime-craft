@@ -96,6 +96,55 @@ describe('generateShareUrl', () => {
     expect(payload?.yaml).toContain('"translator/max_word_length": 12')
     expect(payload?.yaml).not.toContain('spelling_hints')
   })
+
+  it('fills missing module-owned artifact slices from project state during share generation', () => {
+    const project = createEmptyProject()
+    project.defaultConfig.pageSize = 8
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: false,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.6,
+        coreWordLength: 4,
+        maxWordLength: 9,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const sourceFiles = {
+      'default.custom.yaml': {
+        id: 'default.custom.yaml',
+        fileName: 'default.custom.yaml',
+        kind: 'default' as const,
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  "menu/page_size": 8
+`,
+      },
+    }
+
+    Object.defineProperty(window, 'location', {
+      value: {
+        origin: 'https://example.com',
+        pathname: '/editor',
+      },
+      configurable: true,
+    })
+
+    const result = generateShareUrl('candidate-settings', project, sourceFiles)
+    const encoded = new URL(result.url).searchParams.get('share')
+    expect(encoded).toBeTruthy()
+
+    const payload = decompressConfig(encoded!)
+    expect(payload?.yaml).toContain('"menu/page_size": 8')
+    expect(payload?.yaml).toContain('translator/enable_completion: false')
+    expect(payload?.yaml).toContain('translator/max_word_length: 9')
+  })
 })
 
 describe('createConfigSnapshot / parseConfigSnapshot', () => {
