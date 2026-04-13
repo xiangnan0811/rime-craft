@@ -12,6 +12,7 @@ import {
 import {
   createSourceFilesFromImport,
   createSourceFilesFromProject,
+  syncSourceFilesWithProject,
 } from './source-files';
 
 describe('source file helpers', () => {
@@ -145,5 +146,19 @@ describe('source file helpers', () => {
         updatedAt: '2026-04-12T08:00:00.000Z',
       },
     });
+  });
+
+  it('falls back to synthesized files when no backing artifact exists', () => {
+    const previousProject = createEmptyProject();
+    const nextProject = createEmptyProject();
+    nextProject.defaultConfig.pageSize = 9;
+
+    const sourceFiles = syncSourceFilesWithProject(
+      previousProject,
+      nextProject,
+      {},
+    );
+
+    expect(sourceFiles).toEqual(createSourceFilesFromProject(nextProject));
   });
 });

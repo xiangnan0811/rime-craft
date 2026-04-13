@@ -3,6 +3,7 @@ import { useConfigStore } from './config-store'
 import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 import { saveWorkspaceSnapshot } from '@/lib/workspace/storage'
 import type { WorkspaceSnapshot } from '@/lib/workspace/types'
+import { importFromYamlString } from '@/features/share/importer'
 
 const createWorkspaceSnapshot = (): WorkspaceSnapshot => ({
   version: 1,
@@ -70,6 +71,36 @@ describe('useConfigStore', () => {
     const state = useConfigStore.getState()
     expect(state.project.defaultConfig.pageSize).toBe(9)
     expect(state.project.defaultConfig.schemaList).toHaveLength(1)
+  })
+
+  it('preserves imported artifact comments and unknown lines during form edits', () => {
+    const imported = importFromYamlString(
+      `patch:
+  # preserve candidate comment
+  "menu/page_size": 5
+  "menu/custom_label": "kept"
+`,
+      'default.custom.yaml',
+    )
+
+    useConfigStore.getState().hydrateWorkspace({
+      version: 1,
+      savedAt: '2026-04-13T00:00:00.000Z',
+      project: imported.project,
+      editorUI: {
+        activeModule: 'candidate-settings',
+        viewMode: 'panel',
+        tutorialCollapsed: false,
+      },
+      sourceFiles: imported.sourceFiles,
+    })
+
+    useConfigStore.getState().updateDefaultConfig({ pageSize: 9 })
+
+    const source = useConfigStore.getState().sourceFiles['default.custom.yaml']
+    expect(source?.content).toContain('# preserve candidate comment')
+    expect(source?.content).toContain('"menu/custom_label": "kept"')
+    expect(source?.content).toContain('"menu/page_size": 9')
   })
 
   it('setSchemaList replaces the schema list', () => {

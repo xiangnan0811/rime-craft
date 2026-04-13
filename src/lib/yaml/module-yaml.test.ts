@@ -7,6 +7,7 @@ import {
 } from './module-yaml'
 import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
+import { rebuildWorkspaceFromSourceFiles } from '@/features/share/importer'
 
 describe('extractModuleYaml', () => {
   it('extracts candidate settings as YAML', () => {
@@ -239,5 +240,41 @@ describe('applyModuleYaml', () => {
     expect(result.sourceFile.content).toContain('"recognizer/patterns/reverse_lookup": "^:[a-z]*$"')
     expect(result.sourceFile.content).toContain('"recognizer/patterns/custom_ip_query": "^/ip$"')
     expect(result.sourceFile.content).toContain('"reverse_lookup/prefix": ":"')
+  })
+
+  it('rebuilds semantic schema state from patched artifacts so deleted YAML keys stay deleted', () => {
+    const sourceFile: PersistedSourceFile = {
+      id: 'luna_pinyin.custom.yaml',
+      fileName: 'luna_pinyin.custom.yaml',
+      kind: 'schema',
+      schemaId: 'luna_pinyin',
+      updatedAt: '2026-04-13T00:00:00.000Z',
+      content: `patch:
+  "translator/spelling_hints": 30
+  "translator/always_show_comments": true
+`,
+    }
+
+    const artifactResult = applyModuleYamlToSourceFile(
+      'comment-hints',
+      `"translator/always_show_comments": false
+`,
+      sourceFile,
+    )
+
+    expect(artifactResult.error).toBeUndefined()
+    expect(artifactResult.sourceFile.content).not.toContain('spelling_hints')
+
+    const rebuilt = rebuildWorkspaceFromSourceFiles({
+      [artifactResult.sourceFile.fileName]: artifactResult.sourceFile,
+    })
+
+    expect(rebuilt.summary.errors).toEqual([])
+    expect(
+      rebuilt.project.schemaConfigs.luna_pinyin?.translator?.spellingHints,
+    ).toBeUndefined()
+    expect(
+      rebuilt.project.schemaConfigs.luna_pinyin?.translator?.alwaysShowComments,
+    ).toBe(false)
   })
 })

@@ -15,6 +15,21 @@ export interface ImportResult {
   summary: { filesProcessed: number; customSettings: number; errors: string[] };
 }
 
+export function rebuildWorkspaceFromSourceFiles(
+  sourceFiles: Record<string, PersistedSourceFile>,
+): ImportResult {
+  const files = Object.values(sourceFiles).map((file) => ({
+    name: file.fileName,
+    content: file.content,
+  }))
+  const result = importFromFiles(files)
+
+  return {
+    ...result,
+    sourceFiles,
+  }
+}
+
 export function importFromYamlString(yamlString: string, fileName: string): ImportResult {
   const project = createEmptyProject()
   const sourceFiles = createSourceFilesFromImport([{ name: fileName, content: yamlString }])

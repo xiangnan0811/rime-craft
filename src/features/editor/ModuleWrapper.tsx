@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfigStore } from '@/stores/config-store'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
+import { rebuildWorkspaceFromSourceFiles } from '@/features/share/importer'
 import {
   extractModuleYaml,
   extractModuleYamlFromSourceFile,
@@ -83,11 +84,19 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
         if (result.error) {
           setParseError(result.error)
         } else {
+          const rebuiltWorkspace = currentSourceFile
+            ? rebuildWorkspaceFromSourceFiles(nextSourceFiles)
+            : undefined
+
+          if (rebuiltWorkspace?.summary.errors.length) {
+            setParseError(rebuiltWorkspace.summary.errors.join('\n'))
+            return
+          }
+
           replaceWorkspace(
-            result.project,
-            currentSourceFile
-              ? nextSourceFiles
-              : createSourceFilesFromProject(result.project),
+            rebuiltWorkspace?.project ?? result.project,
+            rebuiltWorkspace?.sourceFiles ??
+              createSourceFilesFromProject(result.project),
           )
         }
       }, 300)
