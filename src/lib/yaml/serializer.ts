@@ -7,6 +7,10 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function buildReverseLookupPattern(prefix: string): string {
+  return `^${escapeRegExp(prefix)}[a-z]*$`
+}
+
 function serializeFuzzyRuleAlgebra(fuzzyRules: SchemaConfig['fuzzyRules']): string[] {
   const algebraRules: string[] = []
   const seenRules = new Set<string>()
@@ -130,6 +134,23 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
     if (ac.hintEnabled !== undefined) patch['auxiliary_code/show_hint'] = ac.hintEnabled
     if (ac.hintLength !== undefined) patch['auxiliary_code/hint_length'] = ac.hintLength
     if (ac.splitHintEnabled !== undefined) patch['auxiliary_code/split_hint'] = ac.splitHintEnabled
+  }
+
+  if (config.reverseLookup) {
+    const rl = config.reverseLookup
+    patch['reverse_lookup/prefix'] = rl.prefix
+    patch['reverse_lookup/dictionary'] = rl.dictionary
+    patch['reverse_lookup/tips'] = rl.tips
+    patch['reverse_lookup/enable_completion'] = rl.enableCompletion
+    patch['reverse_lookup/preedit_format'] = rl.preeditFormat
+
+    if (rl.prism) {
+      patch['reverse_lookup/prism'] = rl.prism
+    }
+
+    if (rl.prefix) {
+      patch['recognizer/patterns/reverse_lookup'] = buildReverseLookupPattern(rl.prefix)
+    }
   }
 
   // Switches

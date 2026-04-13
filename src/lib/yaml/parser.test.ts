@@ -197,6 +197,36 @@ describe('mapToSchemaConfig', () => {
     expect(config.luaExtensions!.superComment!.correctorType).toBe('pinyin')
   })
 
+  it('maps reverse_lookup fields without treating the built-in recognizer pattern as a custom trigger', () => {
+    const patch = {
+      reverse_lookup: {
+        prefix: 'z',
+        dictionary: 'stroke',
+        tips: '〔笔画〕',
+        enable_completion: true,
+        prism: 'stroke_lookup',
+        preedit_format: ['xlit/hspnz/横竖撇捺折/'],
+      },
+      recognizer: {
+        patterns: {
+          reverse_lookup: '^z[a-z]*$',
+        },
+      },
+    }
+
+    const config = mapToSchemaConfig(patch, 'wanxiang')
+
+    expect(config.reverseLookup).toEqual({
+      prefix: 'z',
+      dictionary: 'stroke',
+      tips: '〔笔画〕',
+      enableCompletion: true,
+      prism: 'stroke_lookup',
+      preeditFormat: ['xlit/hspnz/横竖撇捺折/'],
+    })
+    expect(config.specialInput).toBeUndefined()
+  })
+
   it('maps spelling scheme, auxiliary code, and recoverable fuzzy rules from schema patch', () => {
     const patch = {
       speller: {

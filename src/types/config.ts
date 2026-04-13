@@ -22,7 +22,6 @@ export interface DefaultConfig {
   selectKeys: string;
   asciiComposer: AsciiComposerConfig;
   keyBinder: KeyBinderConfig;
-  horizontal?: boolean;
 }
 
 export interface SchemaListItem {
@@ -86,7 +85,6 @@ export interface SchemaConfig {
   specialInput?: SpecialInputConfig;
   luaExtensions?: LuaExtensionsConfig;
   luaScripts?: LuaScript[];
-  displayConfig?: DisplayConfig;
 }
 
 export interface FuzzyRuleState {
@@ -184,15 +182,13 @@ export interface AuxiliaryCodeConfig {
   splitHintEnabled: boolean;
 }
 
-// ─── Reverse lookup ────────────────────────────────────
-export type ReverseLookupMethod =
-  | 'two_part' | 'multi_part' | 'stroke'
-  | 'tone' | 'auxiliary';
-
 export interface ReverseLookupConfig {
-  triggerKey: string;
-  dataSource: ('aux' | 'db')[];
-  enabledMethods: ReverseLookupMethod[];
+  prefix: string;
+  dictionary: string;
+  tips: string;
+  enableCompletion: boolean;
+  prism?: string;
+  preeditFormat: string[];
 }
 
 // ─── Special input ─────────────────────────────────────
@@ -251,12 +247,6 @@ export interface LuaExtensionsConfig {
   };
 }
 
-// ─── Display config ────────────────────────────────────
-export interface DisplayConfig {
-  horizontal: boolean;
-  commentMode: 'off' | 'toned' | 'toneless';
-  encodingDisplay: 'raw' | 'toned' | 'toneless';
-}
 
 // ─── Editor UI state ────────────────────────────────────
 

@@ -305,6 +305,7 @@ export function mapToSchemaConfig(
   const result: Partial<SchemaConfig> = { schemaId }
   const rawSpeller = expanded.speller as Record<string, unknown> | undefined
   const rawAuxiliaryCode = expanded.auxiliary_code as Record<string, unknown> | undefined
+  const rawReverseLookup = expanded.reverse_lookup as Record<string, unknown> | undefined
 
   if (typeof rawSpeller?.spelling_scheme === 'string') {
     result.spellingScheme = rawSpeller.spelling_scheme as SpellingScheme
@@ -332,6 +333,19 @@ export function mapToSchemaConfig(
       splitHintEnabled:
         (rawAuxiliaryCode.split_hint as boolean) ??
         DEFAULT_AUXILIARY_CODE_CONFIG.splitHintEnabled,
+    }
+  }
+
+  if (rawReverseLookup) {
+    result.reverseLookup = {
+      prefix: (rawReverseLookup.prefix as string) ?? '',
+      dictionary: (rawReverseLookup.dictionary as string) ?? '',
+      tips: (rawReverseLookup.tips as string) ?? '',
+      enableCompletion: (rawReverseLookup.enable_completion as boolean) ?? false,
+      ...(typeof rawReverseLookup.prism === 'string' ? { prism: rawReverseLookup.prism } : {}),
+      preeditFormat: Array.isArray(rawReverseLookup.preedit_format)
+        ? rawReverseLookup.preedit_format.filter((value): value is string => typeof value === 'string')
+        : [],
     }
   }
 
@@ -424,6 +438,7 @@ export function mapToSchemaConfig(
 
   // Extract custom triggers from recognizer/patterns entries not matching presets
   const presetIds = new Set(SPECIAL_TRIGGER_DEFINITIONS.map((d) => d.id))
+  const reservedRecognizerPatternIds = new Set(['reverse_lookup'])
   const customTriggers: CustomTrigger[] = []
 
   // Flat patch-style keys: "recognizer/patterns/my_trigger": "^/xyz$"
@@ -431,7 +446,7 @@ export function mapToSchemaConfig(
     const match = key.match(/^recognizer\/patterns\/(.+)$/)
     if (!match) continue
     const patternId = match[1]!
-    if (presetIds.has(patternId)) continue
+    if (presetIds.has(patternId) || reservedRecognizerPatternIds.has(patternId)) continue
     if (typeof value !== 'string') continue
     const triggerCode = value.replace(/^\^/, '').replace(/\$$/, '')
     customTriggers.push({
@@ -448,7 +463,7 @@ export function mapToSchemaConfig(
   const nestedPatterns = nestedRecognizer?.patterns as Record<string, unknown> | undefined
   if (nestedPatterns) {
     for (const [patternId, value] of Object.entries(nestedPatterns)) {
-      if (presetIds.has(patternId)) continue
+      if (presetIds.has(patternId) || reservedRecognizerPatternIds.has(patternId)) continue
       if (typeof value !== 'string') continue
       if (customTriggers.some((t) => t.name === patternId)) continue
       const triggerCode = value.replace(/^\^/, '').replace(/\$$/, '')
@@ -475,4 +490,4 @@ export function mapToSchemaConfig(
   return result
 }
 
-export const KNOWN_SCHEMA_KEYS = ['speller', 'auxiliary_code', 'switches', 'punctuator', 'translator', 'engine', 'super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics']
+export const KNOWN_SCHEMA_KEYS = ['speller', 'auxiliary_code', 'reverse_lookup', 'switches', 'punctuator', 'translator', 'recognizer', 'engine', 'super_comment', 'super_processor', 'user_predict', 'super_replacer', 'input_statistics']

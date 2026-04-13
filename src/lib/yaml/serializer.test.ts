@@ -256,6 +256,31 @@ describe('serializeSchemaConfig', () => {
       'derive/iang$/ian/',
     ])
   })
+
+  it('serializes reverse_lookup fields and the derived recognizer pattern', () => {
+    const config: SchemaConfig = {
+      schemaId: 'wanxiang',
+      fuzzyRules: [],
+      reverseLookup: {
+        prefix: 'z',
+        dictionary: 'stroke',
+        tips: '〔笔画〕',
+        enableCompletion: true,
+        prism: 'stroke_lookup',
+        preeditFormat: ['xlit/hspnz/横竖撇捺折/'],
+      },
+    }
+
+    const patch = serializeSchemaConfig(config)
+
+    expect(patch['reverse_lookup/prefix']).toBe('z')
+    expect(patch['reverse_lookup/dictionary']).toBe('stroke')
+    expect(patch['reverse_lookup/tips']).toBe('〔笔画〕')
+    expect(patch['reverse_lookup/enable_completion']).toBe(true)
+    expect(patch['reverse_lookup/prism']).toBe('stroke_lookup')
+    expect(patch['reverse_lookup/preedit_format']).toEqual(['xlit/hspnz/横竖撇捺折/'])
+    expect(patch['recognizer/patterns/reverse_lookup']).toBe('^z[a-z]*$')
+  })
 })
 
 describe('buildCustomYaml', () => {

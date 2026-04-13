@@ -4,16 +4,19 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { SettingHelp } from '@/components/shared/SettingHelp'
+import { DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 
 export function CandidateDisplay() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
   const schemaConfigs = useConfigStore((s) => s.project.schemaConfigs)
+  const themeStyle = useConfigStore((s) => s.project.platformConfig.style)
   const updateSchemaConfig = useConfigStore((s) => s.updateSchemaConfig)
-  const defaultHorizontal = useConfigStore((s) => s.project.defaultConfig.horizontal)
-  const updateDefaultConfig = useConfigStore((s) => s.updateDefaultConfig)
+  const setThemeStyle = useConfigStore((s) => s.setThemeStyle)
+  const updateThemeLayout = useConfigStore((s) => s.updateThemeLayout)
 
   const primarySchemaId = schemaList[0]?.schema ?? ''
   const translator = schemaConfigs[primarySchemaId]?.translator
+  const horizontal = themeStyle?.horizontal ?? false
 
   if (!primarySchemaId) {
     return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
@@ -30,6 +33,17 @@ export function CandidateDisplay() {
     maxHomographs: 8,
     spellingHints: 30,
     alwaysShowComments: true,
+  }
+
+  function updateHorizontal(nextHorizontal: boolean) {
+    if (themeStyle) {
+      updateThemeLayout({ horizontal: nextHorizontal })
+      return
+    }
+
+    if (nextHorizontal) {
+      setThemeStyle({ ...DEFAULT_THEME_STYLE, horizontal: true })
+    }
   }
 
   return (
@@ -56,10 +70,10 @@ export function CandidateDisplay() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">
-              {defaultHorizontal ? '横排' : '竖排'}
+              {horizontal ? '横排' : '竖排'}
             </span>
-            <Switch checked={defaultHorizontal ?? false}
-              onCheckedChange={(v) => updateDefaultConfig({ horizontal: v })} />
+            <Switch checked={horizontal}
+              onCheckedChange={updateHorizontal} />
           </div>
         </div>
         <div>
