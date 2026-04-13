@@ -189,7 +189,21 @@ export interface ReverseLookupConfig {
   enableCompletion: boolean;
   prism?: string;
   preeditFormat: string[];
+  recognizerPattern?: string;
 }
+
+export interface SuperCommentConfig {
+  candidateLength: number;
+  correctorType: string;
+}
+
+export const DEFAULT_SUPER_COMMENT_CONFIG: SuperCommentConfig = {
+  candidateLength: 2,
+  correctorType: '〔纠错〕',
+}
+
+export const SUPER_COMMENT_CANDIDATE_LENGTH_MIN = 1
+export const SUPER_COMMENT_CANDIDATE_LENGTH_MAX = 50
 
 // ─── Special input ─────────────────────────────────────
 export interface SpecialTrigger {
@@ -223,10 +237,7 @@ export interface LuaScript {
 
 // ─── Lua extensions ────────────────────────────────────
 export interface LuaExtensionsConfig {
-  superComment?: {
-    candidateLength: number;
-    correctorType: string;
-  };
+  superComment?: SuperCommentConfig;
   superProcessor?: {
     backspaceLimit: boolean;
     segLoop: boolean;

@@ -7,6 +7,14 @@ import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { SettingHelp } from '@/components/shared/SettingHelp'
 import type { ReverseLookupConfig } from '@/types/config'
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function buildReverseLookupPattern(prefix: string): string {
+  return `^${escapeRegExp(prefix)}[a-z]*$`
+}
+
 const DEFAULT_CONFIG: ReverseLookupConfig = {
   prefix: '`',
   dictionary: 'stroke',
@@ -22,6 +30,7 @@ export function ReverseLookup() {
 
   const primarySchemaId = schemaList[0]?.schema ?? ''
   const config = schemaConfigs[primarySchemaId]?.reverseLookup ?? DEFAULT_CONFIG
+  const derivedRecognizerPattern = buildReverseLookupPattern(config.prefix)
 
   function update(partial: Partial<ReverseLookupConfig>) {
     updateSchemaConfig(primarySchemaId, { reverseLookup: { ...config, ...partial } })
@@ -48,7 +57,7 @@ export function ReverseLookup() {
             <Label>触发前缀</Label>
             <SettingHelp>
               <p><code>reverse_lookup/prefix</code> 是进入反查模式的前缀字符或前缀串。</p>
-              <p>保存时会自动同步生成 <code>recognizer/patterns/reverse_lookup</code>。</p>
+              <p>留空识别正则时，保存会按前缀自动推导 <code>recognizer/patterns/reverse_lookup</code>。</p>
             </SettingHelp>
           </div>
           <Input
@@ -57,6 +66,25 @@ export function ReverseLookup() {
             onChange={(e) => update({ prefix: e.target.value })}
           />
           <p className="mt-1 text-sm text-gray-500">例如 <code>`</code>、<code>z</code> 或 <code>/stroke</code></p>
+        </div>
+
+        <div>
+          <div className="flex flex-wrap items-center gap-x-1.5">
+            <Label>识别正则</Label>
+            <SettingHelp>
+              <p><code>recognizer/patterns/reverse_lookup</code> 决定哪些输入会被识别为反查序列。</p>
+              <p>留空时按当前前缀自动生成；填写后会按原样保存，适合保留非默认匹配规则。</p>
+            </SettingHelp>
+          </div>
+          <Input
+            className="mt-1"
+            value={config.recognizerPattern ?? ''}
+            placeholder={derivedRecognizerPattern}
+            onChange={(e) => update({ recognizerPattern: e.target.value || undefined })}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            留空将使用默认值 <code>{derivedRecognizerPattern}</code>
+          </p>
         </div>
 
         <div>

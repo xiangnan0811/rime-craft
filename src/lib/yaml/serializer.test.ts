@@ -281,6 +281,26 @@ describe('serializeSchemaConfig', () => {
     expect(patch['reverse_lookup/preedit_format']).toEqual(['xlit/hspnz/横竖撇捺折/'])
     expect(patch['recognizer/patterns/reverse_lookup']).toBe('^z[a-z]*$')
   })
+
+  it('preserves an explicit reverse_lookup recognizer pattern instead of regenerating it from prefix', () => {
+    const config = {
+      schemaId: 'wanxiang',
+      fuzzyRules: [],
+      reverseLookup: {
+        prefix: 'z',
+        dictionary: 'stroke',
+        tips: '〔笔画〕',
+        enableCompletion: true,
+        preeditFormat: [],
+        recognizerPattern: '^;[0-9]*$',
+      },
+    } as unknown as SchemaConfig
+
+    const patch = serializeSchemaConfig(config)
+
+    expect(patch['reverse_lookup/prefix']).toBe('z')
+    expect(patch['recognizer/patterns/reverse_lookup']).toBe('^;[0-9]*$')
+  })
 })
 
 describe('buildCustomYaml', () => {

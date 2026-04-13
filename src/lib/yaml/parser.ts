@@ -14,6 +14,7 @@ import type {
   FuzzyRuleState,
   SpellingScheme,
 } from '@/types/config'
+import { DEFAULT_SUPER_COMMENT_CONFIG } from '@/types/config'
 import { bgrIntToHex } from '@/lib/color/convert'
 import { SPECIAL_TRIGGER_DEFINITIONS } from '@/data/special-trigger-definitions'
 import { FUZZY_RULE_DEFINITIONS } from '@/data/fuzzy-rules'
@@ -78,6 +79,10 @@ function setNestedValue(
     current = current[key] as Record<string, unknown>
   }
   current[path[path.length - 1]!] = value
+}
+
+function hasOwn(object: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(object, key)
 }
 
 const DEFAULT_AUXILIARY_CODE_CONFIG: AuxiliaryCodeConfig = {
@@ -306,6 +311,13 @@ export function mapToSchemaConfig(
   const rawSpeller = expanded.speller as Record<string, unknown> | undefined
   const rawAuxiliaryCode = expanded.auxiliary_code as Record<string, unknown> | undefined
   const rawReverseLookup = expanded.reverse_lookup as Record<string, unknown> | undefined
+  const recognizerPatterns = (expanded.recognizer as Record<string, unknown> | undefined)
+    ?.patterns as Record<string, unknown> | undefined
+  const reverseLookupRecognizerPattern = typeof recognizerPatterns?.reverse_lookup === 'string'
+    ? recognizerPatterns.reverse_lookup
+    : typeof expanded['recognizer/patterns/reverse_lookup'] === 'string'
+      ? expanded['recognizer/patterns/reverse_lookup']
+      : undefined
 
   if (typeof rawSpeller?.spelling_scheme === 'string') {
     result.spellingScheme = rawSpeller.spelling_scheme as SpellingScheme
@@ -336,16 +348,38 @@ export function mapToSchemaConfig(
     }
   }
 
-  if (rawReverseLookup) {
-    result.reverseLookup = {
-      prefix: (rawReverseLookup.prefix as string) ?? '',
-      dictionary: (rawReverseLookup.dictionary as string) ?? '',
-      tips: (rawReverseLookup.tips as string) ?? '',
-      enableCompletion: (rawReverseLookup.enable_completion as boolean) ?? false,
-      ...(typeof rawReverseLookup.prism === 'string' ? { prism: rawReverseLookup.prism } : {}),
-      preeditFormat: Array.isArray(rawReverseLookup.preedit_format)
-        ? rawReverseLookup.preedit_format.filter((value): value is string => typeof value === 'string')
-        : [],
+  if (rawReverseLookup || reverseLookupRecognizerPattern) {
+    const reverseLookup: Partial<NonNullable<SchemaConfig['reverseLookup']>> = {}
+
+    if (rawReverseLookup) {
+      if (hasOwn(rawReverseLookup, 'prefix')) {
+        reverseLookup.prefix = (rawReverseLookup.prefix as string) ?? ''
+      }
+      if (hasOwn(rawReverseLookup, 'dictionary')) {
+        reverseLookup.dictionary = (rawReverseLookup.dictionary as string) ?? ''
+      }
+      if (hasOwn(rawReverseLookup, 'tips')) {
+        reverseLookup.tips = (rawReverseLookup.tips as string) ?? ''
+      }
+      if (hasOwn(rawReverseLookup, 'enable_completion')) {
+        reverseLookup.enableCompletion = (rawReverseLookup.enable_completion as boolean) ?? false
+      }
+      if (hasOwn(rawReverseLookup, 'preedit_format')) {
+        reverseLookup.preeditFormat = Array.isArray(rawReverseLookup.preedit_format)
+          ? rawReverseLookup.preedit_format.filter((value): value is string => typeof value === 'string')
+          : []
+      }
+      if (typeof rawReverseLookup.prism === 'string') {
+        reverseLookup.prism = rawReverseLookup.prism
+      }
+    }
+
+    if (reverseLookupRecognizerPattern) {
+      reverseLookup.recognizerPattern = reverseLookupRecognizerPattern
+    }
+
+    if (Object.keys(reverseLookup).length > 0) {
+      result.reverseLookup = reverseLookup as NonNullable<SchemaConfig['reverseLookup']>
     }
   }
 
@@ -380,17 +414,40 @@ export function mapToSchemaConfig(
   // Translator
   const rawTranslator = expanded.translator as Record<string, unknown> | undefined
   if (rawTranslator) {
-    result.translator = {
-      enableCompletion: (rawTranslator.enable_completion as boolean) ?? false,
-      enableSentence: (rawTranslator.enable_sentence as boolean) ?? true,
-      enableUserDict: (rawTranslator.enable_user_dict as boolean) ?? true,
-      initialQuality: (rawTranslator.initial_quality as number) ?? 1.2,
-      coreWordLength: (rawTranslator.core_word_length as number) ?? 4,
-      maxWordLength: (rawTranslator.max_word_length as number) ?? 7,
-      maxHomophones: (rawTranslator.max_homophones as number) ?? 1,
-      maxHomographs: (rawTranslator.max_homographs as number) ?? 1,
-      spellingHints: (rawTranslator.spelling_hints as number) ?? 0,
-      alwaysShowComments: (rawTranslator.always_show_comments as boolean) ?? false,
+    const translator: Partial<NonNullable<SchemaConfig['translator']>> = {}
+    if (hasOwn(rawTranslator, 'enable_completion')) {
+      translator.enableCompletion = (rawTranslator.enable_completion as boolean) ?? false
+    }
+    if (hasOwn(rawTranslator, 'enable_sentence')) {
+      translator.enableSentence = (rawTranslator.enable_sentence as boolean) ?? true
+    }
+    if (hasOwn(rawTranslator, 'enable_user_dict')) {
+      translator.enableUserDict = (rawTranslator.enable_user_dict as boolean) ?? true
+    }
+    if (hasOwn(rawTranslator, 'initial_quality')) {
+      translator.initialQuality = (rawTranslator.initial_quality as number) ?? 1.2
+    }
+    if (hasOwn(rawTranslator, 'core_word_length')) {
+      translator.coreWordLength = (rawTranslator.core_word_length as number) ?? 4
+    }
+    if (hasOwn(rawTranslator, 'max_word_length')) {
+      translator.maxWordLength = (rawTranslator.max_word_length as number) ?? 7
+    }
+    if (hasOwn(rawTranslator, 'max_homophones')) {
+      translator.maxHomophones = (rawTranslator.max_homophones as number) ?? 1
+    }
+    if (hasOwn(rawTranslator, 'max_homographs')) {
+      translator.maxHomographs = (rawTranslator.max_homographs as number) ?? 1
+    }
+    if (hasOwn(rawTranslator, 'spelling_hints')) {
+      translator.spellingHints = (rawTranslator.spelling_hints as number) ?? 0
+    }
+    if (hasOwn(rawTranslator, 'always_show_comments')) {
+      translator.alwaysShowComments = (rawTranslator.always_show_comments as boolean) ?? false
+    }
+
+    if (Object.keys(translator).length > 0) {
+      result.translator = translator as SchemaConfig['translator']
     }
   }
 
@@ -403,9 +460,20 @@ export function mapToSchemaConfig(
   if (rawSuperComment || rawSuperProcessor || rawUserPredict || rawSuperReplacer || rawInputStatistics) {
     result.luaExtensions = {}
     if (rawSuperComment) {
-      result.luaExtensions.superComment = {
-        candidateLength: (rawSuperComment.candidate_length as number) ?? 2,
-        correctorType: (rawSuperComment.corrector_type as string) ?? '〔纠错〕',
+      const superComment: Partial<NonNullable<NonNullable<SchemaConfig['luaExtensions']>['superComment']>> = {}
+      if (hasOwn(rawSuperComment, 'candidate_length')) {
+        superComment.candidateLength =
+          (rawSuperComment.candidate_length as number) ??
+          DEFAULT_SUPER_COMMENT_CONFIG.candidateLength
+      }
+      if (hasOwn(rawSuperComment, 'corrector_type')) {
+        superComment.correctorType =
+          (rawSuperComment.corrector_type as string) ??
+          DEFAULT_SUPER_COMMENT_CONFIG.correctorType
+      }
+      if (Object.keys(superComment).length > 0) {
+        result.luaExtensions.superComment =
+          superComment as NonNullable<NonNullable<SchemaConfig['luaExtensions']>['superComment']>
       }
     }
     if (rawSuperProcessor) {

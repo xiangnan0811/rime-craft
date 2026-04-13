@@ -223,6 +223,36 @@ describe('mapToSchemaConfig', () => {
       enableCompletion: true,
       prism: 'stroke_lookup',
       preeditFormat: ['xlit/hspnz/横竖撇捺折/'],
+      recognizerPattern: '^z[a-z]*$',
+    })
+    expect(config.specialInput).toBeUndefined()
+  })
+
+  it('preserves a non-derived reverse_lookup recognizer pattern on the config surface', () => {
+    const patch = {
+      reverse_lookup: {
+        prefix: 'z',
+        dictionary: 'stroke',
+        tips: '〔笔画〕',
+        enable_completion: true,
+        preedit_format: [],
+      },
+      recognizer: {
+        patterns: {
+          reverse_lookup: '^;[0-9]*$',
+        },
+      },
+    }
+
+    const config = mapToSchemaConfig(patch, 'wanxiang')
+
+    expect(config.reverseLookup).toEqual({
+      prefix: 'z',
+      dictionary: 'stroke',
+      tips: '〔笔画〕',
+      enableCompletion: true,
+      preeditFormat: [],
+      recognizerPattern: '^;[0-9]*$',
     })
     expect(config.specialInput).toBeUndefined()
   })

@@ -148,7 +148,9 @@ export function serializeSchemaConfig(config: SchemaConfig): Record<string, unkn
       patch['reverse_lookup/prism'] = rl.prism
     }
 
-    if (rl.prefix) {
+    if (rl.recognizerPattern) {
+      patch['recognizer/patterns/reverse_lookup'] = rl.recognizerPattern
+    } else if (rl.prefix) {
       patch['recognizer/patterns/reverse_lookup'] = buildReverseLookupPattern(rl.prefix)
     }
   }
