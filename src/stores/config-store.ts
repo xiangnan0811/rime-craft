@@ -102,7 +102,7 @@ interface ConfigState {
     id: string,
     partial: Partial<Omit<LuaScript, 'id'>>,
   ) => void
-  deleteLuaScript: (schemaId: string, id: string) => void
+  deleteLuaScript: (schemaId: string, id: string) => boolean
 }
 
 export const useConfigStore = create<ConfigState>((set, get) => {
@@ -525,7 +525,11 @@ export const useConfigStore = create<ConfigState>((set, get) => {
     deleteLuaScript: (schemaId, id) => {
       const state = get()
       const existing = state.project.schemaConfigs[schemaId]
-      if (!existing?.luaScripts) return
+      if (!existing?.luaScripts) return false
+      const isReferenced = (existing.specialInput?.customTriggers ?? []).some(
+        (trigger) => trigger.scriptId === id,
+      )
+      if (isReferenced) return false
       const project = {
         ...state.project,
         schemaConfigs: {
@@ -537,6 +541,7 @@ export const useConfigStore = create<ConfigState>((set, get) => {
         },
       }
       updateProjectWorkspace(project)
+      return true
     },
   }
 })

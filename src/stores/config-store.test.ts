@@ -342,8 +342,37 @@ describe('useConfigStore', () => {
         fileName: 'x.lua', scriptType: 'processor', description: '', code: '',
       })
       const id = useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts![0]!.id
-      useConfigStore.getState().deleteLuaScript('rime_ice', id)
+      expect(useConfigStore.getState().deleteLuaScript('rime_ice', id)).toBe(true)
       expect(useConfigStore.getState().project.schemaConfigs['rime_ice']!.luaScripts).toHaveLength(0)
+    })
+
+    it('refuses to delete a Lua script that is still referenced by a custom trigger', () => {
+      const store = useConfigStore.getState()
+      store.addLuaScript('rime_ice', {
+        fileName: 'my_translator.lua',
+        scriptType: 'translator',
+        description: '',
+        code: '',
+      })
+
+      const scriptId =
+        useConfigStore.getState().project.schemaConfigs.rime_ice?.luaScripts?.[0]?.id
+      if (!scriptId) {
+        throw new Error('expected script id to exist')
+      }
+
+      store.addCustomTrigger('rime_ice', {
+        name: 'IP 查询',
+        triggerCode: '/ip',
+        description: '',
+        scriptId,
+      })
+
+      const deleted = store.deleteLuaScript('rime_ice', scriptId)
+      expect(deleted).toBe(false)
+      expect(
+        useConfigStore.getState().project.schemaConfigs.rime_ice?.luaScripts,
+      ).toHaveLength(1)
     })
   })
 })

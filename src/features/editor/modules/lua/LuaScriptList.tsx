@@ -41,7 +41,11 @@ export function LuaScriptList({ schemaId }: LuaScriptListProps) {
 
   function handleDelete(id: string) {
     if (window.confirm('确定删除此脚本吗？关联的自定义触发器将失效。')) {
-      deleteLuaScript(schemaId, id)
+      const deleted = deleteLuaScript(schemaId, id)
+      if (!deleted) {
+        window.alert('该脚本仍被自定义触发器引用，请先移除关联触发器后再删除。')
+        return
+      }
       if (selectedId === id) setSelectedId(null)
     }
   }
@@ -95,6 +99,7 @@ export function LuaScriptList({ schemaId }: LuaScriptListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  aria-label={`删除 ${script.fileName}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     handleDelete(script.id)
