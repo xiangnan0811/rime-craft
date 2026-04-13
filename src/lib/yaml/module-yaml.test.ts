@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
-  extractModuleYaml,
   applyModuleYaml,
+  applyModuleYamlToWorkspace,
   extractModuleYamlFromSourceFile,
+  extractModuleYaml,
+  extractModuleYamlFromWorkspace,
   applyModuleYamlToSourceFile,
 } from './module-yaml'
 import { createEmptyProject, DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
-import { rebuildWorkspaceFromSourceFiles } from '@/features/share/importer'
+import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 
 describe('extractModuleYaml', () => {
   it('extracts candidate settings as YAML', () => {
@@ -137,16 +139,96 @@ describe('extractModuleYaml', () => {
     expect(yaml).toContain('"reverse_lookup/prefix": "z"')
     expect(yaml).not.toContain('custom_ip_query')
   })
+
+  it('combines candidate-settings YAML from default and schema artifacts in workspace order', () => {
+    const project = createEmptyProject()
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: false,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.8,
+        coreWordLength: 5,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+
+    const sourceFiles = {
+      'default.custom.yaml': {
+        id: 'default.custom.yaml',
+        fileName: 'default.custom.yaml',
+        kind: 'default' as const,
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  "menu/page_size": 9
+`,
+      },
+      'luna_pinyin.custom.yaml': {
+        id: 'luna_pinyin.custom.yaml',
+        fileName: 'luna_pinyin.custom.yaml',
+        kind: 'schema' as const,
+        schemaId: 'luna_pinyin',
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  "translator/enable_completion": false
+  "translator/initial_quality": 1.8
+  "translator/spelling_hints": 30
+`,
+      },
+    }
+
+    const yaml = extractModuleYamlFromWorkspace('candidate-settings', project, sourceFiles)
+
+    expect(yaml).toContain('"menu/page_size": 9')
+    expect(yaml).toContain('"translator/enable_completion": false')
+    expect(yaml).toContain('"translator/initial_quality": 1.8')
+    expect(yaml).not.toContain('spelling_hints')
+  })
 })
 
 describe('applyModuleYaml', () => {
   it('applies candidate settings from YAML', () => {
     const project = createEmptyProject()
-    const yaml = 'menu/page_size: 7\nmenu/alternative_select_keys: ASDFGHJKL'
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: true,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.2,
+        coreWordLength: 4,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const yaml = `menu/page_size: 7
+menu/alternative_select_keys: ASDFGHJKL
+translator/enable_completion: false
+translator/max_word_length: 12
+`
     const result = applyModuleYaml('candidate-settings', yaml, project)
     expect(result.error).toBeUndefined()
     expect(result.project.defaultConfig.pageSize).toBe(7)
     expect(result.project.defaultConfig.selectKeys).toBe('ASDFGHJKL')
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.enableCompletion,
+    ).toBe(false)
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.maxWordLength,
+    ).toBe(12)
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.spellingHints,
+    ).toBe(30)
   })
 
   it('applies custom phrases from TSV', () => {
@@ -242,39 +324,145 @@ describe('applyModuleYaml', () => {
     expect(result.sourceFile.content).toContain('"reverse_lookup/prefix": ":"')
   })
 
-  it('rebuilds semantic schema state from patched artifacts so deleted YAML keys stay deleted', () => {
-    const sourceFile: PersistedSourceFile = {
-      id: 'luna_pinyin.custom.yaml',
-      fileName: 'luna_pinyin.custom.yaml',
-      kind: 'schema',
+  it('applies comment-hints through workspace state without rebuilding unrelated semantic fields', () => {
+    const project = createEmptyProject()
+    project.schemaConfigs.luna_pinyin = {
       schemaId: 'luna_pinyin',
-      updatedAt: '2026-04-13T00:00:00.000Z',
-      content: `patch:
-  "translator/spelling_hints": 30
-  "translator/always_show_comments": true
-`,
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: true,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.2,
+        coreWordLength: 4,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+      luaScripts: [{
+        id: 'script-1',
+        fileName: 'ip_query.lua',
+        scriptType: 'translator',
+        description: 'Preserve me',
+        code: '-- lua',
+      }],
     }
+    const sourceFiles = createSourceFilesFromProject(project)
 
-    const artifactResult = applyModuleYamlToSourceFile(
+    const result = applyModuleYamlToWorkspace(
       'comment-hints',
       `"translator/always_show_comments": false
 `,
-      sourceFile,
+      project,
+      sourceFiles,
     )
 
-    expect(artifactResult.error).toBeUndefined()
-    expect(artifactResult.sourceFile.content).not.toContain('spelling_hints')
-
-    const rebuilt = rebuildWorkspaceFromSourceFiles({
-      [artifactResult.sourceFile.fileName]: artifactResult.sourceFile,
-    })
-
-    expect(rebuilt.summary.errors).toEqual([])
+    expect(result.error).toBeUndefined()
     expect(
-      rebuilt.project.schemaConfigs.luna_pinyin?.translator?.spellingHints,
+      result.project.schemaConfigs.luna_pinyin?.translator?.spellingHints,
     ).toBeUndefined()
     expect(
-      rebuilt.project.schemaConfigs.luna_pinyin?.translator?.alwaysShowComments,
+      result.project.schemaConfigs.luna_pinyin?.translator?.alwaysShowComments,
     ).toBe(false)
+    expect(result.project.schemaConfigs.luna_pinyin?.luaScripts).toEqual(
+      project.schemaConfigs.luna_pinyin?.luaScripts,
+    )
+    expect(result.sourceFiles['luna_pinyin.custom.yaml']?.content).not.toContain(
+      'spelling_hints',
+    )
+  })
+
+  it('patches candidate-settings across both default and schema artifacts', () => {
+    const project = createEmptyProject()
+    project.defaultConfig.pageSize = 9
+    project.defaultConfig.selectKeys = '123456789'
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: true,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.2,
+        coreWordLength: 4,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+
+    const result = applyModuleYamlToWorkspace(
+      'candidate-settings',
+      `menu/page_size: 6
+translator/enable_completion: false
+`,
+      project,
+      sourceFiles,
+    )
+
+    expect(result.error).toBeUndefined()
+    expect(result.project.defaultConfig.pageSize).toBe(6)
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.translator?.enableCompletion,
+    ).toBe(false)
+    expect(result.sourceFiles['default.custom.yaml']?.content).toContain(
+      'menu/page_size: 6',
+    )
+    expect(result.sourceFiles['luna_pinyin.custom.yaml']?.content).toContain(
+      'translator/enable_completion: false',
+    )
+  })
+
+  it('preserves custom trigger metadata while syncing lua-extensions recognizer edits', () => {
+    const project = createEmptyProject()
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      specialInput: {
+        enabledTriggers: [],
+        customTriggers: [{
+          id: 'trigger-1',
+          name: 'IP 查询',
+          triggerCode: '/ip',
+          description: '保留描述',
+          scriptId: 'script-1',
+        }],
+      },
+      luaScripts: [{
+        id: 'script-1',
+        fileName: 'ip_query.lua',
+        scriptType: 'translator',
+        description: '保留脚本',
+        code: '-- lua',
+      }],
+    }
+    const sourceFiles = createSourceFilesFromProject(project)
+
+    const result = applyModuleYamlToWorkspace(
+      'lua-extensions',
+      `"recognizer/patterns/ip_query": "^/ipx$"
+`,
+      project,
+      sourceFiles,
+    )
+
+    expect(result.error).toBeUndefined()
+    expect(
+      result.project.schemaConfigs.luna_pinyin?.specialInput?.customTriggers,
+    ).toEqual([{
+      id: 'trigger-1',
+      name: 'IP 查询',
+      triggerCode: '/ipx',
+      description: '保留描述',
+      scriptId: 'script-1',
+    }])
+    expect(result.project.schemaConfigs.luna_pinyin?.luaScripts).toEqual(
+      project.schemaConfigs.luna_pinyin?.luaScripts,
+    )
   })
 })

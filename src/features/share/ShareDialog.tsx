@@ -30,7 +30,7 @@ export function ShareDialog() {
   const [importFeedback, setImportFeedback] = useState('')
 
   function handleGenerateUrl() {
-    const result = generateShareUrl(activeModule, project)
+    const result = generateShareUrl(activeModule, project, sourceFiles)
     setShareUrl(result.url)
     setUrlWarning(result.warning)
     setCopied(false)

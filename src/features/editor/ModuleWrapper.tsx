@@ -1,14 +1,9 @@
 import { useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfigStore } from '@/stores/config-store'
-import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
-import { rebuildWorkspaceFromSourceFiles } from '@/features/share/importer'
 import {
-  extractModuleYaml,
-  extractModuleYamlFromSourceFile,
-  applyModuleYaml,
-  applyModuleYamlToSourceFile,
-  resolveModuleSourceFile,
+  applyModuleYamlToWorkspace,
+  extractModuleYamlFromWorkspace,
 } from '@/lib/yaml/module-yaml'
 
 const YamlEditor = lazy(() =>
@@ -34,12 +29,7 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
     (value: string) => {
       if (value === 'yaml') {
         sourceRef.current = 'form'
-        const sourceFile = resolveModuleSourceFile(module, project, sourceFiles)
-        setYamlValue(
-          sourceFile
-            ? extractModuleYamlFromSourceFile(module, sourceFile)
-            : extractModuleYaml(module, project),
-        )
+        setYamlValue(extractModuleYamlFromWorkspace(module, project, sourceFiles))
         setParseError(undefined)
       }
     },
@@ -56,48 +46,16 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
       debounceRef.current = setTimeout(() => {
         sourceRef.current = 'yaml'
         const state = useConfigStore.getState()
-        const currentSourceFile = resolveModuleSourceFile(
+        const result = applyModuleYamlToWorkspace(
           module,
+          value,
           state.project,
           state.sourceFiles,
         )
-
-        let nextSourceFiles = state.sourceFiles
-        if (currentSourceFile) {
-          const artifactResult = applyModuleYamlToSourceFile(
-            module,
-            value,
-            currentSourceFile,
-          )
-          if (artifactResult.error) {
-            setParseError(artifactResult.error)
-            return
-          }
-
-          nextSourceFiles = {
-            ...state.sourceFiles,
-            [artifactResult.sourceFile.fileName]: artifactResult.sourceFile,
-          }
-        }
-
-        const result = applyModuleYaml(module, value, state.project)
         if (result.error) {
           setParseError(result.error)
         } else {
-          const rebuiltWorkspace = currentSourceFile
-            ? rebuildWorkspaceFromSourceFiles(nextSourceFiles)
-            : undefined
-
-          if (rebuiltWorkspace?.summary.errors.length) {
-            setParseError(rebuiltWorkspace.summary.errors.join('\n'))
-            return
-          }
-
-          replaceWorkspace(
-            rebuiltWorkspace?.project ?? result.project,
-            rebuiltWorkspace?.sourceFiles ??
-              createSourceFilesFromProject(result.project),
-          )
+          replaceWorkspace(result.project, result.sourceFiles)
         }
       }, 300)
     },

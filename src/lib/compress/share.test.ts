@@ -3,6 +3,7 @@ import {
   compressConfig,
   decompressConfig,
   createConfigSnapshot,
+  generateShareUrl,
   parseConfigSnapshot,
 } from './share'
 import { createEmptyProject } from '@/lib/config/defaults'
@@ -26,6 +27,74 @@ describe('compressConfig / decompressConfig', () => {
     // Should not contain characters that need URL encoding
     expect(compressed).not.toContain(' ')
     expect(compressed).not.toContain('#')
+  })
+})
+
+describe('generateShareUrl', () => {
+  it('uses artifact-backed extraction for multi-file candidate-settings shares', () => {
+    const project = createEmptyProject()
+    project.schemaConfigs.luna_pinyin = {
+      schemaId: 'luna_pinyin',
+      fuzzyRules: [],
+      translator: {
+        enableCompletion: true,
+        enableSentence: true,
+        enableUserDict: true,
+        initialQuality: 1.2,
+        coreWordLength: 4,
+        maxWordLength: 7,
+        maxHomophones: 8,
+        maxHomographs: 8,
+        spellingHints: 30,
+        alwaysShowComments: true,
+      },
+    }
+    const sourceFiles = {
+      ...createSourceFilesFromProject(project),
+      'default.custom.yaml': {
+        id: 'default.custom.yaml',
+        fileName: 'default.custom.yaml',
+        kind: 'default' as const,
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  # preserve artifact menu slice
+  "menu/page_size": 9
+`,
+      },
+      'luna_pinyin.custom.yaml': {
+        id: 'luna_pinyin.custom.yaml',
+        fileName: 'luna_pinyin.custom.yaml',
+        kind: 'schema' as const,
+        schemaId: 'luna_pinyin',
+        updatedAt: '2026-04-13T00:00:00.000Z',
+        content: `patch:
+  "translator/enable_completion": false
+  "translator/max_word_length": 12
+  "translator/spelling_hints": 30
+`,
+      },
+    }
+
+    Object.defineProperty(window, 'location', {
+      value: {
+        origin: 'https://example.com',
+        pathname: '/editor',
+      },
+      configurable: true,
+    })
+
+    const result = generateShareUrl('candidate-settings', project, sourceFiles)
+    const encoded = new URL(result.url).searchParams.get('share')
+    expect(encoded).toBeTruthy()
+
+    const payload = decompressConfig(encoded!)
+    expect(payload).toMatchObject({
+      module: 'candidate-settings',
+    })
+    expect(payload?.yaml).toContain('"menu/page_size": 9')
+    expect(payload?.yaml).toContain('"translator/enable_completion": false')
+    expect(payload?.yaml).toContain('"translator/max_word_length": 12')
+    expect(payload?.yaml).not.toContain('spelling_hints')
   })
 })
 

@@ -2,7 +2,10 @@ import LZString from 'lz-string'
 import type { RimeProject, EditorModule } from '@/types/config'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
-import { extractModuleYaml } from '@/lib/yaml/module-yaml'
+import {
+  extractModuleYaml,
+  extractModuleYamlFromWorkspace,
+} from '@/lib/yaml/module-yaml'
 
 export interface ConfigSnapshot {
   version: 1
@@ -77,8 +80,11 @@ export function decompressConfig(compressed: string): Record<string, unknown> | 
 export function generateShareUrl(
   module: EditorModule,
   project: RimeProject,
+  sourceFiles?: Record<string, PersistedSourceFile>,
 ): { url: string; warning?: string } {
-  const yamlContent = extractModuleYaml(module, project)
+  const yamlContent = sourceFiles
+    ? extractModuleYamlFromWorkspace(module, project, sourceFiles)
+    : extractModuleYaml(module, project)
   const payload = { module, yaml: yamlContent }
   const compressed = compressConfig(payload)
   const url = `${window.location.origin}${window.location.pathname}?share=${compressed}`

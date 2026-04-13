@@ -1,5 +1,16 @@
 import { stringify, parse, parseDocument } from 'yaml'
-import type { EditorModule, RimeProject } from '@/types/config'
+import type {
+  CustomTrigger,
+  DefaultConfig,
+  EditorModule,
+  LuaExtensionsConfig,
+  LuaScript,
+  PlatformConfig,
+  ReverseLookupConfig,
+  RimeProject,
+  SchemaConfig,
+  TranslatorConfig,
+} from '@/types/config'
 import {
   expandPatchPaths,
   mapToDefaultConfig,
@@ -7,6 +18,7 @@ import {
   mapToSchemaConfig,
 } from '@/lib/yaml/parser'
 import {
+  buildCustomYaml,
   serializeDefaultConfig,
   serializePlatformConfig,
   serializeSchemaConfig,
@@ -17,7 +29,11 @@ import {
   isFormalEditorPlatform,
 } from '@/lib/product/support-contract'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
-import { DEFAULT_THEME_STYLE } from '@/lib/config/defaults'
+import {
+  DEFAULT_CONFIG,
+  DEFAULT_PLATFORM_CONFIG,
+  DEFAULT_THEME_STYLE,
+} from '@/lib/config/defaults'
 
 interface ModuleKeyMapping {
   file: 'default' | 'platform' | 'schema' | 'custom_phrase';
@@ -26,46 +42,84 @@ interface ModuleKeyMapping {
   excludePaths?: string[];
 }
 
-const MODULE_KEY_MAP: Record<string, ModuleKeyMapping> = {
-  'schema-manager': { file: 'default', keys: ['schema_list'] },
-  'candidate-settings': { file: 'default', keys: ['menu'] },
-  'key-bindings': { file: 'default', keys: ['ascii_composer', 'key_binder'] },
-  'fuzzy-pinyin': { file: 'schema', keys: ['speller'] },
-  'ascii-mode': { file: 'platform', keys: ['app_options'] },
-  'punctuation': { file: 'schema', keys: ['punctuator'] },
-  'dictionary': { file: 'custom_phrase', keys: [] },
-  'switches': { file: 'schema', keys: ['switches'] },
-  'spelling-scheme': { file: 'schema', keys: ['speller'] },
-  'auxiliary-code': { file: 'schema', keys: ['speller'] },
-  'reverse-lookup': {
+const MODULE_KEY_MAP: Record<EditorModule, ModuleKeyMapping[]> = {
+  'schema-manager': [{ file: 'default', keys: ['schema_list'] }],
+  'candidate-settings': [
+    { file: 'default', keys: ['menu'] },
+    {
+      file: 'schema',
+      keys: ['translator'],
+      excludePaths: ['translator/spelling_hints', 'translator/always_show_comments'],
+    },
+  ],
+  'key-bindings': [{ file: 'default', keys: ['ascii_composer', 'key_binder'] }],
+  'fuzzy-pinyin': [{ file: 'schema', keys: ['speller'] }],
+  'ascii-mode': [{ file: 'platform', keys: ['app_options'] }],
+  'punctuation': [{ file: 'schema', keys: ['punctuator'] }],
+  'dictionary': [{ file: 'custom_phrase', keys: [] }],
+  'switches': [{ file: 'schema', keys: ['switches'] }],
+  'spelling-scheme': [{ file: 'schema', keys: ['speller'] }],
+  'auxiliary-code': [{ file: 'schema', keys: ['speller'] }],
+  'reverse-lookup': [{
     file: 'schema',
     keys: ['reverse_lookup'],
     exactPaths: ['recognizer/patterns/reverse_lookup'],
-  },
-  'lua-extensions': {
+  }],
+  'lua-extensions': [{
     file: 'schema',
     keys: [
-      // From original special-input
       'recognizer',
-      // From original lua-extensions
       'super_processor',
       'user_predict',
       'super_replacer',
       'input_statistics',
     ],
     excludePaths: ['recognizer/patterns/reverse_lookup'],
-  },
-  'candidate-display': {
+  }],
+  'candidate-display': [{
     file: 'platform',
     keys: [],
     exactPaths: ['style/horizontal'],
-  },
-  'comment-hints': {
+  }],
+  'comment-hints': [{
     file: 'schema',
     keys: ['super_comment'],
     exactPaths: ['translator/spelling_hints', 'translator/always_show_comments'],
-  },
+  }],
 }
+
+const CANDIDATE_SETTINGS_TRANSLATOR_FIELDS: Array<keyof TranslatorConfig> = [
+  'enableCompletion',
+  'enableSentence',
+  'enableUserDict',
+  'initialQuality',
+  'coreWordLength',
+  'maxWordLength',
+  'maxHomophones',
+  'maxHomographs',
+]
+
+const COMMENT_HINT_TRANSLATOR_FIELDS: Array<keyof TranslatorConfig> = [
+  'spellingHints',
+  'alwaysShowComments',
+]
+
+const LUA_EXTENSION_FIELDS: Array<keyof NonNullable<SchemaConfig['luaExtensions']>> = [
+  'superProcessor',
+  'userPredict',
+  'superReplacer',
+  'inputStatistics',
+]
+
+const REVERSE_LOOKUP_FIELDS: Array<keyof ReverseLookupConfig> = [
+  'prefix',
+  'dictionary',
+  'tips',
+  'enableCompletion',
+  'prism',
+  'preeditFormat',
+  'recognizerPattern',
+]
 
 function filterModulePatch(
   patch: Record<string, unknown>,
@@ -400,14 +454,14 @@ function pruneEmptyParents(doc: ReturnType<typeof parseDocument>, path: string[]
   }
 }
 
+function getModuleMappings(module: EditorModule): ModuleKeyMapping[] {
+  return MODULE_KEY_MAP[module] ?? []
+}
+
 function getModuleSourceFileName(
-  module: EditorModule,
+  mapping: ModuleKeyMapping,
   project: RimeProject,
 ): string | undefined {
-  const mapping = MODULE_KEY_MAP[module]
-
-  if (!mapping) return undefined
-
   if (mapping.file === 'default') {
     return 'default.custom.yaml'
   }
@@ -427,23 +481,85 @@ function getModuleSourceFileName(
   return primarySchemaId ? `${primarySchemaId}.custom.yaml` : undefined
 }
 
+function mappingMatchesSourceFile(
+  mapping: ModuleKeyMapping,
+  sourceFile: PersistedSourceFile,
+): boolean {
+  if (mapping.file !== sourceFile.kind) {
+    return false
+  }
+
+  if (mapping.file === 'platform') {
+    return !sourceFile.platform || isFormalEditorPlatform(sourceFile.platform)
+  }
+
+  return true
+}
+
+function createEmptySourceFile(
+  mapping: ModuleKeyMapping,
+  project: RimeProject,
+): PersistedSourceFile | undefined {
+  const fileName = getModuleSourceFileName(mapping, project)
+  if (!fileName) {
+    return undefined
+  }
+
+  const updatedAt = new Date().toISOString()
+  return {
+    id: fileName,
+    fileName,
+    kind: mapping.file,
+    content: mapping.file === 'custom_phrase' ? '' : buildCustomYaml({}),
+    updatedAt,
+    ...(mapping.file === 'platform' && isFormalEditorPlatform(project.targetPlatform)
+      ? { platform: project.targetPlatform }
+      : {}),
+    ...(mapping.file === 'schema'
+      ? { schemaId: project.defaultConfig.schemaList[0]?.schema }
+      : {}),
+  }
+}
+
 export function resolveModuleSourceFile(
   module: EditorModule,
   project: RimeProject,
   sourceFiles: Record<string, PersistedSourceFile>,
 ): PersistedSourceFile | undefined {
-  const fileName = getModuleSourceFileName(module, project)
+  const mapping = getModuleMappings(module)[0]
+  if (!mapping) {
+    return undefined
+  }
+  const fileName = getModuleSourceFileName(mapping, project)
   return fileName ? sourceFiles[fileName] : undefined
 }
 
-export function extractModuleYamlFromSourceFile(
+function resolveModuleSourceFiles(
   module: EditorModule,
+  project: RimeProject,
+  sourceFiles: Record<string, PersistedSourceFile>,
+): PersistedSourceFile[] {
+  const files: PersistedSourceFile[] = []
+
+  for (const mapping of getModuleMappings(module)) {
+    const fileName = getModuleSourceFileName(mapping, project)
+    if (!fileName) {
+      continue
+    }
+
+    const sourceFile = sourceFiles[fileName]
+    if (sourceFile) {
+      files.push(sourceFile)
+    }
+  }
+
+  return files
+}
+
+function extractModuleYamlFromMappingSourceFile(
+  mapping: ModuleKeyMapping,
   sourceFile: PersistedSourceFile,
 ): string {
-  const mapping = MODULE_KEY_MAP[module]
-
-  if (!mapping) return ''
-
   if (mapping.file === 'custom_phrase') {
     return sourceFile.content
   }
@@ -469,30 +585,19 @@ export function extractModuleYamlFromSourceFile(
   return ''
 }
 
-export function applyModuleYamlToSourceFile(
-  module: EditorModule,
-  yamlString: string,
+function applyParsedModulePatchToSourceFile(
+  mapping: ModuleKeyMapping,
+  parsedPatch: Record<string, unknown>,
   sourceFile: PersistedSourceFile,
 ): { sourceFile: PersistedSourceFile; error?: string } {
-  const mapping = MODULE_KEY_MAP[module]
-
-  if (!mapping) {
-    return { sourceFile, error: `未知模块: ${module}` }
-  }
-
   if (mapping.file === 'custom_phrase') {
     return {
       sourceFile: {
         ...sourceFile,
-        content: yamlString,
+        content: sourceFile.content,
         updatedAt: new Date().toISOString(),
       },
     }
-  }
-
-  const { parsed, error } = parseModuleYamlString(yamlString)
-  if (error) {
-    return { sourceFile, error }
   }
 
   const doc = parseDocument(sourceFile.content)
@@ -504,10 +609,10 @@ export function applyModuleYamlToSourceFile(
     doc.set('patch', {})
   }
 
-  const currentModuleYaml = extractModuleYamlFromSourceFile(module, sourceFile)
+  const currentModuleYaml = extractModuleYamlFromMappingSourceFile(mapping, sourceFile)
   const currentModuleParsed = parseModuleYamlString(currentModuleYaml).parsed
   const currentEntries = flattenPatchEntries(currentModuleParsed)
-  const nextEntries = flattenPatchEntries(parsed)
+  const nextEntries = flattenPatchEntries(parsedPatch)
   const nextEntryKeys = new Set(nextEntries.map((entry) => pathKey(entry.path)))
 
   for (const entry of currentEntries) {
@@ -532,37 +637,244 @@ export function applyModuleYamlToSourceFile(
   }
 }
 
+export function extractModuleYamlFromSourceFile(
+  module: EditorModule,
+  sourceFile: PersistedSourceFile,
+): string {
+  const slices = getModuleMappings(module)
+    .filter((mapping) => mappingMatchesSourceFile(mapping, sourceFile))
+    .map((mapping) => extractModuleYamlFromMappingSourceFile(mapping, sourceFile).trim())
+    .filter(Boolean)
+
+  if (slices.length === 0) {
+    return ''
+  }
+
+  return `${slices.join('\n')}\n`
+}
+
+export function applyModuleYamlToSourceFile(
+  module: EditorModule,
+  yamlString: string,
+  sourceFile: PersistedSourceFile,
+): { sourceFile: PersistedSourceFile; error?: string } {
+  const mapping = getModuleMappings(module).find((entry) =>
+    mappingMatchesSourceFile(entry, sourceFile),
+  )
+  if (!mapping) {
+    return { sourceFile, error: `未知模块: ${module}` }
+  }
+
+  if (mapping.file === 'custom_phrase') {
+    return {
+      sourceFile: {
+        ...sourceFile,
+        content: yamlString,
+        updatedAt: new Date().toISOString(),
+      },
+    }
+  }
+
+  const { parsed, error } = parseModuleYamlString(yamlString)
+  if (error) {
+    return { sourceFile, error }
+  }
+
+  return applyParsedModulePatchToSourceFile(
+    mapping,
+    filterModulePatch(parsed, mapping),
+    sourceFile,
+  )
+}
+
+function joinYamlSlices(slices: string[]): string {
+  const normalized = slices
+    .map((slice) => slice.trim())
+    .filter(Boolean)
+
+  if (normalized.length === 0) {
+    return ''
+  }
+
+  return `${normalized.join('\n')}\n`
+}
+
+function serializePatchForMapping(
+  mapping: ModuleKeyMapping,
+  project: RimeProject,
+): Record<string, unknown> {
+  if (mapping.file === 'default') {
+    return filterModulePatch(serializeDefaultConfig(project.defaultConfig), mapping)
+  }
+
+  if (mapping.file === 'platform') {
+    return filterModulePatch(serializePlatformConfig(project.platformConfig), mapping)
+  }
+
+  if (mapping.file === 'schema') {
+    const primarySchemaId = project.defaultConfig.schemaList[0]?.schema
+    if (!primarySchemaId) {
+      return {}
+    }
+
+    const schemaConfig = project.schemaConfigs[primarySchemaId]
+    if (!schemaConfig) {
+      return {}
+    }
+
+    return filterModulePatch(serializeSchemaConfig(schemaConfig), mapping)
+  }
+
+  return {}
+}
+
+function mergeOwnedObjectFields<T extends object>(
+  current: T | undefined,
+  nextOwned: Partial<T> | undefined,
+  ownedFields: Array<keyof T>,
+): T | undefined {
+  const merged: Record<string, unknown> = {
+    ...((current ?? {}) as Record<string, unknown>),
+  }
+
+  for (const field of ownedFields) {
+    delete merged[String(field)]
+  }
+
+  if (nextOwned) {
+    for (const [key, value] of Object.entries(nextOwned)) {
+      if (value !== undefined) {
+        merged[key] = value
+      }
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? (merged as T) : undefined
+}
+
+function replaceDefaultConfigFields(
+  current: DefaultConfig,
+  nextOwned: Partial<DefaultConfig>,
+  ownedFields: Array<keyof DefaultConfig>,
+): DefaultConfig {
+  const next = { ...current } as DefaultConfig & Record<string, unknown>
+
+  for (const field of ownedFields) {
+    next[field as string] = nextOwned[field] ?? DEFAULT_CONFIG[field]
+  }
+
+  return next as DefaultConfig
+}
+
+function getPrimarySchemaContext(project: RimeProject):
+  | { schemaId: string; schemaConfig: SchemaConfig }
+  | { error: string } {
+  const schemaId = project.defaultConfig.schemaList[0]?.schema
+  if (!schemaId) {
+    return { error: '没有选择输入方案' }
+  }
+
+  return {
+    schemaId,
+    schemaConfig: project.schemaConfigs[schemaId] ?? {
+      schemaId,
+      fuzzyRules: [],
+    },
+  }
+}
+
+function replacePrimarySchemaConfig(
+  project: RimeProject,
+  nextSchemaConfig: SchemaConfig,
+): RimeProject {
+  return {
+    ...project,
+    schemaConfigs: {
+      ...project.schemaConfigs,
+      [nextSchemaConfig.schemaId]: nextSchemaConfig,
+    },
+  }
+}
+
+function mergeCustomTriggersByPatternId(
+  currentTriggers: CustomTrigger[],
+  luaScripts: LuaScript[],
+  nextTriggers: CustomTrigger[],
+): CustomTrigger[] {
+  const currentByPatternId = new Map<string, CustomTrigger>()
+
+  for (const trigger of currentTriggers) {
+    const script = luaScripts.find((item) => item.id === trigger.scriptId)
+    const patternId = script
+      ? script.fileName.replace(/\.lua$/, '')
+      : trigger.id
+    currentByPatternId.set(patternId, trigger)
+  }
+
+  return nextTriggers.map((trigger) => {
+    const patternId = trigger.name
+    const current = currentByPatternId.get(patternId)
+    const linkedScript = luaScripts.find((item) =>
+      item.fileName.replace(/\.lua$/, '') === patternId,
+    )
+
+    return {
+      id: current?.id ?? crypto.randomUUID(),
+      name: current?.name ?? patternId,
+      description: current?.description ?? '',
+      scriptId: current?.scriptId ?? linkedScript?.id ?? '',
+      triggerCode: trigger.triggerCode,
+    }
+  })
+}
+
+function getPlatformDefaults(
+  project: RimeProject,
+): PlatformConfig {
+  return {
+    ...DEFAULT_PLATFORM_CONFIG,
+    platform:
+      isFormalEditorPlatform(project.targetPlatform)
+        ? project.targetPlatform
+        : DEFAULT_PLATFORM_CONFIG.platform,
+  }
+}
+
+export function extractModuleYamlFromWorkspace(
+  module: EditorModule,
+  project: RimeProject,
+  sourceFiles: Record<string, PersistedSourceFile>,
+): string {
+  const sourceSlices = resolveModuleSourceFiles(module, project, sourceFiles)
+    .map((sourceFile) => extractModuleYamlFromSourceFile(module, sourceFile))
+    .filter(Boolean)
+
+  if (sourceSlices.length > 0) {
+    return joinYamlSlices(sourceSlices)
+  }
+
+  return extractModuleYaml(module, project)
+}
+
 /**
  * Extract YAML string for a specific module from the current project state.
  */
 export function extractModuleYaml(module: EditorModule, project: RimeProject): string {
-  const mapping = MODULE_KEY_MAP[module]
+  const mappings = getModuleMappings(module)
 
-  if (!mapping) return ''
+  if (mappings.length === 0) return ''
 
-  if (mapping.file === 'custom_phrase') {
+  if (mappings[0]?.file === 'custom_phrase') {
     return serializeCustomPhrases(project.customPhrases)
   }
 
-  let fullPatch: Record<string, unknown>
+  const combined = mappings.reduce<Record<string, unknown>>((acc, mapping) => {
+    Object.assign(acc, serializePatchForMapping(mapping, project))
+    return acc
+  }, {})
 
-  if (mapping.file === 'default') {
-    fullPatch = serializeDefaultConfig(project.defaultConfig)
-  } else if (mapping.file === 'platform') {
-    fullPatch = serializePlatformConfig(project.platformConfig)
-  } else {
-    // schema
-    const primarySchemaId = project.defaultConfig.schemaList[0]?.schema
-    if (!primarySchemaId) return ''
-    const schemaConfig = project.schemaConfigs[primarySchemaId]
-    if (!schemaConfig) return ''
-    fullPatch = serializeSchemaConfig(schemaConfig)
-  }
-
-  const filtered = filterModulePatch(fullPatch, mapping)
-
-  if (Object.keys(filtered).length === 0) return ''
-  return stringify(filtered, { lineWidth: 0 })
+  if (Object.keys(combined).length === 0) return ''
+  return stringify(combined, { lineWidth: 0 })
 }
 
 /**
@@ -574,11 +886,11 @@ export function applyModuleYaml(
   yamlString: string,
   project: RimeProject,
 ): { project: RimeProject; error?: string } {
-  const mapping = MODULE_KEY_MAP[module]
+  const mappings = getModuleMappings(module)
 
-  if (!mapping) return { project, error: `未知模块: ${module}` }
+  if (mappings.length === 0) return { project, error: `未知模块: ${module}` }
 
-  if (mapping.file === 'custom_phrase') {
+  if (mappings[0]?.file === 'custom_phrase') {
     try {
       const phrases = parseCustomPhrases(yamlString)
       return {
@@ -596,100 +908,309 @@ export function applyModuleYaml(
 
   const expanded = expandPatchPaths(parsed)
 
-  if (mapping.file === 'default') {
-    const defaultConfig = mapToDefaultConfig(expanded, project.defaultConfig)
-    return { project: { ...project, defaultConfig } }
-  }
+  switch (module) {
+    case 'schema-manager': {
+      const nextDefaults = mapToDefaultConfig(expanded, DEFAULT_CONFIG)
+      return {
+        project: {
+          ...project,
+          defaultConfig: {
+            ...project.defaultConfig,
+            schemaList: nextDefaults.schemaList,
+          },
+        },
+      }
+    }
+    case 'candidate-settings': {
+      const defaultPatch = filterModulePatch(parsed, mappings[0]!)
+      const schemaPatch = filterModulePatch(parsed, mappings[1]!)
+      const nextDefaults = mapToDefaultConfig(expandPatchPaths(defaultPatch), DEFAULT_CONFIG)
+      const schemaContext = getPrimarySchemaContext(project)
+      if ('error' in schemaContext) {
+        return { project, error: schemaContext.error }
+      }
 
-  if (mapping.file === 'platform') {
-    if (module === 'candidate-display') {
-      const nextHorizontal = expanded.style && typeof (expanded.style as Record<string, unknown>).horizontal === 'boolean'
+      const schemaUpdates = mapToSchemaConfig(
+        expandPatchPaths(schemaPatch),
+        schemaContext.schemaId,
+      )
+      const nextSchemaConfig: SchemaConfig = {
+        ...schemaContext.schemaConfig,
+        translator: mergeOwnedObjectFields(
+          schemaContext.schemaConfig.translator,
+          schemaUpdates.translator,
+          CANDIDATE_SETTINGS_TRANSLATOR_FIELDS,
+        ),
+      }
+
+      return {
+        project: replacePrimarySchemaConfig(
+          {
+            ...project,
+            defaultConfig: replaceDefaultConfigFields(
+              project.defaultConfig,
+              {
+                pageSize: nextDefaults.pageSize,
+                selectKeys: nextDefaults.selectKeys,
+              },
+              ['pageSize', 'selectKeys'],
+            ),
+          },
+          nextSchemaConfig,
+        ),
+      }
+    }
+    case 'key-bindings': {
+      const nextDefaults = mapToDefaultConfig(expanded, DEFAULT_CONFIG)
+      return {
+        project: {
+          ...project,
+          defaultConfig: replaceDefaultConfigFields(
+            project.defaultConfig,
+            {
+              asciiComposer: nextDefaults.asciiComposer,
+              keyBinder: nextDefaults.keyBinder,
+            },
+            ['asciiComposer', 'keyBinder'],
+          ),
+        },
+      }
+    }
+    case 'ascii-mode': {
+      const nextPlatform = mapToPlatformConfig(expanded, getPlatformDefaults(project))
+      return {
+        project: {
+          ...project,
+          platformConfig: {
+            ...project.platformConfig,
+            appOptions: nextPlatform.appOptions,
+          },
+        },
+      }
+    }
+    case 'candidate-display': {
+      const nextHorizontal = expanded.style &&
+        typeof (expanded.style as Record<string, unknown>).horizontal === 'boolean'
         ? ((expanded.style as Record<string, unknown>).horizontal as boolean)
         : typeof expanded['style/horizontal'] === 'boolean'
           ? (expanded['style/horizontal'] as boolean)
-          : project.platformConfig.style?.horizontal
+          : DEFAULT_THEME_STYLE.horizontal
 
-      if (typeof nextHorizontal === 'boolean') {
-        const currentStyle = project.platformConfig.style
-        return {
-          project: {
-            ...project,
-            platformConfig: {
-              ...project.platformConfig,
-              style: currentStyle
-                ? { ...currentStyle, horizontal: nextHorizontal }
-                : { ...DEFAULT_THEME_STYLE, horizontal: nextHorizontal },
-            },
+      const currentStyle = project.platformConfig.style
+      return {
+        project: {
+          ...project,
+          platformConfig: {
+            ...project.platformConfig,
+            style: currentStyle
+              ? { ...currentStyle, horizontal: nextHorizontal }
+              : { ...DEFAULT_THEME_STYLE, horizontal: nextHorizontal },
           },
+        },
+      }
+    }
+    case 'fuzzy-pinyin':
+    case 'punctuation':
+    case 'switches':
+    case 'spelling-scheme':
+    case 'auxiliary-code':
+    case 'reverse-lookup':
+    case 'comment-hints':
+    case 'lua-extensions': {
+      const schemaContext = getPrimarySchemaContext(project)
+      if ('error' in schemaContext) {
+        return { project, error: schemaContext.error }
+      }
+
+      const schemaUpdates = mapToSchemaConfig(expanded, schemaContext.schemaId)
+      const currentSchema = schemaContext.schemaConfig
+      let nextSchemaConfig: SchemaConfig = currentSchema
+
+      if (module === 'fuzzy-pinyin') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          fuzzyRules: schemaUpdates.fuzzyRules ?? [],
         }
+      }
+
+      if (module === 'punctuation') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          punctuator: schemaUpdates.punctuator,
+        }
+      }
+
+      if (module === 'switches') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          switches: schemaUpdates.switches,
+        }
+      }
+
+      if (module === 'spelling-scheme') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          spellingScheme: schemaUpdates.spellingScheme,
+        }
+      }
+
+      if (module === 'auxiliary-code') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          auxiliaryCode: schemaUpdates.auxiliaryCode,
+        }
+      }
+
+      if (module === 'reverse-lookup') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          reverseLookup: mergeOwnedObjectFields(
+            currentSchema.reverseLookup,
+            schemaUpdates.reverseLookup,
+            REVERSE_LOOKUP_FIELDS,
+          ) as ReverseLookupConfig | undefined,
+        }
+      }
+
+      if (module === 'comment-hints') {
+        nextSchemaConfig = {
+          ...currentSchema,
+          translator: mergeOwnedObjectFields(
+            currentSchema.translator,
+            schemaUpdates.translator,
+            COMMENT_HINT_TRANSLATOR_FIELDS,
+          ),
+          luaExtensions: mergeOwnedObjectFields(
+            currentSchema.luaExtensions,
+            schemaUpdates.luaExtensions,
+            ['superComment'],
+          ),
+        }
+      }
+
+      if (module === 'lua-extensions') {
+        const enabledTriggers = currentSchema.specialInput?.enabledTriggers ?? []
+        const currentCustomTriggers = currentSchema.specialInput?.customTriggers ?? []
+        const nextCustomTriggers = mergeCustomTriggersByPatternId(
+          currentCustomTriggers,
+          currentSchema.luaScripts ?? [],
+          schemaUpdates.specialInput?.customTriggers ?? [],
+        )
+
+        nextSchemaConfig = {
+          ...currentSchema,
+          luaExtensions: mergeOwnedObjectFields(
+            currentSchema.luaExtensions as LuaExtensionsConfig | undefined,
+            schemaUpdates.luaExtensions,
+            LUA_EXTENSION_FIELDS,
+          ),
+          specialInput:
+            enabledTriggers.length > 0 || nextCustomTriggers.length > 0
+              ? {
+                  enabledTriggers,
+                  customTriggers: nextCustomTriggers,
+                }
+              : undefined,
+        }
+      }
+
+      return {
+        project: replacePrimarySchemaConfig(project, nextSchemaConfig),
+      }
+    }
+    default:
+      return { project }
+  }
+}
+
+export function applyModuleYamlToWorkspace(
+  module: EditorModule,
+  yamlString: string,
+  project: RimeProject,
+  sourceFiles: Record<string, PersistedSourceFile>,
+): { project: RimeProject; sourceFiles: Record<string, PersistedSourceFile>; error?: string } {
+  const projectResult = applyModuleYaml(module, yamlString, project)
+  if (projectResult.error) {
+    return {
+      project,
+      sourceFiles,
+      error: projectResult.error,
+    }
+  }
+
+  const mappings = getModuleMappings(module)
+  if (mappings.length === 0) {
+    return {
+      project,
+      sourceFiles,
+      error: `未知模块: ${module}`,
+    }
+  }
+
+  if (mappings[0]?.file === 'custom_phrase') {
+    const sourceFile = sourceFiles['custom_phrase.txt'] ?? createEmptySourceFile(mappings[0], projectResult.project)
+    if (!sourceFile) {
+      return {
+        project: projectResult.project,
+        sourceFiles,
+        error: '无法定位自定义短语文件',
       }
     }
 
-    const platformConfig = mapToPlatformConfig(expanded, project.platformConfig)
-    return { project: { ...project, platformConfig } }
+    return {
+      project: projectResult.project,
+      sourceFiles: {
+        ...sourceFiles,
+        [sourceFile.fileName]: {
+          ...sourceFile,
+          content: yamlString,
+          updatedAt: new Date().toISOString(),
+        },
+      },
+    }
   }
 
-  // schema
-  const primarySchemaId = project.defaultConfig.schemaList[0]?.schema
-  if (!primarySchemaId) return { project, error: '没有选择输入方案' }
-
-  const existingConfig = project.schemaConfigs[primarySchemaId] ?? {
-    schemaId: primarySchemaId,
-    fuzzyRules: [],
+  const { parsed, error } = parseModuleYamlString(yamlString)
+  if (error) {
+    return { project, sourceFiles, error }
   }
-  const schemaUpdates = mapToSchemaConfig(expanded, primarySchemaId)
-  const updatedSchemaConfig = {
-    ...existingConfig,
-    ...schemaUpdates,
-    ...(schemaUpdates.auxiliaryCode
-      ? {
-          auxiliaryCode: {
-            ...existingConfig.auxiliaryCode,
-            ...schemaUpdates.auxiliaryCode,
-          },
+
+  const nextSourceFiles = { ...sourceFiles }
+
+  for (const mapping of mappings) {
+    const filteredPatch = filterModulePatch(parsed, mapping)
+    const currentSourceFile =
+      (() => {
+        const fileName = getModuleSourceFileName(mapping, projectResult.project)
+        if (!fileName) {
+          return undefined
         }
-      : {}),
-    ...(schemaUpdates.reverseLookup
-      ? {
-          reverseLookup: {
-            ...existingConfig.reverseLookup,
-            ...schemaUpdates.reverseLookup,
-          },
-        }
-      : {}),
-    ...(schemaUpdates.translator
-      ? {
-          translator: {
-            ...existingConfig.translator,
-            ...schemaUpdates.translator,
-          },
-        }
-      : {}),
-    ...(schemaUpdates.luaExtensions
-      ? {
-          luaExtensions: {
-            ...existingConfig.luaExtensions,
-            ...schemaUpdates.luaExtensions,
-            ...(schemaUpdates.luaExtensions.superComment
-              ? {
-                  superComment: {
-                    ...existingConfig.luaExtensions?.superComment,
-                    ...schemaUpdates.luaExtensions.superComment,
-                  },
-                }
-              : {}),
-          },
-        }
-      : {}),
+
+        return nextSourceFiles[fileName] ?? createEmptySourceFile(mapping, projectResult.project)
+      })()
+
+    if (!currentSourceFile) {
+      continue
+    }
+
+    const artifactResult = applyParsedModulePatchToSourceFile(
+      mapping,
+      filteredPatch,
+      currentSourceFile,
+    )
+    if (artifactResult.error) {
+      return {
+        project,
+        sourceFiles,
+        error: artifactResult.error,
+      }
+    }
+
+    nextSourceFiles[currentSourceFile.fileName] = artifactResult.sourceFile
   }
 
   return {
-    project: {
-      ...project,
-      schemaConfigs: {
-        ...project.schemaConfigs,
-        [primarySchemaId]: updatedSchemaConfig,
-      },
-    },
+    project: projectResult.project,
+    sourceFiles: nextSourceFiles,
   }
 }
