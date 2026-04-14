@@ -1,7 +1,15 @@
+import type { EditorModule } from '@/types/config';
 import type { WorkspaceSnapshot } from './types';
 import { isRecord, isValidSourceFile, isValidProject } from './validators';
 
 const STORAGE_KEY = 'rime-craft.workspace.v1';
+
+const VALID_MODULES: Set<string> = new Set<EditorModule>([
+  'schema-manager', 'candidate-settings', 'key-bindings', 'switches',
+  'fuzzy-pinyin', 'spelling-scheme', 'auxiliary-code', 'reverse-lookup',
+  'punctuation', 'dictionary', 'lua-extensions', 'ascii-mode',
+  'candidate-display', 'comment-hints',
+]);
 
 const isValidEditorUI = (value: unknown): boolean => {
   if (!isRecord(value)) {
@@ -10,6 +18,7 @@ const isValidEditorUI = (value: unknown): boolean => {
 
   return (
     typeof value.activeModule === 'string' &&
+    VALID_MODULES.has(value.activeModule) &&
     typeof value.viewMode === 'string' &&
     typeof value.tutorialCollapsed === 'boolean'
   );

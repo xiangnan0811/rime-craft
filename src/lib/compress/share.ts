@@ -8,6 +8,13 @@ import {
   extractModuleYamlFromWorkspace,
 } from '@/lib/yaml/module-yaml'
 
+const VALID_MODULES: Set<string> = new Set<EditorModule>([
+  'schema-manager', 'candidate-settings', 'key-bindings', 'switches',
+  'fuzzy-pinyin', 'spelling-scheme', 'auxiliary-code', 'reverse-lookup',
+  'punctuation', 'dictionary', 'lua-extensions', 'ascii-mode',
+  'candidate-display', 'comment-hints',
+])
+
 export interface ConfigSnapshot {
   version: 1
   createdAt: string
@@ -84,6 +91,8 @@ export function parseShareUrl(
   const data = decompressConfig(shareParam)
   if (!data || typeof data.module !== 'string' || typeof data.yaml !== 'string')
     return null
+
+  if (!VALID_MODULES.has(data.module)) return null
 
   return { module: data.module as EditorModule, yaml: data.yaml }
 }

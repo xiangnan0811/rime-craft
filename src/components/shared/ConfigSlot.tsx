@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
 import { useEditorContext } from '@/features/editor/EditorContext'
 import { MODULE_COMPONENTS } from '@/data/module-registry'
+import type { EditorModule } from '@/types/config'
 
 interface ConfigSlotProps {
-  module: string;
+  module: EditorModule;
   label?: string;
 }
 

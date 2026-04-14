@@ -261,7 +261,21 @@ export interface LuaExtensionsConfig {
 
 // ─── Editor UI state ────────────────────────────────────
 
-export type EditorModule = string;
+export type EditorModule =
+  | 'schema-manager'
+  | 'candidate-settings'
+  | 'key-bindings'
+  | 'switches'
+  | 'fuzzy-pinyin'
+  | 'spelling-scheme'
+  | 'auxiliary-code'
+  | 'reverse-lookup'
+  | 'punctuation'
+  | 'dictionary'
+  | 'lua-extensions'
+  | 'ascii-mode'
+  | 'candidate-display'
+  | 'comment-hints';
 
 export interface EditorUIState {
   viewMode: 'panel' | 'immersive';

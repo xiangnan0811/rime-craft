@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { RimeProject } from '@/types/config'
+import type { EditorModule, RimeProject } from '@/types/config'
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -11,7 +11,7 @@ export type SchemaApplicability =
   | { type: 'capability'; cap: string }
 
 export interface ModuleDefinition {
-  id: string
+  id: EditorModule
   label: string
   group: ModuleGroup
   tutorialSlug?: string
@@ -143,7 +143,7 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
 
 // ─── Component lazy-load map ───────────────────────────
 
-export const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
+export const MODULE_COMPONENTS: Record<EditorModule, React.LazyExoticComponent<React.ComponentType>> = {
   'schema-manager': lazy(() => import('@/features/editor/modules/SchemaManager').then(m => ({ default: m.SchemaManager }))),
   'candidate-settings': lazy(() => import('@/features/editor/modules/CandidateSettings').then(m => ({ default: m.CandidateSettings }))),
   'key-bindings': lazy(() => import('@/features/editor/modules/KeyBindings').then(m => ({ default: m.KeyBindings }))),
