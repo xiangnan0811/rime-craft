@@ -14,7 +14,7 @@ export function GistDialog() {
   const [open, setOpen] = useState(false)
 
   // Export state
-  const [token, setToken] = useState(() => sessionStorage.getItem('gh_gist_token') ?? '')
+  const [token, setToken] = useState('')
   const [description, setDescription] = useState('Rime Craft 配置分享')
   const [exporting, setExporting] = useState(false)
   const [exportResult, setExportResult] = useState<{ url: string } | null>(null)
@@ -30,9 +30,6 @@ export function GistDialog() {
     setExporting(true)
     setExportError('')
     setExportResult(null)
-
-    // Store token in sessionStorage (not localStorage) for session duration
-    sessionStorage.setItem('gh_gist_token', token)
 
     try {
       const result = await createGist(token, project, sourceFiles, description)
@@ -78,7 +75,7 @@ export function GistDialog() {
 
           <TabsContent value="export" className="space-y-3">
             <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-              需要 GitHub Personal Access Token（仅需 <code>gist</code> 权限）。Token 仅在当前会话中保存，关闭页面后自动清除。
+              需要 GitHub Personal Access Token（仅需 <code>gist</code> 权限）。Token 仅在当前对话框中使用，不会被存储。
             </div>
             <div>
               <Label>Personal Access Token</Label>
