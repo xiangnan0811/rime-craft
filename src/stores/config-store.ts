@@ -35,23 +35,28 @@ const createDefaultEditorUI = (): EditorUIState => ({
 
 const createInitialProject = (): RimeProject => createEmptyProject()
 
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+
 const persistCurrentState = (
   project: RimeProject,
   activeModule: EditorModule,
   editorUI: EditorUIState,
   sourceFiles: Record<string, PersistedSourceFile>,
 ): void => {
-  saveWorkspaceSnapshot({
-    version: 1,
-    savedAt: new Date().toISOString(),
-    project,
-    editorUI: {
-      activeModule,
-      viewMode: editorUI.viewMode,
-      tutorialCollapsed: editorUI.tutorialCollapsed,
-    },
-    sourceFiles,
-  })
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    saveWorkspaceSnapshot({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      project,
+      editorUI: {
+        activeModule,
+        viewMode: editorUI.viewMode,
+        tutorialCollapsed: editorUI.tutorialCollapsed,
+      },
+      sourceFiles,
+    })
+  }, 500)
 }
 
 interface ConfigState {
