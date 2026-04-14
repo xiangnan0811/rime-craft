@@ -99,12 +99,10 @@ export async function loadPublicGist(
 
 function extractGistId(input: string): string {
   const trimmed = input.trim()
-  // Handle full URL: https://gist.github.com/username/gistid
   const urlMatch = trimmed.match(/gist\.github\.com\/[^/]+\/([a-f0-9]+)/i)
   if (urlMatch?.[1]) return urlMatch[1]
-  // Handle API URL: https://api.github.com/gists/gistid
   const apiMatch = trimmed.match(/api\.github\.com\/gists\/([a-f0-9]+)/i)
   if (apiMatch?.[1]) return apiMatch[1]
-  // Assume it's a raw Gist ID
-  return trimmed
+  if (/^[a-f0-9]+$/i.test(trimmed)) return trimmed
+  throw new Error('无效的 Gist ID 格式')
 }
