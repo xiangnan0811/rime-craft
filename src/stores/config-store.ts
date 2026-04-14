@@ -121,6 +121,26 @@ export const useConfigStore = create<ConfigState>((set, get) => {
     })
   }
 
+  const updateSchemaField = <K extends keyof SchemaConfig>(
+    schemaId: string,
+    field: K,
+    value: SchemaConfig[K],
+  ): void => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+          schemaId,
+          [field]: value,
+        },
+      },
+    }
+    updateProjectWorkspace(project)
+  }
+
   return {
     project: createInitialProject(),
     activeModule: 'schema-manager',
@@ -256,53 +276,11 @@ export const useConfigStore = create<ConfigState>((set, get) => {
       updateProjectWorkspace(project)
     },
 
-    setFuzzyRules: (schemaId, rules) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId }),
-            schemaId,
-            fuzzyRules: rules,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setFuzzyRules: (schemaId, rules) => updateSchemaField(schemaId, 'fuzzyRules', rules),
 
-    setSwitches: (schemaId, switches) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            switches,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setSwitches: (schemaId, switches) => updateSchemaField(schemaId, 'switches', switches),
 
-    setPunctuator: (schemaId, punctuator) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            punctuator,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setPunctuator: (schemaId, punctuator) => updateSchemaField(schemaId, 'punctuator', punctuator),
 
     setThemeStyle: (style) => {
       const state = get()
