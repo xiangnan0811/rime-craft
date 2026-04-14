@@ -35,6 +35,7 @@ import {
   DEFAULT_THEME_STYLE,
 } from '@/lib/config/defaults'
 import { DEFAULT_SUPER_COMMENT_CONFIG } from '@/types/config'
+import { flattenPatchEntries, pruneEmptyParents } from './patch-utils'
 
 interface ModuleKeyMapping {
   file: 'default' | 'platform' | 'schema' | 'custom_phrase';
@@ -426,54 +427,8 @@ function parseModuleYamlString(
   }
 }
 
-function flattenPatchEntries(
-  value: Record<string, unknown>,
-  path: string[] = [],
-): Array<{ path: string[]; value: unknown }> {
-  const entries: Array<{ path: string[]; value: unknown }> = []
-
-  for (const [key, child] of Object.entries(value)) {
-    const nextPath = [...path, key]
-
-    if (
-      child &&
-      typeof child === 'object' &&
-      !Array.isArray(child) &&
-      Object.keys(child as Record<string, unknown>).length > 0
-    ) {
-      entries.push(...flattenPatchEntries(child as Record<string, unknown>, nextPath))
-      continue
-    }
-
-    entries.push({ path: nextPath, value: child })
-  }
-
-  return entries
-}
-
 function pathKey(path: string[]): string {
   return path.join('\u0000')
-}
-
-function isYamlMapNodeEmpty(node: unknown): node is { items: unknown[] } {
-  return (
-    typeof node === 'object' &&
-    node !== null &&
-    'items' in node &&
-    Array.isArray((node as { items: unknown[] }).items) &&
-    (node as { items: unknown[] }).items.length === 0
-  )
-}
-
-function pruneEmptyParents(doc: ReturnType<typeof parseDocument>, path: string[]): void {
-  for (let depth = path.length - 1; depth > 0; depth -= 1) {
-    const currentPath = ['patch', ...path.slice(0, depth)]
-    const node = doc.getIn(currentPath, true)
-    if (!isYamlMapNodeEmpty(node)) {
-      break
-    }
-    doc.deleteIn(currentPath)
-  }
 }
 
 function getModuleMappings(module: EditorModule): ModuleKeyMapping[] {

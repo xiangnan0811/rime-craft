@@ -15,6 +15,7 @@ import {
   serializePlatformConfig,
   serializeSchemaConfig,
 } from '@/lib/yaml/serializer';
+import { flattenPatchEntries, pruneEmptyParents } from '@/lib/yaml/patch-utils';
 import { parseDocument } from 'yaml';
 
 import type { PersistedSourceFile } from './types';
@@ -105,33 +106,6 @@ const hasEntries = (value?: Record<string, unknown>): boolean =>
 const hasPatchEntries = (value: Record<string, unknown>): boolean =>
   Object.keys(value).length > 0;
 
-const flattenPatchEntries = (
-  value: Record<string, unknown>,
-  path: string[] = [],
-): Array<{ path: string[]; value: unknown }> => {
-  const entries: Array<{ path: string[]; value: unknown }> = [];
-
-  for (const [key, child] of Object.entries(value)) {
-    const nextPath = [...path, key];
-
-    if (
-      child &&
-      typeof child === 'object' &&
-      !Array.isArray(child) &&
-      Object.keys(child as Record<string, unknown>).length > 0
-    ) {
-      entries.push(
-        ...flattenPatchEntries(child as Record<string, unknown>, nextPath),
-      );
-      continue;
-    }
-
-    entries.push({ path: nextPath, value: child });
-  }
-
-  return entries;
-};
-
 const normalizePathSegment = (segment: string): string =>
   segment.replace(/^['"]|['"]$/g, '');
 
@@ -143,27 +117,6 @@ const normalizedPathKey = (path: string[]): string =>
 
 const getBasePathKey = (path: string[]): string =>
   normalizePatchPath(path)[0] ?? '';
-
-const isYamlMapNodeEmpty = (node: unknown): node is { items: unknown[] } =>
-  typeof node === 'object' &&
-  node !== null &&
-  'items' in node &&
-  Array.isArray((node as { items: unknown[] }).items) &&
-  (node as { items: unknown[] }).items.length === 0;
-
-const pruneEmptyParents = (
-  doc: ReturnType<typeof parseDocument>,
-  path: string[],
-): void => {
-  for (let depth = path.length - 1; depth > 0; depth -= 1) {
-    const currentPath = ['patch', ...path.slice(0, depth)];
-    const node = doc.getIn(currentPath, true);
-    if (!isYamlMapNodeEmpty(node)) {
-      break;
-    }
-    doc.deleteIn(currentPath);
-  }
-};
 
 const addYamlSourceFile = (
   sourceFiles: SourceFileMap,
