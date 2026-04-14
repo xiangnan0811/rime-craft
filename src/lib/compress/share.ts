@@ -67,10 +67,14 @@ export function compressConfig(data: Record<string, unknown>): string {
   return LZString.compressToEncodedURIComponent(JSON.stringify(data))
 }
 
+const MAX_COMPRESSED_LENGTH = 50_000
+const MAX_DECOMPRESSED_LENGTH = 500_000
+
 export function decompressConfig(compressed: string): Record<string, unknown> | null {
+  if (compressed.length > MAX_COMPRESSED_LENGTH) return null
   try {
     const json = LZString.decompressFromEncodedURIComponent(compressed)
-    if (!json) return null
+    if (!json || json.length > MAX_DECOMPRESSED_LENGTH) return null
     return JSON.parse(json) as Record<string, unknown>
   } catch {
     return null

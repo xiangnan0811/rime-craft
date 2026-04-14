@@ -80,7 +80,7 @@ describe('prototype pollution protection', () => {
     const result = expandPatchPaths({ 'foo/prototype': 'yes' })
     // Intermediate 'foo' object is created but 'prototype' key is not set
     expect(result).toEqual({ foo: {} })
-    expect((result as Record<string, Record<string, unknown>>).foo.prototype).toBeUndefined()
+    expect((result as Record<string, Record<string, unknown>>)['foo']!.prototype).toBeUndefined()
   })
 
   it('allows safe keys that are substrings of dangerous keys', () => {
