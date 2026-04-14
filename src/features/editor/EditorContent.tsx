@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { ModuleWrapper } from './ModuleWrapper'
 import { MODULE_COMPONENTS } from '@/data/module-registry'
+import { ModuleErrorBoundary } from '@/components/shared/ModuleErrorBoundary'
 
 export function EditorContent() {
   const activeModule = useConfigStore((s) => s.activeModule)
@@ -22,9 +23,11 @@ export function EditorContent() {
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mx-auto max-w-2xl">
         <ModuleWrapper module={activeModule}>
-          <Suspense fallback={<div className="text-gray-400">加载中...</div>}>
-            <Component />
-          </Suspense>
+          <ModuleErrorBoundary moduleName={activeModule}>
+            <Suspense fallback={<div className="text-gray-400">加载中...</div>}>
+              <Component />
+            </Suspense>
+          </ModuleErrorBoundary>
         </ModuleWrapper>
       </div>
     </div>
