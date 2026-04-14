@@ -146,12 +146,13 @@ export const useConfigStore = create<ConfigState>((set, get) => {
     updateProjectWorkspace(project)
   }
 
+  const initialProject = createInitialProject()
   return {
-    project: createInitialProject(),
+    project: initialProject,
     activeModule: 'schema-manager',
     isDirty: false,
     editorUI: createDefaultEditorUI(),
-    sourceFiles: createSourceFilesFromProject(createInitialProject()),
+    sourceFiles: createSourceFilesFromProject(initialProject),
 
     setActiveModule: (module) => {
       const state = get()
