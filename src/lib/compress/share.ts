@@ -2,6 +2,7 @@ import LZString from 'lz-string'
 import type { RimeProject, EditorModule } from '@/types/config'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
+import { isRecord, isValidSourceFile, isValidProject } from '@/lib/workspace/validators'
 import {
   extractModuleYaml,
   extractModuleYamlFromWorkspace,
@@ -18,42 +19,13 @@ export type ParsedConfigSnapshot = ConfigSnapshot & {
   sourceFiles: Record<string, PersistedSourceFile>
 }
 
-const SOURCE_FILE_KINDS = new Set<string>([
-  'default',
-  'platform',
-  'schema',
-  'custom_phrase',
-])
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-
-const isPersistedSourceFile = (value: unknown): value is PersistedSourceFile => {
-  if (!isRecord(value)) {
-    return false
-  }
-
-  return (
-    typeof value.id === 'string' &&
-    typeof value.fileName === 'string' &&
-    typeof value.kind === 'string' &&
-    SOURCE_FILE_KINDS.has(value.kind) &&
-    typeof value.content === 'string' &&
-    typeof value.updatedAt === 'string' &&
-    (value.platform === undefined ||
-      value.platform === 'macos' ||
-      value.platform === 'windows') &&
-    (value.schemaId === undefined || typeof value.schemaId === 'string')
-  )
-}
-
 function normalizeSnapshotSourceFiles(
   project: RimeProject,
   sourceFiles: unknown,
 ): Record<string, PersistedSourceFile> {
   if (
     isRecord(sourceFiles) &&
-    Object.values(sourceFiles).every(isPersistedSourceFile)
+    Object.values(sourceFiles).every(isValidSourceFile)
   ) {
     return structuredClone(sourceFiles) as Record<string, PersistedSourceFile>
   }
@@ -147,6 +119,9 @@ export function parseConfigSnapshot(
     }
     if (!parsed.project || typeof parsed.project !== 'object') {
       return { error: '无效的配置快照：缺少 project 字段' }
+    }
+    if (!isValidProject(parsed.project)) {
+      return { error: '无效的配置快照：project 结构不完整' }
     }
 
     const project = structuredClone(parsed.project as RimeProject)
