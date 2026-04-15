@@ -102,7 +102,7 @@ sync_dir: "/Users/username/Library/Mobile Documents/com~apple~CloudDocs/Rime-syn
 
 - **macOS**：菜单栏输入法图标 → 「用户资料同步」
 - **Windows**：托盘图标右键 → 「用户资料同步」
-- **Linux（ibus-rime）**：`rime_api_console --sync`（或重启 ibus-daemon 后在日志中确认）
+- **Linux（ibus-rime）**：优先使用前端提供的「用户资料同步」入口；若需要命令行，请以当前前端或发行版说明为准
 - **Android Trime**：App 内设置 → 「同步」
 
 同步流程：
@@ -366,7 +366,7 @@ RIME 内置同步使用 LevelDB 格式的 B+ 树存储用户词典（`*.userdb/`
 
 **配置文件合并**
 
-`.custom.yaml` 等配置文件**没有自动合并机制**——内置同步不处理这些文件。如果两台设备的 `.custom.yaml` 同时修改了同一字段，最后写入 `sync_dir` 的那台设备会覆盖另一台（last-write-wins），内置同步不做三向合并。这是使用 Git 管理配置文件的主要原因。
+`.custom.yaml` 等配置文件会被带到同步目录用于备份和分发，但它们没有自动冲突合并机制。如果两台设备同时修改了同一字段，最后写入 `sync_dir` 的版本仍可能覆盖另一份快照；因此内置同步不应被当作 Git 式配置协作工具。
 
 </Details>
 

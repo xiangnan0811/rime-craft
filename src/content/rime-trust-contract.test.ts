@@ -57,9 +57,20 @@ describe('public trust content contract', () => {
     expect(spellingScheme).not.toMatch(/Linux：`ibus-daemon -drx` 或对应命令/)
   })
 
-  it('explains built-in sync as user-dictionary-first and config-file-no-merge', () => {
+  it('describes built-in sync as user-dictionary-first plus config backup without safe merge', () => {
     const multi = read('multi-device-sync.mdx')
+
     expect(multi).toMatch(/用户词典/)
+    expect(multi).toMatch(/备份和分发|单向.*备份/)
     expect(multi).toMatch(/没有可靠的冲突合并机制|不做三向合并/)
+    expect(multi).not.toMatch(/内置同步不处理这些文件/)
+  })
+
+  it('does not present a repo-local Linux ibus sync command as the default path', () => {
+    const multi = read('multi-device-sync.mdx')
+
+    expect(multi).toMatch(/Linux（ibus-rime）/)
+    expect(multi).toMatch(/前端.*用户资料同步|以当前前端.*说明为准/)
+    expect(multi).not.toMatch(/rime_api_console --sync/)
   })
 })
