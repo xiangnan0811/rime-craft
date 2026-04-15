@@ -73,4 +73,15 @@ describe('public trust content contract', () => {
     expect(multi).toMatch(/前端.*用户资料同步|以当前前端.*说明为准/)
     expect(multi).not.toMatch(/rime_api_console --sync/)
   })
+
+  it('keeps mobile installation guidance framed as current/common behavior instead of timeless superiority claims', () => {
+    const installation = read('installation.mdx')
+
+    expect(installation).not.toMatch(/F-Droid 版本无广告，更新及时/)
+    expect(installation).not.toMatch(/目前 iOS 平台上功能最完整的 RIME 实现/)
+
+    expect(installation).toMatch(/常见渠道包括 F-Droid、Google Play 和 GitHub Releases|具体.*以当前.*渠道页面为准/)
+    expect(installation).toMatch(/当前 iOS 生态中常见的 Rime 实现之一|常见的 Rime 实现/)
+    expect(installation).toMatch(/以当前 App 版本和官方说明为准|以当前 App 文档|以当前 App 内设置为准/)
+  })
 })
