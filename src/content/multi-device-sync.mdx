@@ -111,7 +111,7 @@ sync_dir: "/Users/username/Library/Mobile Documents/com~apple~CloudDocs/Rime-syn
 3. 将合并结果**导入**本机词典
 
 :::tip
-内置同步主要针对**用户词典**（词频、个人词库）。`.custom.yaml`、Lua 脚本等配置文件不在内置同步范围内，需要另行同步。
+Rime 内置同步的核心价值是**用户词典快照的导出与回收合并**。非自动生成的 YAML / `.txt` 文件也会被带到同步目录用于备份和分发，但它们没有可靠的冲突合并机制；如果多台设备同时改了同一个配置文件，内置同步不会帮你做 Git 那样的三向合并。
 :::
 
 ---

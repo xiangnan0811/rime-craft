@@ -57,8 +57,8 @@ RIME 的配置文件是人类可读的 YAML 文本，但引擎在运行时需要
 |------|------|----------|
 | macOS | Squirrel（鼠须管） | 菜单栏图标 → 「重新部署」 |
 | Windows | Weasel（小狼毫） | 系统托盘图标右键 → 「重新部署」 |
-| Linux（IBus） | ibus-rime | 命令行：`ibus-daemon -rd` |
-| Linux（Fcitx5） | fcitx5-rime | 命令行：`fcitx5-remote -r` 或点击托盘 → 部署 |
+| Linux（IBus） | ibus-rime | 前端菜单中的「重新部署」优先；必要时再用环境相关命令 |
+| Linux（Fcitx5） | fcitx5-rime | 托盘或配置工具中的「部署」优先；CLI 作为补充 |
 | Android | Trime（同文） | App 内「设置」→「重新部署」 |
 | iOS | Hamster（仓） | App 内「Rime」→「重新部署」 |
 
@@ -84,17 +84,19 @@ RIME 的配置文件是人类可读的 YAML 文本，但引擎在运行时需要
 
 ### Linux（ibus-rime）
 
-如果你的发行版暴露了 `rime_deployer` 命令，可以参考下面的手动方式；不同发行版的可执行文件位置和包装方式可能不同，优先使用前端自身提供的「重新部署」入口。
+Linux 平台优先使用前端自身提供的「重新部署」入口；有些前端会把同一操作标记成 “Deploy”。不同发行版和输入法框架暴露的 CLI 形式并不完全一致，因此命令行更适合作为环境相关补充方案，而不是统一的跨前端默认步骤。
 
 ```bash
-# 方法一：重启 ibus 守护进程并触发重新部署（推荐）
+# 兼容性 fallback：重启 ibus 守护进程
 ibus-daemon -rd
 
-# 方法二：手动调用 rime_deployer
+# 环境允许时，也可手动调用 rime_deployer
 rime_deployer --build ~/.config/ibus/rime ~/.config/ibus/rime/build
 ```
 
 用户配置目录：`~/.config/ibus/rime/`
+
+如果你使用的是较新的 ibus-rime，优先在前端菜单或设置界面中点击「Deploy / 重新部署」。只有旧版本或发行版包装不完整时，才把重启 ibus 守护进程或手动调用 `rime_deployer` 视为兼容性 workaround，而不是现代默认路径。
 
 ### Linux（fcitx5-rime）
 

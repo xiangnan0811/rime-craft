@@ -206,16 +206,16 @@ zhang.san@example.com	yx	200
 两台设备使用相同云盘目录作为同步路径，RIME 会在「同步用户数据」时导出/合并用户词典快照：
 
 ```yaml
-# 设备 A（macOS）
-patch:
-  installation_id: "macbook-2024"
-  sync_dir: "/Users/yourname/Dropbox/RimeSync"
+# installation.yaml（设备 A / macOS）
+installation_id: "macbook-2024"
+sync_dir: "/Users/yourname/Dropbox/RimeSync"
 
-# 设备 B（Windows）
-patch:
-  installation_id: "desktop-2024"
-  sync_dir: "C:\\Users\\yourname\\Dropbox\\RimeSync"
+# installation.yaml（设备 B / Windows）
+installation_id: "desktop-2024"
+sync_dir: "C:\\Users\\yourname\\Dropbox\\RimeSync"
 ```
+
+这段配置写在独立的 `installation.yaml` 中，不使用 `.custom.yaml` 的 `patch:` 语法。
 
 两台设备分别执行「同步用户数据」后，词频记录会合并。`installation_id` 必须不同，否则两台设备会相互覆盖。
 
