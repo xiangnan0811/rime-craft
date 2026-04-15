@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useConfigStore } from '@/stores/config-store'
 import { MODULE_REGISTRY } from '@/data/module-registry'
+import type { EditorModule } from '@/types/config'
 import { GoToConfigButton } from './GoToConfigButton'
 import { ConfigSlot } from './ConfigSlot'
 import { Pre, InlineCode } from './CodeBlock'
@@ -11,7 +12,7 @@ import { StepGuide, Step } from './StepGuide'
 import { YamlPreview } from './YamlPreview'
 
 /** Map tutorial slug (used in MDX links) → editor module ID */
-function findModuleByTutorialSlug(slug: string): string | undefined {
+function findModuleByTutorialSlug(slug: string): EditorModule | undefined {
   return MODULE_REGISTRY.find((m) => (m.tutorialSlug ?? m.id) === slug)?.id
 }
 

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useConfigStore } from '@/stores/config-store'
 import { importFromYamlString, importFromFiles } from './importer'
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,6 +20,10 @@ export function ImportDialog() {
       if (!fileList?.length) return
       const files: { name: string; content: string }[] = []
       for (const file of Array.from(fileList)) {
+        if (file.size > MAX_FILE_SIZE) {
+          setFeedback('文件过大，最大支持 5MB')
+          return
+        }
         const content = await file.text()
         files.push({ name: file.name, content })
       }

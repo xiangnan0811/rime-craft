@@ -63,6 +63,32 @@ describe('expandPatchPaths', () => {
   })
 })
 
+describe('prototype pollution protection', () => {
+  it('ignores __proto__ in slash-delimited paths', () => {
+    const before = ({} as Record<string, unknown>).__proto__
+    const result = expandPatchPaths({ '__proto__/polluted': 'yes' })
+    expect(result).toEqual({})
+    expect(({} as Record<string, unknown>).__proto__).toBe(before)
+  })
+
+  it('ignores constructor in slash-delimited paths', () => {
+    const result = expandPatchPaths({ 'constructor/prototype/polluted': 'yes' })
+    expect(result).toEqual({})
+  })
+
+  it('ignores prototype as a final key segment', () => {
+    const result = expandPatchPaths({ 'foo/prototype': 'yes' })
+    // Intermediate 'foo' object is created but 'prototype' key is not set
+    expect(result).toEqual({ foo: {} })
+    expect((result as Record<string, Record<string, unknown>>)['foo']!.prototype).toBeUndefined()
+  })
+
+  it('allows safe keys that are substrings of dangerous keys', () => {
+    const result = expandPatchPaths({ 'proto/value': 42 })
+    expect(result).toEqual({ proto: { value: 42 } })
+  })
+})
+
 describe('mapToDefaultConfig', () => {
   it('maps a full patch to DefaultConfig', () => {
     const patch = {

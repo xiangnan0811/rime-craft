@@ -13,7 +13,7 @@ describe('schema capability contract', () => {
   })
 
   it('keeps special-input removed from the live module registry', () => {
-    expect(MODULE_REGISTRY.some((mod) => mod.id === 'special-input')).toBe(false)
+    expect(MODULE_REGISTRY.some((mod) => (mod.id as string) === 'special-input')).toBe(false)
     expect(MODULE_REGISTRY.some((mod) => mod.id === 'lua-extensions')).toBe(true)
   })
 })

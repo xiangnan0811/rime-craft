@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getModifiedFields } from './diff'
 import { DEFAULT_CONFIG } from './defaults'
+import type { DefaultConfig } from '@/types/config'
 
 describe('getModifiedFields', () => {
   it('returns empty set for default config', () => {
@@ -40,5 +41,16 @@ describe('getModifiedFields', () => {
     const modified = getModifiedFields(config)
     expect(modified.has('selectKeys')).toBe(false)
     expect(modified.has('asciiComposer.switchKey.shiftL')).toBe(false)
+  })
+
+  it('detects changed key bindings content', () => {
+    const config: DefaultConfig = {
+      ...DEFAULT_CONFIG,
+      keyBinder: {
+        bindings: [{ when: 'composing', accept: 'Tab', send: 'Page_Down' }],
+      },
+    }
+    const modified = getModifiedFields(config)
+    expect(modified.has('keyBinder.bindings')).toBe(true)
   })
 })

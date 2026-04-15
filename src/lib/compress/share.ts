@@ -2,10 +2,18 @@ import LZString from 'lz-string'
 import type { RimeProject, EditorModule } from '@/types/config'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import type { PersistedSourceFile } from '@/lib/workspace/types'
+import { isRecord, isValidSourceFile, isValidProject } from '@/lib/workspace/validators'
 import {
   extractModuleYaml,
   extractModuleYamlFromWorkspace,
 } from '@/lib/yaml/module-yaml'
+
+const VALID_MODULES: Set<string> = new Set<EditorModule>([
+  'schema-manager', 'candidate-settings', 'key-bindings', 'switches',
+  'fuzzy-pinyin', 'spelling-scheme', 'auxiliary-code', 'reverse-lookup',
+  'punctuation', 'dictionary', 'lua-extensions', 'ascii-mode',
+  'candidate-display', 'comment-hints',
+])
 
 export interface ConfigSnapshot {
   version: 1
@@ -18,42 +26,13 @@ export type ParsedConfigSnapshot = ConfigSnapshot & {
   sourceFiles: Record<string, PersistedSourceFile>
 }
 
-const SOURCE_FILE_KINDS = new Set<string>([
-  'default',
-  'platform',
-  'schema',
-  'custom_phrase',
-])
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-
-const isPersistedSourceFile = (value: unknown): value is PersistedSourceFile => {
-  if (!isRecord(value)) {
-    return false
-  }
-
-  return (
-    typeof value.id === 'string' &&
-    typeof value.fileName === 'string' &&
-    typeof value.kind === 'string' &&
-    SOURCE_FILE_KINDS.has(value.kind) &&
-    typeof value.content === 'string' &&
-    typeof value.updatedAt === 'string' &&
-    (value.platform === undefined ||
-      value.platform === 'macos' ||
-      value.platform === 'windows') &&
-    (value.schemaId === undefined || typeof value.schemaId === 'string')
-  )
-}
-
 function normalizeSnapshotSourceFiles(
   project: RimeProject,
   sourceFiles: unknown,
 ): Record<string, PersistedSourceFile> {
   if (
     isRecord(sourceFiles) &&
-    Object.values(sourceFiles).every(isPersistedSourceFile)
+    Object.values(sourceFiles).every(isValidSourceFile)
   ) {
     return structuredClone(sourceFiles) as Record<string, PersistedSourceFile>
   }
@@ -67,10 +46,14 @@ export function compressConfig(data: Record<string, unknown>): string {
   return LZString.compressToEncodedURIComponent(JSON.stringify(data))
 }
 
+const MAX_COMPRESSED_LENGTH = 50_000
+const MAX_DECOMPRESSED_LENGTH = 500_000
+
 export function decompressConfig(compressed: string): Record<string, unknown> | null {
+  if (compressed.length > MAX_COMPRESSED_LENGTH) return null
   try {
     const json = LZString.decompressFromEncodedURIComponent(compressed)
-    if (!json) return null
+    if (!json || json.length > MAX_DECOMPRESSED_LENGTH) return null
     return JSON.parse(json) as Record<string, unknown>
   } catch {
     return null
@@ -109,6 +92,8 @@ export function parseShareUrl(
   if (!data || typeof data.module !== 'string' || typeof data.yaml !== 'string')
     return null
 
+  if (!VALID_MODULES.has(data.module)) return null
+
   return { module: data.module as EditorModule, yaml: data.yaml }
 }
 
@@ -143,6 +128,9 @@ export function parseConfigSnapshot(
     }
     if (!parsed.project || typeof parsed.project !== 'object') {
       return { error: '无效的配置快照：缺少 project 字段' }
+    }
+    if (!isValidProject(parsed.project)) {
+      return { error: '无效的配置快照：project 结构不完整' }
     }
 
     const project = structuredClone(parsed.project as RimeProject)

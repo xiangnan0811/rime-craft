@@ -35,8 +35,8 @@ export function getModifiedFields(current: DefaultConfig): Set<string> {
     modified.add('asciiComposer.goodOldCapsLock')
   }
 
-  // Key bindings: compare length (simple heuristic)
-  if (current.keyBinder.bindings.length !== DEFAULT_CONFIG.keyBinder.bindings.length) {
+  // Key bindings: compare content
+  if (JSON.stringify(current.keyBinder.bindings) !== JSON.stringify(DEFAULT_CONFIG.keyBinder.bindings)) {
     modified.add('keyBinder.bindings')
   }
 

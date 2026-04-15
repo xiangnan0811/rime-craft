@@ -35,23 +35,28 @@ const createDefaultEditorUI = (): EditorUIState => ({
 
 const createInitialProject = (): RimeProject => createEmptyProject()
 
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+
 const persistCurrentState = (
   project: RimeProject,
   activeModule: EditorModule,
   editorUI: EditorUIState,
   sourceFiles: Record<string, PersistedSourceFile>,
 ): void => {
-  saveWorkspaceSnapshot({
-    version: 1,
-    savedAt: new Date().toISOString(),
-    project,
-    editorUI: {
-      activeModule,
-      viewMode: editorUI.viewMode,
-      tutorialCollapsed: editorUI.tutorialCollapsed,
-    },
-    sourceFiles,
-  })
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    saveWorkspaceSnapshot({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      project,
+      editorUI: {
+        activeModule,
+        viewMode: editorUI.viewMode,
+        tutorialCollapsed: editorUI.tutorialCollapsed,
+      },
+      sourceFiles,
+    })
+  }, 500)
 }
 
 interface ConfigState {
@@ -121,12 +126,33 @@ export const useConfigStore = create<ConfigState>((set, get) => {
     })
   }
 
+  const updateSchemaField = <K extends keyof SchemaConfig>(
+    schemaId: string,
+    field: K,
+    value: SchemaConfig[K],
+  ): void => {
+    const state = get()
+    const project = {
+      ...state.project,
+      schemaConfigs: {
+        ...state.project.schemaConfigs,
+        [schemaId]: {
+          ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
+          schemaId,
+          [field]: value,
+        },
+      },
+    }
+    updateProjectWorkspace(project)
+  }
+
+  const initialProject = createInitialProject()
   return {
-    project: createInitialProject(),
+    project: initialProject,
     activeModule: 'schema-manager',
     isDirty: false,
     editorUI: createDefaultEditorUI(),
-    sourceFiles: createSourceFilesFromProject(createInitialProject()),
+    sourceFiles: createSourceFilesFromProject(initialProject),
 
     setActiveModule: (module) => {
       const state = get()
@@ -256,53 +282,11 @@ export const useConfigStore = create<ConfigState>((set, get) => {
       updateProjectWorkspace(project)
     },
 
-    setFuzzyRules: (schemaId, rules) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId }),
-            schemaId,
-            fuzzyRules: rules,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setFuzzyRules: (schemaId, rules) => updateSchemaField(schemaId, 'fuzzyRules', rules),
 
-    setSwitches: (schemaId, switches) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            switches,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setSwitches: (schemaId, switches) => updateSchemaField(schemaId, 'switches', switches),
 
-    setPunctuator: (schemaId, punctuator) => {
-      const state = get()
-      const project = {
-        ...state.project,
-        schemaConfigs: {
-          ...state.project.schemaConfigs,
-          [schemaId]: {
-            ...(state.project.schemaConfigs[schemaId] ?? { schemaId, fuzzyRules: [] }),
-            schemaId,
-            punctuator,
-          },
-        },
-      }
-      updateProjectWorkspace(project)
-    },
+    setPunctuator: (schemaId, punctuator) => updateSchemaField(schemaId, 'punctuator', punctuator),
 
     setThemeStyle: (style) => {
       const state = get()

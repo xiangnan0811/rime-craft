@@ -65,6 +65,8 @@ export function expandPatchPaths(
   return result
 }
 
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 function setNestedValue(
   obj: Record<string, unknown>,
   path: string[],
@@ -73,12 +75,15 @@ function setNestedValue(
   let current = obj as Record<string, unknown>
   for (let i = 0; i < path.length - 1; i++) {
     const key = path[i]!
+    if (DANGEROUS_KEYS.has(key)) return
     if (current[key] === undefined || typeof current[key] !== 'object') {
       current[key] = {}
     }
     current = current[key] as Record<string, unknown>
   }
-  current[path[path.length - 1]!] = value
+  const finalKey = path[path.length - 1]!
+  if (DANGEROUS_KEYS.has(finalKey)) return
+  current[finalKey] = value
 }
 
 function hasOwn(object: Record<string, unknown>, key: string): boolean {

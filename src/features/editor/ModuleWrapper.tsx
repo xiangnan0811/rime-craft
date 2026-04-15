@@ -5,13 +5,14 @@ import {
   applyModuleYamlToWorkspace,
   extractModuleYamlFromWorkspace,
 } from '@/lib/yaml/module-yaml'
+import type { EditorModule } from '@/types/config'
 
 const YamlEditor = lazy(() =>
   import('@/components/shared/YamlEditor').then((m) => ({ default: m.YamlEditor }))
 )
 
 interface ModuleWrapperProps {
-  module: string;
+  module: EditorModule;
   children: React.ReactNode;
 }
 

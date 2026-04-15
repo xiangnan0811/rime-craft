@@ -8,12 +8,11 @@ export function DarkModeToggle() {
   )
 
   useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
+    document.documentElement.classList.toggle('dark', dark)
+    try {
+      localStorage.setItem('theme', dark ? 'dark' : 'light')
+    } catch {
+      // Silently ignore in restricted environments
     }
   }, [dark])
 

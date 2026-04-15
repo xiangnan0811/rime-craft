@@ -30,6 +30,18 @@ describe('compressConfig / decompressConfig', () => {
   })
 })
 
+describe('decompressConfig size limits', () => {
+  it('rejects compressed input longer than 50KB', () => {
+    const oversized = 'a'.repeat(50_001)
+    expect(decompressConfig(oversized)).toBeNull()
+  })
+
+  it('accepts compressed input at exactly 50KB without throwing', () => {
+    const atLimit = 'a'.repeat(50_000)
+    expect(() => decompressConfig(atLimit)).not.toThrow()
+  })
+})
+
 describe('generateShareUrl', () => {
   it('uses artifact-backed extraction for multi-file candidate-settings shares', () => {
     const project = createEmptyProject()
