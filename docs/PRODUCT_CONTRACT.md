@@ -21,3 +21,8 @@
 ## 规划指针
 
 - 涉及上述未正式承诺能力的后续规划，统一参见 [docs/superpowers/specs/2026-04-11-post-batch-roadmap-design.md](./superpowers/specs/2026-04-11-post-batch-roadmap-design.md)。
+
+## 参考信息边界
+
+- 方案页中的社区规模、更新频率、生态可用平台等信息属于人工维护的参考信息，不等同于实时事实或正式支持承诺。
+- 这些信息应以下游页面标注、上游 README / 仓库页面与当前前端能力为准；需要快照信息时应明确标注快照属性，`rime-craft` 的正式承诺范围仍以“正式支持范围”一节为准。

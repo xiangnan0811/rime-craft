@@ -59,3 +59,13 @@
 3. **解释"为什么"，不只是"怎么做"** — 原理层是区分浮于表面与深度教程的关键
 4. **配合 UI 截图或 `<ConfigSlot>`** — 让用户在阅读的同时看到对应的编辑器区域
 5. **链接相关模块** — 用 `./module-slug` 格式，编辑器中会自动跳转
+
+## 真值分层与来源裁决规则
+
+发布前先判断内容属于哪一层：
+
+- **Layer A：稳定事实** — 正式支持边界、canonical repo/issues URL、方案类型、公开教程 slug。必须由 contract tests 强锁。
+- **Layer B：半稳定事实** — deploy / sync / installation / custom_phrase / 路径与机制说明。具体方案行为以上游方案 README / 代码为准；通用 Rime 机制以官方 Rime 文档为准；证据不足时必须降级表述。
+- **Layer C：高漂移事实** — stars、更新活跃度、最完整/最受欢迎等比较性信息。不得裸露成稳定事实，应下沉展示或加“人工维护 / 快照信息 / 以上游 README 为准”等标记。
+
+涉及 deploy、sync、installation、custom_phrase、平台支持、方案对比等高风险 truth surface 的改动，必须同步更新至少一个对应 contract / semantic test。

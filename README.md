@@ -30,3 +30,4 @@ npm run dev
 
 - 事实性教程改动请优先附上官方或上游仓库依据
 - 涉及 deploy / sync / installation.yaml / custom_phrase 的改动，请同步更新对应内容合同测试
+- 新增涉及 deploy / sync / installation / 平台支持 / 方案对比的内容前，请先按 `docs/CONTENT_DEPTH_GUIDE.md` 中的真值分层与来源裁决规则收敛表述，再补对应 contract tests。
