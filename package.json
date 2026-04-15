@@ -1,7 +1,7 @@
 {
   "name": "rime-craft",
   "version": "1.0.0",
-  "description": "",
+  "description": "Rime 输入法可视化配置编辑器与教程站，正式支持 macOS / Windows 导入导出",
   "main": "index.js",
   "directories": {
     "doc": "docs"
