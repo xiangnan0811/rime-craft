@@ -51,11 +51,6 @@ export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
           <p className="mt-2 text-sm text-gray-700">{schema.description}</p>
         </div>
         <div className="flex shrink-0 gap-2">
-          {schema.community.stars !== 'N/A' && (
-            <Button variant="outline" size="sm" asChild>
-              <a href={schema.links.repository ?? '#'} target="_blank" rel="noreferrer">⭐ {schema.community.stars}</a>
-            </Button>
-          )}
           <Button size="sm" onClick={handleUseSchema}>
             {preset ? '载入该方案预设' : '载入该方案配置'}
           </Button>

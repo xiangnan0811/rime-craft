@@ -60,6 +60,15 @@ describe('SchemaDetailPage', () => {
     expect(screen.queryByRole('button', { name: '载入该方案预设' })).not.toBeInTheDocument()
   })
 
+  it('keeps the hero meta line limited to stable facts', () => {
+    renderWithRouter('rime_ice')
+
+    const metaLine = screen.getByText('by Dvel · 200万+ 词库')
+    expect(metaLine).toBeInTheDocument()
+    expect(metaLine).not.toHaveTextContent('每周更新')
+    expect(screen.queryByRole('link', { name: /10k\+/ })).not.toBeInTheDocument()
+  })
+
   it('shows a reference-info note for community snapshot fields on the intro tab', () => {
     renderWithRouter('rime_ice')
     expect(screen.getByText(/社区规模与更新频率为人工维护快照信息/)).toBeInTheDocument()
