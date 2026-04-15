@@ -48,8 +48,12 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
   const navigate = useNavigate()
   const loadProject = useConfigStore((s) => s.loadProject)
 
+  function getPreset(schema: SchemaCompareData) {
+    return schema.presetId ? PRESETS.find((p) => p.id === schema.presetId) : undefined
+  }
+
   function handleUseSchema(schema: SchemaCompareData) {
-    const preset = schema.presetId ? PRESETS.find((p) => p.id === schema.presetId) : undefined
+    const preset = getPreset(schema)
     if (preset) {
       loadProject(preset.createProject())
     } else {
@@ -122,7 +126,9 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
             {schemas.map((s) => (
               <td key={s.id} className="px-4 py-3 text-center">
                 <div className="flex justify-center gap-2">
-                  <Button size="sm" onClick={() => handleUseSchema(s)}>使用这个方案</Button>
+                  <Button size="sm" onClick={() => handleUseSchema(s)}>
+                    {getPreset(s) ? '载入预设配置' : '载入该方案配置'}
+                  </Button>
                   <Button size="sm" variant="outline" asChild>
                     <Link to={`/schema/${s.id}`}>查看详情</Link>
                   </Button>

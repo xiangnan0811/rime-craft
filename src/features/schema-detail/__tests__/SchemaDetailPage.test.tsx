@@ -42,4 +42,16 @@ describe('SchemaDetailPage', () => {
     renderWithRouter('rime_ice')
     expect(screen.queryByRole('tab', { name: '键位图' })).not.toBeInTheDocument()
   })
+
+  it('uses preset-loading copy in the schema detail CTA', () => {
+    renderWithRouter('rime_ice')
+    expect(screen.getByRole('button', { name: '载入该方案预设' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '使用此方案' })).not.toBeInTheDocument()
+  })
+
+  it('uses config-loading copy when the schema has no preset', () => {
+    renderWithRouter('double_pinyin')
+    expect(screen.getByRole('button', { name: '载入该方案配置' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '载入该方案预设' })).not.toBeInTheDocument()
+  })
 })

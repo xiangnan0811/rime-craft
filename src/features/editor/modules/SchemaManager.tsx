@@ -56,7 +56,9 @@ export function SchemaManager() {
           <LearnMoreLink module="schema-manager" />
         </div>
         <p className="mt-1 text-sm text-gray-500">
-          管理已启用的输入方案及其优先顺序。列表中排在前面的方案为默认方案。
+          管理已启用的输入方案及其优先顺序。列表中排在前面的方案为默认方案。这里写出的只是
+          {' '}`schema_list` 与相关补丁；目标设备仍需先安装对应的 `.schema.yaml` / `.dict.yaml`
+          {' '}方案文件，Rime 才能真正使用该方案。
         </p>
       </div>
       <div className="space-y-2">

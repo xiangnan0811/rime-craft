@@ -23,11 +23,11 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
   const navigate = useNavigate()
   const loadProject = useConfigStore((s) => s.loadProject)
+  const preset = schema.integration.presetId
+    ? PRESETS.find((p) => p.id === schema.integration.presetId)
+    : undefined
 
   function handleUseSchema() {
-    const preset = schema.integration.presetId
-      ? PRESETS.find((p) => p.id === schema.integration.presetId)
-      : undefined
     if (preset) {
       loadProject(preset.createProject())
     } else {
@@ -56,7 +56,9 @@ export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
               <a href={schema.links.repository ?? '#'} target="_blank" rel="noreferrer">⭐ {schema.community.stars}</a>
             </Button>
           )}
-          <Button size="sm" onClick={handleUseSchema}>使用此方案</Button>
+          <Button size="sm" onClick={handleUseSchema}>
+            {preset ? '载入该方案预设' : '载入该方案配置'}
+          </Button>
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-4 text-sm">

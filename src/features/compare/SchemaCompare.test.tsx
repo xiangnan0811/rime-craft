@@ -104,4 +104,16 @@ describe('<SchemaCompare>', () => {
     const rows = screen.getByText('上手难度').closest('tr')
     expect(rows).not.toHaveClass('bg-yellow-50')
   })
+
+  it('uses preset-loading copy instead of installation copy', () => {
+    renderWithRouter([createMockSchema({ id: 'wanxiang', name: '万象拼音', presetId: 'wanxiang' })])
+    expect(screen.getByRole('button', { name: '载入预设配置' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '使用这个方案' })).not.toBeInTheDocument()
+  })
+
+  it('uses config-loading copy when the schema has no preset', () => {
+    renderWithRouter([createMockSchema({ id: 'double_pinyin', name: '自然码双拼' })])
+    expect(screen.getByRole('button', { name: '载入该方案配置' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '载入预设配置' })).not.toBeInTheDocument()
+  })
 })
