@@ -16,11 +16,14 @@ export function SchemaIntroTab({ schema }: { schema: SchemaDetail }) {
           <p key={i} className="text-sm leading-relaxed text-gray-700">{p}</p>
         ))}
       </div>
+      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        社区规模与更新频率为人工维护快照信息，仅作参考；具体以上游 README / GitHub 页面为准。
+      </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="词库规模" value={compare.dictSize} />
         <StatCard label="智能程度" value={compare.smartLevel} />
         <StatCard label="上手难度" value={compare.difficulty} />
-        <StatCard label="更新频率" value={community.updateFrequency} />
+        <StatCard label="更新频率（人工维护）" value={community.updateFrequency} />
       </div>
       <div>
         <h3 className="mb-2 text-base font-semibold">功能特性</h3>

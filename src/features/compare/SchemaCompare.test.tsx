@@ -62,6 +62,14 @@ describe('<SchemaCompare>', () => {
     expect(screen.getByText('推荐人群')).toBeInTheDocument()
   })
 
+  it('labels high-drift community rows as manually maintained reference info', () => {
+    renderWithRouter([createMockSchema({ id: 'rime_ice' })])
+
+    expect(screen.getByText('更新活跃度（人工维护）')).toBeInTheDocument()
+    expect(screen.getByText('社区规模（人工维护）')).toBeInTheDocument()
+    expect(screen.getByText(/社区规模与更新活跃度为人工维护快照信息/)).toBeInTheDocument()
+  })
+
   it('displays schema field values in the table', () => {
     const schema = createMockSchema({
       id: 'rime_ice',

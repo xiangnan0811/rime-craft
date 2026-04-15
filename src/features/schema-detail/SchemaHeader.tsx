@@ -47,7 +47,7 @@ export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
             <Badge variant="secondary">{TYPE_LABELS[schema.type] ?? schema.type}</Badge>
             <Badge className={DIFFICULTY_COLORS[schema.compare.difficulty]}>{schema.compare.difficulty}</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-600">by {schema.author} · {schema.compare.dictSize} 词库 · {schema.community.updateFrequency}</p>
+          <p className="mt-1 text-sm text-gray-600">by {schema.author} · {schema.compare.dictSize} 词库</p>
           <p className="mt-2 text-sm text-gray-700">{schema.description}</p>
         </div>
         <div className="flex shrink-0 gap-2">

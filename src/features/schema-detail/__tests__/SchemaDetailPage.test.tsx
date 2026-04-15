@@ -59,4 +59,10 @@ describe('SchemaDetailPage', () => {
     expect(screen.getByRole('button', { name: '载入该方案配置' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '载入该方案预设' })).not.toBeInTheDocument()
   })
+
+  it('shows a reference-info note for community snapshot fields on the intro tab', () => {
+    renderWithRouter('rime_ice')
+    expect(screen.getByText(/社区规模与更新频率为人工维护快照信息/)).toBeInTheDocument()
+    expect(screen.getByText('更新频率（人工维护）')).toBeInTheDocument()
+  })
 })
