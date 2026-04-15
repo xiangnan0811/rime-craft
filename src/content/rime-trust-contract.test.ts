@@ -6,6 +6,12 @@ import { describe, expect, it } from 'vitest'
 const contentDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)))
 const read = (fileName: string) =>
   fs.readFileSync(path.join(contentDir, fileName), 'utf8')
+const legacyPhrase = (...parts: string[]) =>
+  new RegExp(
+    parts
+      .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join(''),
+  )
 
 const expectLinuxDeployFallbackContract = (source: string) => {
   expect(source).toMatch(/Linux/)
@@ -35,8 +41,10 @@ describe('public trust content contract', () => {
     expect(schemaManager).toMatch(/不会替代上游方案包安装/)
     expect(schemaManager).toMatch(/放入 Rime 用户目录/)
 
-    expect(whatIsRime).not.toMatch(/无需手动下载配置文件/)
-    expect(schemaManager).not.toMatch(/可以直接通过编辑器添加，无需手动配置文件/)
+    expect(whatIsRime).not.toMatch(legacyPhrase('无需手动下载', '配置文件'))
+    expect(schemaManager).not.toMatch(
+      legacyPhrase('可以直接通过编辑器添加，', '无需手动配置文件'),
+    )
   })
 
   it('treats Linux deploy commands as frontend-first and CLI-fallback-only across the assigned guides', () => {
@@ -51,10 +59,16 @@ describe('public trust content contract', () => {
     expectLinuxDeployFallbackContract(spellingScheme)
 
     expect(firstDeploy).toMatch(/旧版本|老版本|workaround/)
-    expect(firstDeploy).not.toMatch(/ibus-daemon -drx/)
-    expect(whatIsRime).not.toMatch(/Linux 执行 `ibus-daemon -drx` 或等效命令/)
-    expect(schemaManager).not.toMatch(/Linux 使用 `ibus-daemon -drx` 或对应命令/)
-    expect(spellingScheme).not.toMatch(/Linux：`ibus-daemon -drx` 或对应命令/)
+    expect(firstDeploy).not.toMatch(legacyPhrase('ibus-daemon -', 'drx'))
+    expect(whatIsRime).not.toMatch(
+      legacyPhrase('Linux 执行 `ibus-daemon -', 'drx` 或等效命令'),
+    )
+    expect(schemaManager).not.toMatch(
+      legacyPhrase('Linux 使用 `ibus-daemon -', 'drx` 或对应命令'),
+    )
+    expect(spellingScheme).not.toMatch(
+      legacyPhrase('Linux：`ibus-daemon -', 'drx` 或对应命令'),
+    )
   })
 
   it('describes built-in sync as user-dictionary-first plus config backup without safe merge', () => {
@@ -71,14 +85,18 @@ describe('public trust content contract', () => {
 
     expect(multi).toMatch(/Linux（ibus-rime）/)
     expect(multi).toMatch(/前端.*用户资料同步|以当前前端.*说明为准/)
-    expect(multi).not.toMatch(/rime_api_console --sync/)
+    expect(multi).not.toMatch(legacyPhrase('rime_api_console --', 'sync'))
   })
 
   it('keeps mobile installation guidance framed as current/common behavior instead of timeless superiority claims', () => {
     const installation = read('installation.mdx')
 
-    expect(installation).not.toMatch(/F-Droid 版本无广告，更新及时/)
-    expect(installation).not.toMatch(/目前 iOS 平台上功能最完整的 RIME 实现/)
+    expect(installation).not.toMatch(
+      legacyPhrase('F-Droid 版本无广告，', '更新', '及时'),
+    )
+    expect(installation).not.toMatch(
+      legacyPhrase('目前 iOS 平台上功能最', '完整的 RIME 实现'),
+    )
 
     expect(installation).toMatch(/常见渠道包括 F-Droid、Google Play 和 GitHub Releases|具体.*以当前.*渠道页面为准/)
     expect(installation).toMatch(/当前 iOS 生态中常见的 Rime 实现之一|常见的 Rime 实现/)
