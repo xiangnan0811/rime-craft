@@ -61,12 +61,7 @@ describe('<KeyBindings>', () => {
     // Find a specific function key definition to test against
     const firstDef = FUNCTION_KEY_DEFINITIONS[0]!
 
-    // All switches on the page: the Caps Lock toggle + all function key toggles.
-    const switches = screen.getAllByRole('switch')
-
-    // Function key switches start after the Caps Lock toggle (index 0).
-    // But to be precise, find the switch that is inside the same container
-    // as the first function key label text.
+    // Find the switch inside the same container as the first function key label.
     const label = screen.getByText(firstDef.label)
     const container = label.closest('.flex.items-center.justify-between')!
     const toggle = container.querySelector('[role="switch"]') as HTMLElement

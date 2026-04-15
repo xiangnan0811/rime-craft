@@ -4,7 +4,6 @@ import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { Punctuation } from './Punctuation'
 import { useConfigStore } from '@/stores/config-store'
-import { DEFAULT_HALF_SHAPE } from '@/data/punctuation-defaults'
 
 function renderWithRouter() {
   return render(
