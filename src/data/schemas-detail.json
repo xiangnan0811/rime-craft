@@ -13,8 +13,8 @@
         "documentation": "https://dvel.me/posts/rime-ice/",
         "community": [
           {
-            "label": "GitHub Discussions",
-            "url": "https://github.com/iDvel/rime-ice/discussions"
+            "label": "GitHub Issues",
+            "url": "https://github.com/iDvel/rime-ice/issues"
           }
         ]
       },
@@ -63,12 +63,12 @@
       "author": "amz",
       "links": {
         "official": null,
-        "repository": "https://github.com/amzxyz/rime-wanxiang-pinyin",
+        "repository": "https://github.com/amzxyz/rime_wanxiang",
         "documentation": null,
         "community": [
           {
             "label": "GitHub Issues",
-            "url": "https://github.com/amzxyz/rime-wanxiang-pinyin/issues"
+            "url": "https://github.com/amzxyz/rime_wanxiang/issues"
           }
         ]
       },
@@ -93,7 +93,7 @@
       "learningResources": [
         {
           "title": "万象拼音 GitHub 仓库",
-          "url": "https://github.com/amzxyz/rime-wanxiang-pinyin"
+          "url": "https://github.com/amzxyz/rime_wanxiang"
         }
       ],
       "integration": {
@@ -121,18 +121,18 @@
     {
       "id": "wanxiang_pro",
       "name": "万象拼音 PRO",
-      "type": "full_pinyin",
+      "type": "double_pinyin",
       "description": "万象拼音的增强版，更多辅助码选项",
       "introduction": "万象拼音 PRO 是万象拼音的增强版本，在原版基础上增加了引导辅助码功能和整句输入模式。相比标准版，PRO 版提供了更丰富的辅助码触发方式，用户可以根据自己的习惯选择直接辅助码或引导辅助码。\n\n整句输入功能让用户可以连续输入一整句话，系统会自动进行分词和候选排序，适合需要快速输入长句的场景。结合辅助码筛选功能，即使在整句模式下也能精确选择目标汉字。\n\n万象拼音 PRO 继承了标准版的所有优点，包括多拼写方案支持、多种辅助码方案、以及丰富的 Lua 扩展功能，是追求极致输入效率的用户的进阶选择。",
       "author": "amz",
       "links": {
         "official": null,
-        "repository": "https://github.com/amzxyz/rime-wanxiang-pinyin",
+        "repository": "https://github.com/amzxyz/rime_wanxiang",
         "documentation": null,
         "community": [
           {
             "label": "GitHub Issues",
-            "url": "https://github.com/amzxyz/rime-wanxiang-pinyin/issues"
+            "url": "https://github.com/amzxyz/rime_wanxiang/issues"
           }
         ]
       },
@@ -157,7 +157,7 @@
       "learningResources": [
         {
           "title": "万象拼音 GitHub 仓库",
-          "url": "https://github.com/amzxyz/rime-wanxiang-pinyin"
+          "url": "https://github.com/amzxyz/rime_wanxiang"
         }
       ],
       "integration": {

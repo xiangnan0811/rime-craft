@@ -43,6 +43,11 @@ describe('SchemaDetailPage', () => {
     expect(screen.queryByRole('tab', { name: '键位图' })).not.toBeInTheDocument()
   })
 
+  it('shows wanxiang pro as a double-pinyin schema', () => {
+    renderWithRouter('wanxiang_pro')
+    expect(screen.getByText('双拼')).toBeInTheDocument()
+  })
+
   it('uses preset-loading copy in the schema detail CTA', () => {
     renderWithRouter('rime_ice')
     expect(screen.getByRole('button', { name: '载入该方案预设' })).toBeInTheDocument()
