@@ -2,46 +2,28 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useState, useEffect, type ComponentType } from 'react'
 import { MDXProvider } from '@mdx-js/react'
 import { mdxComponents } from '@/components/shared/mdx-components'
-import { findTutorialBySlug } from '@/data/tutorial-nav'
+import { findTutorialBySlug, resolveTutorialSlug } from '@/data/tutorial-nav'
+import { MDX_LOADERS } from '@/data/tutorial-loaders'
 import { DocsBreadcrumb } from './DocsBreadcrumb'
 import { DocsPagination } from './DocsPagination'
-
-const MDX_MODULES: Record<string, () => Promise<{ default: ComponentType }>> = {
-  'what-is-rime': () => import('@/content/what-is-rime.mdx'),
-  'installation': () => import('@/content/installation.mdx'),
-  'first-deploy': () => import('@/content/first-deploy.mdx'),
-  'config-structure': () => import('@/content/config-structure.mdx'),
-  'schema-manager': () => import('@/content/schema-manager.mdx'),
-  'candidate-settings': () => import('@/content/candidate-settings.mdx'),
-  'key-bindings': () => import('@/content/key-bindings.mdx'),
-  'fuzzy-pinyin': () => import('@/content/fuzzy-pinyin.mdx'),
-  'ascii-mode': () => import('@/content/ascii-mode.mdx'),
-  'punctuation': () => import('@/content/punctuation.mdx'),
-  'dictionary': () => import('@/content/dictionary.mdx'),
-  'switches': () => import('@/content/switches.mdx'),
-  'double-pinyin-guide': () => import('@/content/double-pinyin-guide.mdx'),
-  'auxiliary-code': () => import('@/content/auxiliary-code-config.mdx'),
-  'custom-dictionary': () => import('@/content/custom-dictionary.mdx'),
-  'lua-extensions': () => import('@/content/lua-extensions.mdx'),
-  'multi-device-sync': () => import('@/content/multi-device-sync.mdx'),
-}
 
 export function DocsPage() {
   const { slug } = useParams()
   const [Content, setContent] = useState<ComponentType | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const item = slug ? findTutorialBySlug(slug) : undefined
+  const resolvedSlug = slug ? resolveTutorialSlug(slug) : undefined
+  const item = resolvedSlug ? findTutorialBySlug(resolvedSlug) : undefined
 
   useEffect(() => {
-    if (!slug || !MDX_MODULES[slug]) {
+    if (!resolvedSlug || !MDX_LOADERS[resolvedSlug]) {
       setLoading(false)
       return
     }
 
     setLoading(true)
     setContent(null)
-    MDX_MODULES[slug]!()
+    MDX_LOADERS[resolvedSlug]!()
       .then((mod) => {
         setContent(() => mod.default)
         setLoading(false)
@@ -49,13 +31,17 @@ export function DocsPage() {
       .catch(() => {
         setLoading(false)
       })
-  }, [slug])
+  }, [resolvedSlug])
 
   if (!slug) {
     return <Navigate to="/docs/what-is-rime" replace />
   }
 
-  if (!item) {
+  if (resolvedSlug && resolvedSlug !== slug) {
+    return <Navigate to={`/docs/${resolvedSlug}`} replace />
+  }
+
+  if (!item || !resolvedSlug) {
     return <p className="text-gray-500 dark:text-slate-400">页面不存在。</p>
   }
 
@@ -76,13 +62,13 @@ export function DocsPage() {
 
   return (
     <>
-      <DocsBreadcrumb slug={slug} pageTitle={item.title} />
+      <DocsBreadcrumb slug={resolvedSlug} pageTitle={item.title} />
       <div data-docs-content>
         <MDXProvider components={mdxComponents}>
           <Content />
         </MDXProvider>
       </div>
-      <DocsPagination slug={slug} />
+      <DocsPagination slug={resolvedSlug} />
     </>
   )
 }

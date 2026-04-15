@@ -33,6 +33,11 @@ describe('search-index', () => {
     expect(results.length).toBeGreaterThan(0)
   })
 
+  it('returns matching results for restored advanced tutorials', () => {
+    const results = searchDocs('反查')
+    expect(results.map((result) => result.slug)).toContain('reverse-lookup')
+  })
+
   it('returns empty array for nonsense query', () => {
     const results = searchDocs('xyzzyplugh42')
     expect(results).toHaveLength(0)

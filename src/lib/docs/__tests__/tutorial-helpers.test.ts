@@ -2,14 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { flattenNav, findSectionBySlug, getPrevNext } from '../tutorial-helpers'
 
 describe('flattenNav', () => {
-  it('returns all items with section titles', () => {
+  it('returns all public items with section titles', () => {
     const flat = flattenNav()
-    expect(flat.length).toBe(17)
+    expect(flat).toHaveLength(21)
     expect(flat[0]).toEqual({
       slug: 'what-is-rime',
       title: 'Rime 是什么',
       sectionTitle: '入门指南',
     })
+    expect(flat.map((item) => item.slug)).toEqual(expect.arrayContaining([
+      'spelling-scheme',
+      'auxiliary-code-config',
+      'reverse-lookup',
+      'candidate-display',
+      'comment-hints',
+    ]))
   })
 
   it('preserves order across sections', () => {
