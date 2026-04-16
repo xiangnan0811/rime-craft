@@ -83,9 +83,9 @@ export function DocsSearch() {
         onClick={() => setOpen(false)}
       />
       <div className="fixed inset-x-0 top-[15%] z-50 mx-auto w-full max-w-lg px-4">
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center border-b border-gray-200 px-4 dark:border-slate-700">
-            <Search className="h-4 w-4 text-gray-400" />
+        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+          <div className="flex items-center border-b border-border px-4">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <input
               ref={inputRef}
               type="text"
@@ -93,15 +93,15 @@ export function DocsSearch() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent px-3 py-3 text-sm outline-none placeholder:text-gray-400 dark:text-slate-100"
+              className="flex-1 bg-transparent px-3 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
-            <kbd className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400 dark:bg-slate-800">
+            <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
               Esc
             </kbd>
           </div>
           <div className="max-h-80 overflow-y-auto p-2">
             {results.length === 0 && query.trim() !== '' && (
-              <p className="py-6 text-center text-sm text-gray-500 dark:text-slate-400">
+              <p className="py-6 text-center text-sm text-muted-foreground">
                 No results found.
               </p>
             )}
@@ -112,13 +112,13 @@ export function DocsSearch() {
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
                   i === selected
                     ? 'bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                    : 'text-foreground/90 hover:bg-accent'
                 }`}
               >
-                <FileText className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                 <div>
                   <div className="font-medium">{result.title}</div>
-                  <div className="text-xs text-gray-500 dark:text-slate-400">
+                  <div className="text-xs text-muted-foreground">
                     {result.section}
                   </div>
                 </div>
@@ -135,11 +135,11 @@ export function SearchTrigger() {
   return (
     <button
       onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-      className="hidden items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 md:flex"
+      className="hidden items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent md:flex"
     >
       <Search className="h-3.5 w-3.5" />
       <span>Search...</span>
-      <kbd className="rounded bg-gray-200 px-1 text-xs dark:bg-slate-700">&#8984;K</kbd>
+      <kbd className="rounded bg-muted px-1 text-xs">&#8984;K</kbd>
     </button>
   )
 }
