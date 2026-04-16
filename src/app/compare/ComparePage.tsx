@@ -18,7 +18,7 @@ export function ComparePage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <h1 className="mb-2 text-2xl font-bold">方案对比</h1>
-      <p className="mb-6 text-gray-600">选择多个输入方案，横向对比它们的特点，找到最适合你的方案。</p>
+      <p className="mb-6 text-muted-foreground">选择多个输入方案，横向对比它们的特点，找到最适合你的方案。</p>
 
       <SchemaSelector
         schemas={SCHEMA_COMPARE_DATA}
@@ -34,7 +34,7 @@ export function ComparePage() {
       )}
 
       {selectedSchemas.length === 1 && (
-        <p className="mt-6 text-center text-sm text-gray-400">请再选择至少一个方案进行对比</p>
+        <p className="mt-6 text-center text-sm text-muted-foreground">请再选择至少一个方案进行对比</p>
       )}
     </div>
   )

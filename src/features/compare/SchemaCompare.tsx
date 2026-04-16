@@ -72,29 +72,29 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
 
   return (
     <div>
-      <p className="mb-3 text-xs text-gray-500">
+      <p className="mb-3 text-xs text-muted-foreground">
         社区规模与更新活跃度为人工维护快照信息，仅作参考；具体以上游 README / GitHub 页面为准。
       </p>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left font-medium" />
+              <th className="sticky left-0 bg-muted/50 px-4 py-3 text-left font-medium" />
               {schemas.map((s) => {
                 const detail = ALL_SCHEMAS.find((d) => d.id === s.id)
                 return (
                   <th key={s.id} className="min-w-[200px] px-4 py-3 text-center">
-                    <Link to={`/schema/${s.id}`} className="font-semibold text-blue-600 hover:underline">
+                    <Link to={`/schema/${s.id}`} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
                       {s.name}
                     </Link>
                     <div className="mt-1 flex justify-center gap-2">
                       {detail?.links.repository && (
-                        <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600" title="GitHub">
+                        <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground" title="GitHub">
                           <Code className="h-3.5 w-3.5" />
                         </a>
                       )}
                       {detail?.links.official && (
-                        <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600" title="官网">
+                        <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground" title="官网">
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       )}
@@ -108,8 +108,8 @@ export function SchemaCompare({ schemas }: SchemaCompareProps) {
             {COMPARE_ROWS.map((row) => {
               const diff = isDifferent(row)
               return (
-                <tr key={row.label} className={cn(diff && 'bg-yellow-50')}>
-                  <td className="sticky left-0 bg-inherit px-4 py-2 font-medium text-gray-600">{row.label}</td>
+                <tr key={row.label} className={cn(diff && 'bg-yellow-50 dark:bg-yellow-950/20')}>
+                  <td className="sticky left-0 bg-inherit px-4 py-2 font-medium text-foreground/80">{row.label}</td>
                   {schemas.map((s) => {
                     const value = row.getValue(s)
                     return (

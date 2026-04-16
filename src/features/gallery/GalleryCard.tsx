@@ -24,7 +24,7 @@ export function GalleryCard({ entry }: GalleryCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden">
       {/* Theme preview */}
-      <div className="flex items-center justify-center bg-gray-100 p-4">
+      <div className="flex items-center justify-center bg-muted p-4">
         <CandidatePreview
           candidates={['你好', '你', '尼']}
           labels={['1', '2', '3']}
@@ -37,8 +37,8 @@ export function GalleryCard({ entry }: GalleryCardProps) {
       {/* Info */}
       <div className="flex flex-1 flex-col p-4">
         <h3 className="font-semibold">{entry.name}</h3>
-        <p className="mt-1 text-sm text-gray-500">{entry.author}</p>
-        <p className="mt-2 flex-1 text-sm text-gray-600">{entry.description}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{entry.author}</p>
+        <p className="mt-2 flex-1 text-sm text-foreground/80">{entry.description}</p>
 
         <div className="mt-3 flex flex-wrap gap-1">
           {entry.tags.map((tag) => (

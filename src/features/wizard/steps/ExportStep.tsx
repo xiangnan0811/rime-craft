@@ -73,34 +73,34 @@ export function ExportStep({ state }: ExportStepProps) {
   return (
     <div>
       <h2 className="mb-2 text-lg font-semibold">配置完成</h2>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-6 text-sm text-muted-foreground">
         请确认以下配置，然后选择导出或继续编辑。
       </p>
 
-      <div className="rounded-lg border bg-gray-50 p-4">
+      <div className="rounded-lg border bg-muted/50 p-4">
         <dl className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <dt className="text-gray-500">平台</dt>
+            <dt className="text-muted-foreground">平台</dt>
             <dd className="font-medium">{state.platform}</dd>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-gray-500">输入方案</dt>
+            <dt className="text-muted-foreground">输入方案</dt>
             <dd className="font-medium">{schemaName}</dd>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-gray-500">候选词数量</dt>
+            <dt className="text-muted-foreground">候选词数量</dt>
             <dd className="font-medium">{state.pageSize}</dd>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-gray-500">左 Shift</dt>
+            <dt className="text-muted-foreground">左 Shift</dt>
             <dd className="font-medium">{state.shiftLBehavior}</dd>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-gray-500">英文模式应用</dt>
+            <dt className="text-muted-foreground">英文模式应用</dt>
             <dd className="font-medium">
               {state.asciiModeApps.length > 0
                 ? state.asciiModeApps.join(', ')
@@ -109,7 +109,7 @@ export function ExportStep({ state }: ExportStepProps) {
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-gray-500">主题</dt>
+            <dt className="text-muted-foreground">主题</dt>
             <dd className="font-medium">{state.themeName}</dd>
           </div>
         </dl>

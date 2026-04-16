@@ -31,7 +31,7 @@ export function BasicConfigStep({ state, dispatch }: BasicConfigStepProps) {
   return (
     <div>
       <h2 className="mb-2 text-lg font-semibold">基础配置</h2>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-6 text-sm text-muted-foreground">
         设置常用的输入法参数，这些选项后续都可以在编辑器中修改。
       </p>
 
@@ -40,7 +40,7 @@ export function BasicConfigStep({ state, dispatch }: BasicConfigStepProps) {
         <div className="flex items-center justify-between">
           <div>
             <Label className="text-sm font-medium">候选词数量</Label>
-            <p className="text-xs text-gray-500">每页显示的候选词个数</p>
+            <p className="text-xs text-muted-foreground">每页显示的候选词个数</p>
           </div>
           <Select
             value={String(state.pageSize)}
@@ -65,7 +65,7 @@ export function BasicConfigStep({ state, dispatch }: BasicConfigStepProps) {
         <div className="flex items-center justify-between">
           <div>
             <Label className="text-sm font-medium">左 Shift 行为</Label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               按下左 Shift 时的中英文切换方式
             </p>
           </div>
@@ -94,7 +94,7 @@ export function BasicConfigStep({ state, dispatch }: BasicConfigStepProps) {
         {/* ASCII mode apps */}
         <div>
           <Label className="text-sm font-medium">默认英文模式的应用</Label>
-          <p className="mb-3 text-xs text-gray-500">
+          <p className="mb-3 text-xs text-muted-foreground">
             在以下应用中自动切换为英文输入
           </p>
           <div className="space-y-3">

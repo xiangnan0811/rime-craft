@@ -103,10 +103,10 @@ export function WizardPage() {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
                 i === state.step
-                  ? 'bg-blue-500 text-white'
+                  ? 'bg-blue-500 text-white dark:bg-blue-600'
                   : i < state.step
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-gray-100 text-gray-400',
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
+                    : 'bg-muted text-muted-foreground',
               )}
             >
               {i + 1}
@@ -114,13 +114,13 @@ export function WizardPage() {
             <span
               className={cn(
                 'ml-2 text-sm',
-                i === state.step ? 'font-medium' : 'text-gray-400',
+                i === state.step ? 'font-medium' : 'text-muted-foreground',
               )}
             >
               {label}
             </span>
             {i < STEP_LABELS.length - 1 && (
-              <div className="mx-4 h-px w-8 bg-gray-200" />
+              <div className="mx-4 h-px w-8 bg-border" />
             )}
           </div>
         ))}

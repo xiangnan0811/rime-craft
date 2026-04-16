@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge'
 
 export function SchemaFeaturesTab({ features }: { features: string[] }) {
   if (features.length === 0) {
-    return <p className="py-4 text-sm text-gray-500">该方案暂无扩展功能信息。</p>
+    return <p className="py-4 text-sm text-muted-foreground">该方案暂无扩展功能信息。</p>
   }
   return (
     <div className="py-4">

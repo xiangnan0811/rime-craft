@@ -17,7 +17,7 @@ export function SchemaDetailPage() {
     return (
       <div className="mx-auto max-w-3xl p-8 text-center">
         <h2 className="mb-4 text-xl font-semibold">找不到该方案</h2>
-        <p className="mb-6 text-gray-500">请检查方案 ID 是否正确，或返回方案对比页浏览所有方案。</p>
+        <p className="mb-6 text-muted-foreground">请检查方案 ID 是否正确，或返回方案对比页浏览所有方案。</p>
         <Link to="/compare"><Button>浏览所有方案</Button></Link>
       </div>
     )
@@ -42,10 +42,10 @@ export function SchemaDetailPage() {
         <TabsContent value="resources"><SchemaResourcesTab resources={schema.learningResources} /></TabsContent>
         {hasKeyboard && <TabsContent value="keyboard"><KeyboardLayout data={schema.visuals.keyboardLayout!} /></TabsContent>}
       </Tabs>
-      <div className="mt-8 flex items-center justify-between rounded-lg border bg-gray-50 p-4">
+      <div className="mt-8 flex items-center justify-between rounded-lg border bg-muted/50 p-4">
         <div>
           <p className="font-medium">想和其他方案对比？</p>
-          <p className="text-sm text-gray-500">查看方案横向对比，帮你做出更好的选择</p>
+          <p className="text-sm text-muted-foreground">查看方案横向对比，帮你做出更好的选择</p>
         </div>
         <Link to="/compare"><Button variant="outline">前往方案对比</Button></Link>
       </div>

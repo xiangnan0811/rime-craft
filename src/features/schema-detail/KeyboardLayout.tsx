@@ -10,7 +10,7 @@ const ROW_OFFSETS = ['ml-0', 'ml-5', 'ml-10']
 export function KeyboardLayout({ data }: KeyboardLayoutProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-center text-sm font-medium text-gray-500">
+      <h3 className="text-center text-sm font-medium text-muted-foreground">
         {data.name}
       </h3>
       <div className="flex flex-col items-center gap-1.5">
@@ -41,10 +41,10 @@ function Key({ mapping }: { mapping: KeyMapping }) {
       data-dual-role={isDualRole ? 'true' : undefined}
       className={cn(
         'flex h-14 w-16 flex-col items-center justify-center rounded-md border transition-colors',
-        'hover:border-blue-400 hover:bg-blue-50',
-        isSpecial && 'border-purple-400 bg-purple-50',
-        isDualRole && 'border-yellow-400 bg-yellow-50',
-        !isSpecial && !isDualRole && 'border-gray-300 bg-white',
+        'hover:border-blue-400 hover:bg-blue-50 dark:hover:border-blue-500 dark:hover:bg-blue-950/40',
+        isSpecial && 'border-purple-400 bg-purple-50 dark:border-purple-500 dark:bg-purple-950/40',
+        isDualRole && 'border-yellow-400 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-950/40',
+        !isSpecial && !isDualRole && 'border-border bg-card',
       )}
       title={
         hasCustomInitial
@@ -55,7 +55,7 @@ function Key({ mapping }: { mapping: KeyMapping }) {
       <span
         className={cn(
           'text-sm font-semibold',
-          isSpecial ? 'text-purple-700' : 'text-gray-900',
+          isSpecial ? 'text-purple-700 dark:text-purple-300' : 'text-foreground',
         )}
       >
         {key}
@@ -64,10 +64,10 @@ function Key({ mapping }: { mapping: KeyMapping }) {
         className={cn(
           'text-xs font-medium',
           isSpecial
-            ? 'text-purple-600'
+            ? 'text-purple-600 dark:text-purple-400'
             : hasCustomInitial
-              ? 'text-blue-600'
-              : 'text-gray-400',
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-muted-foreground',
         )}
       >
         {final}
@@ -78,17 +78,17 @@ function Key({ mapping }: { mapping: KeyMapping }) {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+    <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-4 rounded border border-gray-300 bg-white" />
+        <span className="inline-block h-3 w-4 rounded border border-border bg-card" />
         字母键
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-4 rounded border border-purple-400 bg-purple-50" />
+        <span className="inline-block h-3 w-4 rounded border border-purple-400 bg-purple-50 dark:border-purple-500 dark:bg-purple-950/40" />
         非字母键
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-4 rounded border border-yellow-400 bg-yellow-50" />
+        <span className="inline-block h-3 w-4 rounded border border-yellow-400 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-950/40" />
         双角色键
       </span>
     </div>

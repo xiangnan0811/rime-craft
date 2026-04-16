@@ -12,7 +12,7 @@ export function ThemeStep({ value, onChange }: ThemeStepProps) {
   return (
     <div>
       <h2 className="mb-2 text-lg font-semibold">选择主题</h2>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted-foreground">
         选择一个预设主题作为候选窗口的外观，后续可在主题编辑器中自定义。
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -27,7 +27,7 @@ export function ThemeStep({ value, onChange }: ThemeStepProps) {
                 'cursor-pointer overflow-hidden p-0 transition-colors',
                 value === theme.name
                   ? 'ring-2 ring-blue-500'
-                  : 'hover:border-gray-300',
+                  : 'hover:border-muted-foreground/40',
               )}
             >
               <div className="flex items-center justify-center p-3">

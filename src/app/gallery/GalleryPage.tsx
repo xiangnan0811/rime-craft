@@ -16,7 +16,7 @@ export function GalleryPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <h1 className="mb-2 text-2xl font-bold">配置画廊</h1>
-      <p className="mb-6 text-gray-600">浏览社区精选配置，一键导入开始使用。</p>
+      <p className="mb-6 text-muted-foreground">浏览社区精选配置，一键导入开始使用。</p>
 
       {/* Tag filter */}
       <div className="mb-6 flex flex-wrap gap-2">

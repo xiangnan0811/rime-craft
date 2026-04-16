@@ -8,7 +8,7 @@ interface SchemaScreenshotsTabProps {
 export function SchemaScreenshotsTab({ schemaId, screenshots }: SchemaScreenshotsTabProps) {
   if (screenshots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <ImageOff className="mb-3 h-10 w-10" />
         <p className="text-sm">暂无截图</p>
         <p className="mt-1 text-xs">欢迎通过 PR 为该方案贡献截图</p>
