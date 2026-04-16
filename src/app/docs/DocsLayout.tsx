@@ -13,15 +13,15 @@ export function DocsLayout() {
       {/* Mobile sidebar trigger */}
       <div className="fixed left-0 right-0 top-[57px] z-30 flex items-center border-b bg-background px-4 py-2 lg:hidden">
         <DocsMobileSidebar />
-        <span className="ml-2 text-sm font-medium text-gray-700 dark:text-slate-300">Tutorial</span>
+        <span className="ml-2 text-sm font-medium text-foreground/90">Tutorial</span>
       </div>
 
       {/* Desktop/Tablet sidebar */}
-      <ScrollArea className="hidden w-[220px] flex-shrink-0 border-r border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900 lg:block">
+      <ScrollArea className="hidden w-[220px] flex-shrink-0 border-r border-border bg-muted/30 lg:block">
         <nav className="p-4">
           {TUTORIAL_NAV.map((section) => (
             <div key={section.title} className="mb-6">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {section.title}
               </h3>
               <ul className="space-y-0.5">
@@ -32,8 +32,8 @@ export function DocsLayout() {
                       className={cn(
                         'block rounded-md px-3 py-1.5 text-sm transition-colors',
                         slug === item.slug
-                          ? 'border-l-2 border-blue-500 bg-white font-medium text-gray-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
-                          : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                          ? 'border-l-2 border-blue-500 bg-background font-medium text-foreground shadow-sm'
+                          : 'text-foreground/80 hover:bg-accent',
                       )}
                     >
                       {item.title}
@@ -55,7 +55,7 @@ export function DocsLayout() {
         </main>
 
         {/* Right-side TOC — desktop only */}
-        <aside className="hidden w-[180px] flex-shrink-0 overflow-y-auto border-l border-gray-100 px-4 py-8 dark:border-slate-800 xl:block">
+        <aside className="hidden w-[180px] flex-shrink-0 overflow-y-auto border-l border-border px-4 py-8 xl:block">
           <DocsToc slug={slug} />
         </aside>
       </div>
