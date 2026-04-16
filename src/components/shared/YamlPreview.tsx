@@ -20,13 +20,13 @@ export function YamlPreview({
     <figure className="my-4">
       <div
         className={cn(
-          'overflow-hidden rounded-lg border border-slate-700 bg-slate-900',
+          'overflow-hidden rounded-lg border border-border bg-card',
           diff && 'yaml-preview-diff',
         )}
         data-highlight-lines={highlight ? highlight.join(',') : undefined}
       >
         {title && (
-          <div className="border-b border-slate-700 bg-slate-950 px-4 py-2 text-xs text-slate-400">
+          <div className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
             {title}
           </div>
         )}

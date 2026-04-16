@@ -19,13 +19,13 @@ export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
   }
 
   return (
-    <div className="group relative my-4 overflow-hidden rounded-lg border border-slate-700 bg-slate-800 dark:border-slate-700 dark:bg-slate-950">
+    <div className="group relative my-4 overflow-hidden rounded-lg border border-border bg-card">
       {title && (
-        <div className="flex items-center justify-between border-b border-slate-700 bg-slate-900 px-4 py-2 dark:bg-slate-950">
-          <span className="text-xs text-slate-400">{title}</span>
+        <div className="flex items-center justify-between border-b border-border bg-muted px-4 py-2">
+          <span className="text-xs text-muted-foreground">{title}</span>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-300"
+            className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Copy code"
           >
             {copied ? (
@@ -39,7 +39,7 @@ export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
       {!title && (
         <button
           onClick={handleCopy}
-          className="absolute right-3 top-3 flex items-center gap-1 rounded bg-slate-700/50 px-2 py-1 text-xs text-slate-400 opacity-0 transition-opacity hover:text-slate-200 group-hover:opacity-100"
+          className="absolute right-3 top-3 flex items-center gap-1 rounded bg-background/70 px-2 py-1 text-xs text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-foreground group-hover:opacity-100"
           aria-label="Copy code"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
