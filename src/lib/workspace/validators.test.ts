@@ -39,7 +39,7 @@ describe('isValidSourceFile', () => {
   })
 
   it('rejects missing id', () => {
-    const { id, ...rest } = validFile
+    const { id: _id, ...rest } = validFile
     expect(isValidSourceFile(rest)).toBe(false)
   })
 
@@ -71,12 +71,12 @@ describe('isValidProject', () => {
   })
 
   it('rejects missing targetPlatform', () => {
-    const { targetPlatform, ...rest } = validProject
+    const { targetPlatform: _targetPlatform, ...rest } = validProject
     expect(isValidProject(rest)).toBe(false)
   })
 
   it('rejects missing schemaConfigs', () => {
-    const { schemaConfigs, ...rest } = validProject
+    const { schemaConfigs: _schemaConfigs, ...rest } = validProject
     expect(isValidProject(rest)).toBe(false)
   })
 
