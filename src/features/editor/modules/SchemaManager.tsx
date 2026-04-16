@@ -71,17 +71,36 @@ export function SchemaManager() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{info?.name ?? item.schema}</p>
                   {detail && (
-                    <Link to={`/schema/${item.schema}`} className="text-muted-foreground hover:text-blue-600" title="查看详情">
+                    <Link
+                      to={`/schema/${item.schema}`}
+                      className="text-muted-foreground hover:text-blue-600"
+                      title="查看方案详情"
+                      aria-label={`查看 ${info?.name ?? item.schema} 方案详情`}
+                    >
                       <Info className="h-3.5 w-3.5" />
                     </Link>
                   )}
                   {detail?.links.repository && (
-                    <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-muted-foreground/60 hover:text-foreground" title="GitHub">
+                    <a
+                      href={detail.links.repository}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-muted-foreground/60 hover:text-foreground"
+                      title="GitHub 仓库"
+                      aria-label={`${info?.name ?? item.schema} 的 GitHub 仓库`}
+                    >
                       <Code className="h-3.5 w-3.5" />
                     </a>
                   )}
                   {detail?.links.official && (
-                    <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-muted-foreground/60 hover:text-foreground" title="官网">
+                    <a
+                      href={detail.links.official}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-muted-foreground/60 hover:text-foreground"
+                      title="官网"
+                      aria-label={`${info?.name ?? item.schema} 官网`}
+                    >
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}

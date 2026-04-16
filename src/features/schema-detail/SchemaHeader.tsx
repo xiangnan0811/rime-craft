@@ -5,20 +5,11 @@ import { Button } from '@/components/ui/button'
 import { useConfigStore } from '@/stores/config-store'
 import { PRESETS } from '@/data/presets'
 import { createEmptyProject } from '@/lib/config/defaults'
+import {
+  SCHEMA_TYPE_LABELS,
+  SCHEMA_DIFFICULTY_BADGE_CLASSES,
+} from '@/lib/schema-display'
 import type { SchemaDetail } from '@/types/schema'
-
-const TYPE_LABELS: Record<string, string> = {
-  full_pinyin: '全拼',
-  double_pinyin: '双拼',
-  shape: '形码',
-  mixed: '混合',
-}
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  '简单': 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
-  '中等': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200',
-  '困难': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
-}
 
 export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
   const navigate = useNavigate()
@@ -44,8 +35,8 @@ export function SchemaHeader({ schema }: { schema: SchemaDetail }) {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{schema.name}</h1>
-            <Badge variant="secondary">{TYPE_LABELS[schema.type] ?? schema.type}</Badge>
-            <Badge className={DIFFICULTY_COLORS[schema.compare.difficulty]}>{schema.compare.difficulty}</Badge>
+            <Badge variant="secondary">{SCHEMA_TYPE_LABELS[schema.type] ?? schema.type}</Badge>
+            <Badge className={SCHEMA_DIFFICULTY_BADGE_CLASSES[schema.compare.difficulty]}>{schema.compare.difficulty}</Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">by {schema.author} · {schema.compare.dictSize} 词库</p>
           <p className="mt-2 text-sm text-foreground/90">{schema.description}</p>

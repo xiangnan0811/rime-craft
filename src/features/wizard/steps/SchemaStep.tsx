@@ -4,19 +4,10 @@ import { ALL_SCHEMAS } from '@/data/schema-data'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-
-const TYPE_LABELS: Record<string, string> = {
-  full_pinyin: '全拼',
-  double_pinyin: '双拼',
-  shape: '形码',
-  mixed: '混合',
-}
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  '简单': 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
-  '中等': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200',
-  '困难': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
-}
+import {
+  SCHEMA_TYPE_LABELS,
+  SCHEMA_DIFFICULTY_BADGE_CLASSES,
+} from '@/lib/schema-display'
 
 interface SchemaStepProps {
   value: string
@@ -56,9 +47,9 @@ export function SchemaStep({ value, onChange }: SchemaStepProps) {
               <div className="flex items-center gap-2">
                 <p className="font-semibold">{schema.name}</p>
                 <Badge variant="secondary" className="text-xs">
-                  {TYPE_LABELS[schema.type] ?? schema.type}
+                  {SCHEMA_TYPE_LABELS[schema.type] ?? schema.type}
                 </Badge>
-                <Badge className={cn('text-xs', DIFFICULTY_COLORS[schema.compare.difficulty])}>
+                <Badge className={cn('text-xs', SCHEMA_DIFFICULTY_BADGE_CLASSES[schema.compare.difficulty])}>
                   {schema.compare.difficulty}
                 </Badge>
               </div>
