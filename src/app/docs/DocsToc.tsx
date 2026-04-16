@@ -14,10 +14,10 @@ export function DocsToc({ slug }: DocsTocProps) {
 
   return (
     <nav className="sticky top-20">
-      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         On this page
       </h4>
-      <ul className="space-y-1 border-l-2 border-gray-100 dark:border-slate-800">
+      <ul className="space-y-1 border-l-2 border-border">
         {headings.map((heading) => (
           <li key={heading.id}>
             <a
@@ -31,7 +31,7 @@ export function DocsToc({ slug }: DocsTocProps) {
                 heading.level === 3 ? 'pl-6' : 'pl-4',
                 activeId === heading.id
                   ? 'border-blue-500 font-medium text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200',
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
               )}
             >
               {heading.text}
