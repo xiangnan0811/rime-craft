@@ -28,7 +28,7 @@ export function ImmersiveView({ onExitImmersive }: ImmersiveViewProps) {
           <button onClick={onExitImmersive} className="mb-4 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             ← 返回面板模式
           </button>
-          <div className="max-w-none">
+          <div className="prose prose-sm max-w-none">
             <MDXProvider components={mdxComponents}>
               {MdxContent ? (
                 <Suspense fallback={<div className="text-muted-foreground">加载教程...</div>}>
