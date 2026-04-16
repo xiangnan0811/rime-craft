@@ -63,7 +63,7 @@ export function DocsPage() {
   return (
     <>
       <DocsBreadcrumb slug={resolvedSlug} pageTitle={item.title} />
-      <div data-docs-content>
+      <div data-docs-content className="prose prose-sm max-w-none">
         <MDXProvider components={mdxComponents}>
           <Content />
         </MDXProvider>

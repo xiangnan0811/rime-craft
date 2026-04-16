@@ -50,7 +50,7 @@ export function MobileTutorialDialog() {
             {moduleDef?.label ? `${moduleDef.label} · 教程` : '教程'}
           </DialogTitle>
         </DialogHeader>
-        <div className="max-w-none">
+        <div className="prose prose-sm max-w-none">
           <MDXProvider components={mdxComponents}>
             {MdxContent ? (
               <Suspense fallback={<div className="text-muted-foreground">加载教程...</div>}>
