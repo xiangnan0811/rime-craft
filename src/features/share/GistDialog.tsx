@@ -74,7 +74,7 @@ export function GistDialog() {
           </TabsList>
 
           <TabsContent value="export" className="space-y-3">
-            <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+            <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
               需要 GitHub Personal Access Token（仅需 <code>gist</code> 权限）。Token 仅在当前对话框中使用，不会被存储。
             </div>
             <div>
@@ -99,17 +99,17 @@ export function GistDialog() {
               {exporting ? '导出中...' : '导出到 Gist'}
             </Button>
             {exportResult && (
-              <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+              <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-300">
                 导出成功！<a href={exportResult.url} target="_blank" rel="noopener noreferrer" className="underline">{exportResult.url}</a>
               </div>
             )}
             {exportError && (
-              <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{exportError}</p>
+              <p className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{exportError}</p>
             )}
           </TabsContent>
 
           <TabsContent value="import" className="space-y-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               输入公开 Gist 的 URL 或 ID，无需登录即可导入。
             </p>
             <div>
@@ -125,7 +125,7 @@ export function GistDialog() {
               {importing ? '导入中...' : '导入'}
             </Button>
             {importFeedback && (
-              <p className={`rounded-md p-3 text-sm ${importFeedback.includes('成功') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <p className={`rounded-md p-3 text-sm ${importFeedback.includes('成功') ? 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
                 {importFeedback}
               </p>
             )}

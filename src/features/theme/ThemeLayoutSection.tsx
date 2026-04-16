@@ -28,7 +28,7 @@ function SliderField({ label, value, min, max, step = 1, onChange }: SliderField
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <Label className="text-sm">{label}</Label>
-        <span className="text-sm text-gray-500">{value}</span>
+        <span className="text-sm text-muted-foreground">{value}</span>
       </div>
       <Slider
         value={[value]}

@@ -45,7 +45,7 @@ export function TutorialPanel({ collapsed, onToggleCollapse, onEnterImmersive }:
           </button>
         </div>
       </div>
-      <div className="prose prose-sm max-w-none p-4 dark:prose-invert">
+      <div className="max-w-none p-4">
         <MDXProvider components={mdxComponents}>
           {MdxContent ? (
             <Suspense fallback={<div className="text-muted-foreground">加载教程...</div>}>

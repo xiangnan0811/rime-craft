@@ -58,7 +58,7 @@ export function InlineCode(props: ComponentPropsWithoutRef<'code'>) {
   }
   return (
     <code
-      className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[13px] text-gray-800 dark:bg-slate-800 dark:text-slate-200"
+      className="rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground"
       {...props}
     />
   )

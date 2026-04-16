@@ -16,7 +16,7 @@ export function ThemePresetSelector() {
             onClick={() => setThemeStyle(structuredClone(preset))}
             className={cn(
               'flex-shrink-0 rounded-lg border-2 p-2 transition-colors',
-              currentName === preset.name ? 'border-blue-500' : 'border-transparent hover:border-gray-300',
+              currentName === preset.name ? 'border-blue-500' : 'border-transparent hover:border-muted-foreground/40',
             )}
           >
             {/* Mini color swatch */}
@@ -25,7 +25,7 @@ export function ThemePresetSelector() {
               <div className="h-4 w-4 rounded-sm" style={{ backgroundColor: preset.colors.hilitedCandidateBackColor }} />
               <div className="h-4 w-4 rounded-sm" style={{ backgroundColor: preset.colors.candidateTextColor }} />
             </div>
-            <p className="whitespace-nowrap text-xs text-gray-600">{preset.name}</p>
+            <p className="whitespace-nowrap text-xs text-muted-foreground">{preset.name}</p>
           </button>
         ))}
       </div>

@@ -42,7 +42,7 @@ export function YamlPreview({
         </div>
       </div>
       {caption && (
-        <figcaption className="mt-2 text-xs italic text-gray-500 dark:text-slate-400">
+        <figcaption className="mt-2 text-xs italic text-muted-foreground">
           {caption}
         </figcaption>
       )}

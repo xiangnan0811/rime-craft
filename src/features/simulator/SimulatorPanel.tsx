@@ -25,7 +25,7 @@ export function SimulatorPanel() {
           className="font-mono"
           autoFocus
         />
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           实际候选词由 Rime 引擎决定，此处仅为演示
         </p>
       </div>
@@ -41,7 +41,7 @@ export function SimulatorPanel() {
       )}
 
       {input && candidates.length === 0 && (
-        <p className="text-sm text-gray-400">无匹配候选词</p>
+        <p className="text-sm text-muted-foreground">无匹配候选词</p>
       )}
     </div>
   )

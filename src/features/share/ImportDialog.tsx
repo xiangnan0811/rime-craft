@@ -59,8 +59,8 @@ export function ImportDialog() {
           </TabsList>
           <TabsContent value="file">
             <input type="file" accept=".yaml,.yml,.txt" multiple onChange={handleFileUpload}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200" />
-            <p className="mt-2 text-sm text-gray-500">支持 .custom.yaml 和 custom_phrase.txt 文件，可多选。</p>
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent" />
+            <p className="mt-2 text-sm text-muted-foreground">支持 .custom.yaml 和 custom_phrase.txt 文件，可多选。</p>
           </TabsContent>
           <TabsContent value="paste">
             <Textarea value={yamlText} onChange={(e) => setYamlText(e.target.value)}
@@ -68,7 +68,7 @@ export function ImportDialog() {
             <Button onClick={handlePasteImport} className="mt-3" disabled={!yamlText.trim()}>导入</Button>
           </TabsContent>
         </Tabs>
-        {feedback && <p className="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700">{feedback}</p>}
+        {feedback && <p className="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-300">{feedback}</p>}
       </DialogContent>
     </Dialog>
   )

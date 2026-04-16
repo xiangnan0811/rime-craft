@@ -140,7 +140,7 @@ export function Dictionary() {
           onChange={(e) => setImportText(e.target.value)}
           rows={5}
           placeholder={'# 示例\n你好\tni hao\t1\n再见\tzai jian\t1'}
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         />
         <Button
           size="sm"

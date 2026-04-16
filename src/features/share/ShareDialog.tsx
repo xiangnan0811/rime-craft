@@ -92,7 +92,7 @@ export function ShareDialog() {
           </TabsList>
 
           <TabsContent value="url" className="space-y-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               生成包含当前模块配置的分享链接（适合分享单个模块的小配置）。
             </p>
             <Button onClick={handleGenerateUrl} size="sm">
@@ -115,7 +115,7 @@ export function ShareDialog() {
                   </Button>
                 </div>
                 {urlWarning && (
-                  <p className="rounded-md bg-yellow-50 p-2 text-sm text-yellow-700">
+                  <p className="rounded-md bg-yellow-50 p-2 text-sm text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-300">
                     {urlWarning}
                   </p>
                 )}
@@ -124,7 +124,7 @@ export function ShareDialog() {
           </TabsContent>
 
           <TabsContent value="export" className="space-y-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               将完整配置导出为 JSON 快照文件，可以分享给他人导入。
             </p>
             <Button onClick={handleJsonExport} size="sm">
@@ -133,21 +133,21 @@ export function ShareDialog() {
           </TabsContent>
 
           <TabsContent value="import" className="space-y-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               导入他人分享的 JSON 快照文件。
             </p>
             <input
               type="file"
               accept=".json"
               onChange={handleJsonImport}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
             />
             {importFeedback && (
               <p
                 className={`rounded-md p-2 text-sm ${
                   importFeedback.includes('失败')
-                    ? 'bg-red-50 text-red-700'
-                    : 'bg-green-50 text-green-700'
+                    ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'
+                    : 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300'
                 }`}
               >
                 {importFeedback}
