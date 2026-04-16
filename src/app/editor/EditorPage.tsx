@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Menu } from 'lucide-react'
 import { EditorSidebar } from '@/features/editor/EditorSidebar'
 import { EditorContent } from '@/features/editor/EditorContent'
 import { TutorialPanel } from '@/features/editor/TutorialPanel'
@@ -10,6 +12,7 @@ import { GistDialog } from '@/features/share/GistDialog'
 import { PRESETS } from '@/data/presets'
 import { useConfigStore } from '@/stores/config-store'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
+import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -19,6 +22,7 @@ export function EditorPage() {
   const editorUI = useConfigStore((s) => s.editorUI)
   const setViewMode = useConfigStore((s) => s.setViewMode)
   const setTutorialCollapsed = useConfigStore((s) => s.setTutorialCollapsed)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   function handlePresetChange(presetId: string) {
     const preset = PRESETS.find((p) => p.id === presetId)
@@ -32,9 +36,18 @@ export function EditorPage() {
 
   return (
     <div className="flex h-[calc(100vh-57px)] flex-col">
-      <div className="flex items-center justify-between border-b px-6 py-2">
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">配置编辑器</span>
+      <div className="flex flex-wrap items-center justify-between gap-y-2 border-b px-4 py-2 md:px-6">
+        <div className="flex items-center gap-2 md:gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 md:hidden"
+            onClick={() => setMobileSidebarOpen(true)}
+            aria-label="打开模块导航"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <span className="hidden text-sm text-muted-foreground sm:inline">配置编辑器</span>
           <Select onValueChange={handlePresetChange}>
             <SelectTrigger className="h-8 w-40 text-sm">
               <SelectValue placeholder="加载预设..." />
@@ -46,7 +59,7 @@ export function EditorPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ShareDialog />
           <ImportDialog />
           <ExportButton />
@@ -54,17 +67,22 @@ export function EditorPage() {
         </div>
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <EditorSidebar />
+        <EditorSidebar
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
         {editorUI.viewMode === 'immersive' ? (
           <ImmersiveView onExitImmersive={() => setViewMode('panel')} />
         ) : (
           <EditorContext.Provider value={{ isImmersive: false }}>
             <EditorContent />
-            <TutorialPanel
-              collapsed={editorUI.tutorialCollapsed}
-              onToggleCollapse={() => setTutorialCollapsed(!editorUI.tutorialCollapsed)}
-              onEnterImmersive={() => setViewMode('immersive')}
-            />
+            <div className="hidden md:contents">
+              <TutorialPanel
+                collapsed={editorUI.tutorialCollapsed}
+                onToggleCollapse={() => setTutorialCollapsed(!editorUI.tutorialCollapsed)}
+                onEnterImmersive={() => setViewMode('immersive')}
+              />
+            </div>
           </EditorContext.Provider>
         )}
       </div>

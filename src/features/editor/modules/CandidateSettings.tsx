@@ -11,6 +11,7 @@ import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { SettingHelp } from '@/components/shared/SettingHelp'
 import { ModifiedBadge } from '@/components/shared/ModifiedBadge'
 import { getModifiedFields } from '@/lib/config/diff'
+import { DEFAULT_TRANSLATOR_CONFIG } from '@/lib/yaml/module-key-map'
 import type { TranslatorConfig } from '@/types/config'
 
 const PAGE_SIZE_OPTIONS = [3, 4, 5, 6, 7, 8, 9]
@@ -46,20 +47,7 @@ export function CandidateSettings() {
   const updateSchemaConfig = useConfigStore((s) => s.updateSchemaConfig)
   const primarySchemaId = schemaList[0]?.schema ?? ''
 
-  const DEFAULT_TRANSLATOR: TranslatorConfig = {
-    enableCompletion: true,
-    enableSentence: true,
-    enableUserDict: true,
-    initialQuality: 1.2,
-    coreWordLength: 4,
-    maxWordLength: 7,
-    maxHomophones: 8,
-    maxHomographs: 8,
-    spellingHints: 30,
-    alwaysShowComments: true,
-  }
-
-  const translator = schemaConfigs[primarySchemaId]?.translator ?? DEFAULT_TRANSLATOR
+  const translator = schemaConfigs[primarySchemaId]?.translator ?? DEFAULT_TRANSLATOR_CONFIG
 
   function updateTranslator(partial: Partial<TranslatorConfig>) {
     updateSchemaConfig(primarySchemaId, {

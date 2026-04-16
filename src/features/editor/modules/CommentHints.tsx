@@ -4,24 +4,12 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { LearnMoreLink } from '@/components/shared/LearnMoreLink'
 import { SettingHelp } from '@/components/shared/SettingHelp'
+import { DEFAULT_TRANSLATOR_CONFIG } from '@/lib/yaml/module-key-map'
 import {
   DEFAULT_SUPER_COMMENT_CONFIG,
   SUPER_COMMENT_CANDIDATE_LENGTH_MAX,
   SUPER_COMMENT_CANDIDATE_LENGTH_MIN,
 } from '@/types/config'
-
-const DEFAULT_TRANSLATOR = {
-  enableCompletion: true,
-  enableSentence: true,
-  enableUserDict: true,
-  initialQuality: 1.2,
-  coreWordLength: 4,
-  maxWordLength: 7,
-  maxHomophones: 8,
-  maxHomographs: 8,
-  spellingHints: 30,
-  alwaysShowComments: true,
-}
 
 export function CommentHints() {
   const schemaList = useConfigStore((s) => s.project.defaultConfig.schemaList)
@@ -42,9 +30,9 @@ export function CommentHints() {
     })
   }
 
-  function updateTranslator(partial: Partial<typeof DEFAULT_TRANSLATOR>) {
+  function updateTranslator(partial: Partial<typeof DEFAULT_TRANSLATOR_CONFIG>) {
     updateSchemaConfig(primarySchemaId, {
-      translator: { ...(translator ?? DEFAULT_TRANSLATOR), ...partial },
+      translator: { ...(translator ?? DEFAULT_TRANSLATOR_CONFIG), ...partial },
     })
   }
 
@@ -75,7 +63,7 @@ export function CommentHints() {
             min={0}
             max={100}
             className="mt-1 w-24"
-            value={translator?.spellingHints ?? DEFAULT_TRANSLATOR.spellingHints}
+            value={translator?.spellingHints ?? DEFAULT_TRANSLATOR_CONFIG.spellingHints}
             onChange={(e) => updateTranslator({ spellingHints: Number(e.target.value) })}
           />
           <p className="mt-1 text-sm text-muted-foreground">显示拼音提示的候选词最大长度，0 为关闭。</p>
@@ -93,7 +81,7 @@ export function CommentHints() {
             <p className="text-sm text-muted-foreground">即使没有辅助码也显示注释信息。</p>
           </div>
           <Switch
-            checked={translator?.alwaysShowComments ?? DEFAULT_TRANSLATOR.alwaysShowComments}
+            checked={translator?.alwaysShowComments ?? DEFAULT_TRANSLATOR_CONFIG.alwaysShowComments}
             onCheckedChange={(checked) => updateTranslator({ alwaysShowComments: checked })}
           />
         </div>
