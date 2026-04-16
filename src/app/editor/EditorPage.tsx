@@ -3,6 +3,7 @@ import { Menu } from 'lucide-react'
 import { EditorSidebar } from '@/features/editor/EditorSidebar'
 import { EditorContent } from '@/features/editor/EditorContent'
 import { TutorialPanel } from '@/features/editor/TutorialPanel'
+import { MobileTutorialDialog } from '@/features/editor/MobileTutorialDialog'
 import { ImmersiveView } from '@/features/editor/ImmersiveView'
 import { EditorContext } from '@/features/editor/EditorContext'
 import { ImportDialog } from '@/features/share/ImportDialog'
@@ -59,7 +60,8 @@ export function EditorPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <MobileTutorialDialog />
           <ShareDialog />
           <ImportDialog />
           <ExportButton />
