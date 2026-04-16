@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import remarkDirective from 'remark-directive'
 import remarkDirectiveRehype from 'remark-directive-rehype'
 import rehypePrettyCode from 'rehype-pretty-code'
+import rehypeSlug from 'rehype-slug'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
@@ -13,7 +14,14 @@ export default defineConfig({
       providerImportSource: '@mdx-js/react',
       remarkPlugins: [remarkGfm, remarkDirective, remarkDirectiveRehype],
       rehypePlugins: [
-        [rehypePrettyCode, { theme: 'one-dark-pro', keepBackground: true }],
+        rehypeSlug,
+        [
+          rehypePrettyCode,
+          {
+            theme: { light: 'github-light', dark: 'one-dark-pro' },
+            keepBackground: true,
+          },
+        ],
       ],
     }),
     react(),

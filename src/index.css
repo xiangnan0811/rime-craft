@@ -57,3 +57,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  /* Route the prose plugin's colors through the app's CSS tokens so one
+     class (`prose`) renders correctly in both light and dark mode without
+     needing `dark:prose-invert`. */
+  .prose {
+    --tw-prose-body: hsl(var(--foreground) / 0.85);
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-links: hsl(217 91% 60%);
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-quotes: hsl(var(--muted-foreground));
+    --tw-prose-quote-borders: hsl(var(--border));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
+  .dark .prose {
+    --tw-prose-body: hsl(var(--foreground) / 0.9);
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-links: hsl(217 91% 70%);
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-quotes: hsl(var(--muted-foreground));
+    --tw-prose-quote-borders: hsl(var(--border));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
+}
