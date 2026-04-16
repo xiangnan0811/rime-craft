@@ -42,22 +42,22 @@ export function DocsPage() {
   }
 
   if (!item || !resolvedSlug) {
-    return <p className="text-gray-500 dark:text-slate-400">页面不存在。</p>
+    return <p className="text-muted-foreground">页面不存在。</p>
   }
 
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-4 w-32 rounded bg-gray-200 dark:bg-slate-700" />
-        <div className="h-8 w-64 rounded bg-gray-200 dark:bg-slate-700" />
-        <div className="h-4 w-full rounded bg-gray-100 dark:bg-slate-800" />
-        <div className="h-4 w-3/4 rounded bg-gray-100 dark:bg-slate-800" />
+        <div className="h-4 w-32 rounded bg-muted" />
+        <div className="h-8 w-64 rounded bg-muted" />
+        <div className="h-4 w-full rounded bg-muted/60" />
+        <div className="h-4 w-3/4 rounded bg-muted/60" />
       </div>
     )
   }
 
   if (!Content) {
-    return <p className="text-gray-500 dark:text-slate-400">内容暂未编写。</p>
+    return <p className="text-muted-foreground">内容暂未编写。</p>
   }
 
   return (
