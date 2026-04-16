@@ -15,7 +15,7 @@ export function HomePage() {
     <div className="mx-auto max-w-4xl px-6 py-16">
       <div className="text-center">
         <h1 className="mb-4 text-4xl font-bold">Rime Craft</h1>
-        <p className="mb-6 text-lg text-gray-600">Rime 输入法可视化配置编辑器 — 告别手动编辑 YAML</p>
+        <p className="mb-6 text-lg text-muted-foreground">Rime 输入法可视化配置编辑器 — 告别手动编辑 YAML</p>
         <div className="mb-12 flex justify-center">
           <CandidatePreview />
         </div>
@@ -32,7 +32,7 @@ export function HomePage() {
         {FEATURES.map((f) => (
           <Card key={f.title} className="p-5">
             <h3 className="mb-2 font-semibold">{f.title}</h3>
-            <p className="text-sm text-gray-600">{f.description}</p>
+            <p className="text-sm text-muted-foreground">{f.description}</p>
           </Card>
         ))}
       </div>

@@ -17,8 +17,8 @@ export function SettingHelp({ children, className }: SettingHelpProps) {
         className={cn(
           'inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] leading-none',
           open
-            ? 'border-blue-400 bg-blue-100 text-blue-600'
-            : 'border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500',
+            ? 'border-blue-400 bg-blue-100 text-blue-600 dark:border-blue-500 dark:bg-blue-900/40 dark:text-blue-300'
+            : 'border-border text-muted-foreground hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 dark:hover:text-blue-400',
         )}
         aria-expanded={open}
         aria-label="显示帮助信息"

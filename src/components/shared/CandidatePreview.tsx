@@ -23,15 +23,17 @@ export function CandidatePreview({
   // When no theme, use Tailwind classes (backward compatible for HomePage)
   if (!theme) {
     return (
-      <div className={cn('inline-block rounded-lg border bg-white p-3 shadow-lg', className)}>
-        <div className="mb-2 text-sm text-blue-600">{input}</div>
+      <div className={cn('inline-block rounded-lg border bg-card p-3 text-card-foreground shadow-lg', className)}>
+        <div className="mb-2 text-sm text-blue-600 dark:text-blue-400">{input}</div>
         <div className="flex gap-3">
           {candidates.map((text, i) => (
             <span key={i} className={cn(
               'whitespace-nowrap text-sm',
-              i === 0 ? 'rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800' : 'text-gray-700',
+              i === 0
+                ? 'rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
+                : 'text-foreground/90',
             )}>
-              <span className="mr-1 text-xs text-gray-400">{labels[i]}</span>
+              <span className="mr-1 text-xs text-muted-foreground">{labels[i]}</span>
               {text}
             </span>
           ))}

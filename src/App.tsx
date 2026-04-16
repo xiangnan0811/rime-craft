@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { HomePage } from '@/app/home/HomePage'
 import { EditorPage } from '@/app/editor/EditorPage'
+import { RouteLoading } from '@/components/shared/RouteLoading'
 import { useShareUrl } from '@/features/share/useShareUrl'
 import { useConfigStore } from '@/stores/config-store'
 
@@ -47,7 +48,7 @@ export function App() {
           <Route
             path="theme"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <ThemePage />
               </Suspense>
             }
@@ -55,7 +56,7 @@ export function App() {
           <Route
             path="compare"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <ComparePage />
               </Suspense>
             }
@@ -63,7 +64,7 @@ export function App() {
           <Route
             path="wizard"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <WizardPage />
               </Suspense>
             }
@@ -71,7 +72,7 @@ export function App() {
           <Route
             path="gallery"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <GalleryPage />
               </Suspense>
             }
@@ -79,7 +80,7 @@ export function App() {
           <Route
             path="schema/:id"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <SchemaDetailPage />
               </Suspense>
             }
@@ -87,7 +88,7 @@ export function App() {
           <Route
             path="docs"
             element={
-              <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}>
+              <Suspense fallback={<RouteLoading />}>
                 <DocsLayout />
               </Suspense>
             }
