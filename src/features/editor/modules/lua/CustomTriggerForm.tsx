@@ -74,7 +74,7 @@ export function CustomTriggerForm({
               onChange={(e) => setTriggerCode(e.target.value)}
               placeholder="如：/ip"
             />
-            <p className="mt-1 text-xs text-gray-500">用户输入此编码时将调用关联的 Lua 脚本。</p>
+            <p className="mt-1 text-xs text-muted-foreground">用户输入此编码时将调用关联的 Lua 脚本。</p>
           </div>
           <div>
             <Label htmlFor="ct-desc">描述（可选）</Label>

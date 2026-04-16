@@ -28,7 +28,7 @@ export function EditorSidebar() {
   }
 
   return (
-    <nav className="w-60 flex-shrink-0 overflow-y-auto border-r bg-gray-50">
+    <nav className="w-60 flex-shrink-0 overflow-y-auto border-r bg-muted/30">
       <div className="p-4">
         {MODULE_GROUPS.map((group) => {
           const modules = grouped.get(group.id)
@@ -39,11 +39,11 @@ export function EditorSidebar() {
           return (
             <div key={group.id} className="mb-4">
               <div className="mb-1 flex items-center justify-between px-3">
-                <h3 className="text-xs font-semibold uppercase text-gray-400">
+                <h3 className="text-xs font-semibold uppercase text-muted-foreground">
                   {group.label}
                 </h3>
                 {showAll && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {applicableCount}/{modules.length}
                   </span>
                 )}
@@ -59,10 +59,10 @@ export function EditorSidebar() {
                         className={cn(
                           'w-full rounded-md px-3 py-2 text-left text-sm transition-colors',
                           activeModule === mod.id
-                            ? 'bg-white font-medium text-gray-900 shadow-sm'
+                            ? 'bg-background font-medium text-foreground shadow-sm'
                             : applicable
-                              ? 'text-gray-600 hover:bg-gray-100'
-                              : 'cursor-default text-gray-400',
+                              ? 'text-foreground/80 hover:bg-accent hover:text-accent-foreground'
+                              : 'cursor-default text-muted-foreground/60',
                         )}
                       >
                         <span>{mod.label}</span>
@@ -81,7 +81,7 @@ export function EditorSidebar() {
         <div className="mt-2 border-t pt-2">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="w-full px-3 py-2 text-left text-sm text-gray-400 hover:text-gray-600"
+            className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:text-foreground"
           >
             {showAll ? '隐藏不适用的模块' : '📖 查看所有模块...'}
           </button>

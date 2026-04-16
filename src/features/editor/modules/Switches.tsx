@@ -54,7 +54,7 @@ export function Switches() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -64,7 +64,7 @@ export function Switches() {
           <h3 className="text-lg font-semibold">开关与杂项</h3>
           <LearnMoreLink module="switches" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           控制方案的各项功能开关，当前配置应用于方案：{primarySchemaId}
         </p>
       </div>
@@ -75,7 +75,7 @@ export function Switches() {
 
         return (
           <div key={cat.id}>
-            <h4 className="mb-3 font-medium text-gray-700">{cat.label}</h4>
+            <h4 className="mb-3 font-medium text-foreground/90">{cat.label}</h4>
             <div className="space-y-3">
               {defs.map((def) => {
                 const reset = findCurrentReset(def)
@@ -92,10 +92,10 @@ export function Switches() {
                             </SettingHelp>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">{def.description}</p>
+                        <p className="text-sm text-muted-foreground">{def.description}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {reset === 1 ? def.states[1] : def.states[0]}
                         </span>
                         <Switch
@@ -118,7 +118,7 @@ export function Switches() {
                           </SettingHelp>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">{def.description}</p>
+                      <p className="text-sm text-muted-foreground">{def.description}</p>
                     </div>
                     <Select
                       value={String(reset)}

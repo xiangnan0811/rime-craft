@@ -50,7 +50,7 @@ export function AuxiliaryCode() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -60,7 +60,7 @@ export function AuxiliaryCode() {
           <h3 className="text-lg font-semibold">辅助码配置</h3>
           <LearnMoreLink module="auxiliary-code" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           配置辅助码方案和引导方式。当前方案：{primarySchemaId}
         </p>
       </div>
@@ -88,7 +88,7 @@ export function AuxiliaryCode() {
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-sm text-gray-500">选择字形拆分方案，不同方案适合不同用户</p>
+          <p className="mt-1 text-sm text-muted-foreground">选择字形拆分方案，不同方案适合不同用户</p>
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
@@ -110,7 +110,7 @@ export function AuxiliaryCode() {
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-sm text-gray-500">直接辅助码在编码末尾追加；间接辅助码通过 / 或 ` 分隔</p>
+          <p className="mt-1 text-sm text-muted-foreground">直接辅助码在编码末尾追加；间接辅助码通过 / 或 ` 分隔</p>
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -120,7 +120,7 @@ export function AuxiliaryCode() {
                 <p>启用后，候选词旁会显示对应的辅助码编码，方便学习和记忆。搭配注释模式使用效果更好。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">在候选词旁显示辅助码提示</p>
+            <p className="text-sm text-muted-foreground">在候选词旁显示辅助码提示</p>
           </div>
           <Switch checked={config.hintEnabled} onCheckedChange={(v) => update({ hintEnabled: v })} />
         </div>
@@ -134,7 +134,7 @@ export function AuxiliaryCode() {
             </div>
             <Input type="number" min={1} max={10} className="mt-1 w-24" value={config.hintLength}
               onChange={(e) => update({ hintLength: Number(e.target.value) })} />
-            <p className="mt-1 text-sm text-gray-500">显示几个字的辅助码（默认 1 = 单字）</p>
+            <p className="mt-1 text-sm text-muted-foreground">显示几个字的辅助码（默认 1 = 单字）</p>
           </div>
         )}
         <div className="flex items-center justify-between">
@@ -145,7 +145,7 @@ export function AuxiliaryCode() {
                 <p>启用后在候选词旁显示字形拆分提示，展示字是如何被拆分成辅助码编码的。对学习阶段特别有帮助，熟练后可关闭。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">显示字形拆分提示</p>
+            <p className="text-sm text-muted-foreground">显示字形拆分提示</p>
           </div>
           <Switch checked={config.splitHintEnabled} onCheckedChange={(v) => update({ splitHintEnabled: v })} />
         </div>

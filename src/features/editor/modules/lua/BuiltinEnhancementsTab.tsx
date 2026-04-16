@@ -27,7 +27,7 @@ export function BuiltinEnhancementsTab() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -39,11 +39,11 @@ export function BuiltinEnhancementsTab() {
             <h4 className="font-semibold">超级注释</h4>
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Filter</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             超级注释的持久化配置已统一收口到「注释与提示」模块，避免同一组 YAML 字段在两个模块里重复编辑。
           </p>
         </div>
-        <div className="rounded-md border border-dashed p-4 text-sm text-gray-500">
+        <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
           <p>
             请前往
             {' '}
@@ -68,7 +68,7 @@ export function BuiltinEnhancementsTab() {
             <h4 className="font-semibold">超级处理器</h4>
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Processor</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">增强键盘处理逻辑，提供退格保护、音节导航、声调智能回落等实用功能。</p>
+          <p className="mt-1 text-sm text-muted-foreground">增强键盘处理逻辑，提供退格保护、音节导航、声调智能回落等实用功能。</p>
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -78,7 +78,7 @@ export function BuiltinEnhancementsTab() {
                 <p>防止在输入过程中误按退格键删除过多字符。当输入串较长时，退格键只删除最后一个字符而不会清空整个输入。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">防止退格键误删过多输入内容</p>
+            <p className="text-sm text-muted-foreground">防止退格键误删过多输入内容</p>
           </div>
           <Switch checked={config.superProcessor?.backspaceLimit ?? true}
             onCheckedChange={(v) => update({ superProcessor: { ...config.superProcessor!, backspaceLimit: v } })} />
@@ -91,7 +91,7 @@ export function BuiltinEnhancementsTab() {
                 <p>输入 nihao 时按 Tab 可在 ni 和 hao 之间切换焦点，方便修改特定音节。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">Tab 键在音节之间循环跳转</p>
+            <p className="text-sm text-muted-foreground">Tab 键在音节之间循环跳转</p>
           </div>
           <Switch checked={config.superProcessor?.segLoop ?? true}
             onCheckedChange={(v) => update({ superProcessor: { ...config.superProcessor!, segLoop: v } })} />
@@ -104,7 +104,7 @@ export function BuiltinEnhancementsTab() {
                 <p>输入声调符号时，如果当前编码不支持声调输入，自动将声调字符回落为普通数字，避免卡住。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">不支持声调时自动回落为数字</p>
+            <p className="text-sm text-muted-foreground">不支持声调时自动回落为数字</p>
           </div>
           <Switch checked={config.superProcessor?.toneFallback ?? true}
             onCheckedChange={(v) => update({ superProcessor: { ...config.superProcessor!, toneFallback: v } })} />
@@ -120,7 +120,7 @@ export function BuiltinEnhancementsTab() {
           <Input className="mt-1 w-32" value={config.superProcessor?.limitRepeated ?? '8,40'}
             placeholder="8,40"
             onChange={(e) => update({ superProcessor: { ...config.superProcessor!, limitRepeated: e.target.value } })} />
-          <p className="mt-1 text-sm text-gray-500">格式：最小长度,最大次数</p>
+          <p className="mt-1 text-sm text-muted-foreground">格式：最小长度,最大次数</p>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export function BuiltinEnhancementsTab() {
             <h4 className="font-semibold">超级替换</h4>
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Filter</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">对候选词文本进行自动替换处理，支持链式多轮替换，可自定义分隔符。</p>
+          <p className="mt-1 text-sm text-muted-foreground">对候选词文本进行自动替换处理，支持链式多轮替换，可自定义分隔符。</p>
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -142,7 +142,7 @@ export function BuiltinEnhancementsTab() {
                 <p>关闭后，所有替换规则独立执行，互不影响。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">多条替换规则按顺序依次执行</p>
+            <p className="text-sm text-muted-foreground">多条替换规则按顺序依次执行</p>
           </div>
           <Switch checked={config.superReplacer?.chain ?? true}
             onCheckedChange={(v) => update({ superReplacer: { ...config.superReplacer!, chain: v } })} />
@@ -156,7 +156,7 @@ export function BuiltinEnhancementsTab() {
           </div>
           <Input className="mt-1 w-24" value={config.superReplacer?.delimiter ?? '|'}
             onChange={(e) => update({ superReplacer: { ...config.superReplacer!, delimiter: e.target.value } })} />
-          <p className="mt-1 text-sm text-gray-500">替换规则中的分隔字符</p>
+          <p className="mt-1 text-sm text-muted-foreground">替换规则中的分隔字符</p>
         </div>
       </div>
 
@@ -167,7 +167,7 @@ export function BuiltinEnhancementsTab() {
             <h4 className="font-semibold">用户预测</h4>
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Filter</Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">基于输入历史智能预测下一个词，在候选列表末尾显示灰色预测词。</p>
+          <p className="mt-1 text-sm text-muted-foreground">基于输入历史智能预测下一个词，在候选列表末尾显示灰色预测词。</p>
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
@@ -179,7 +179,7 @@ export function BuiltinEnhancementsTab() {
           <Input type="number" min={1} max={50} className="mt-1 w-24"
             value={config.userPredict?.maxCandidates ?? 10}
             onChange={(e) => update({ userPredict: { ...config.userPredict!, maxCandidates: Number(e.target.value) } })} />
-          <p className="mt-1 text-sm text-gray-500">预测词最多显示几个</p>
+          <p className="mt-1 text-sm text-muted-foreground">预测词最多显示几个</p>
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
@@ -191,7 +191,7 @@ export function BuiltinEnhancementsTab() {
           <Input type="number" min={1} max={365} className="mt-1 w-24"
             value={config.userPredict?.expiryDays ?? 90}
             onChange={(e) => update({ userPredict: { ...config.userPredict!, expiryDays: Number(e.target.value) } })} />
-          <p className="mt-1 text-sm text-gray-500">超过此天数的历史不参与预测</p>
+          <p className="mt-1 text-sm text-muted-foreground">超过此天数的历史不参与预测</p>
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
@@ -203,7 +203,7 @@ export function BuiltinEnhancementsTab() {
           <Input type="number" min={0} max={30} className="mt-1 w-24"
             value={config.userPredict?.activationDays ?? 7}
             onChange={(e) => update({ userPredict: { ...config.userPredict!, activationDays: Number(e.target.value) } })} />
-          <p className="mt-1 text-sm text-gray-500">使用多少天后开始激活预测，设为 0 立即启用</p>
+          <p className="mt-1 text-sm text-muted-foreground">使用多少天后开始激活预测，设为 0 立即启用</p>
         </div>
       </div>
 
@@ -215,7 +215,7 @@ export function BuiltinEnhancementsTab() {
               <h4 className="font-semibold">输入统计</h4>
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Lua</Badge>
             </div>
-            <p className="mt-1 text-sm text-gray-500">记录输入字数、词数等统计数据，可通过 /tj 和 /rtj 触发码查看。</p>
+            <p className="mt-1 text-sm text-muted-foreground">记录输入字数、词数等统计数据，可通过 /tj 和 /rtj 触发码查看。</p>
           </div>
           <Switch checked={config.inputStatistics?.enabled ?? true}
             onCheckedChange={(v) => update({ inputStatistics: { enabled: v } })} />

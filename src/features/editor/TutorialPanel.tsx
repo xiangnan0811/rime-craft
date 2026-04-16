@@ -24,8 +24,8 @@ export function TutorialPanel({ collapsed, onToggleCollapse, onEnterImmersive }:
 
   if (collapsed) {
     return (
-      <div className="flex w-10 flex-shrink-0 flex-col items-center border-l bg-gray-50 pt-4">
-        <button onClick={onToggleCollapse} className="text-gray-400 hover:text-gray-600" title="展开教程面板">
+      <div className="flex w-10 flex-shrink-0 flex-col items-center border-l bg-muted/30 pt-4">
+        <button onClick={onToggleCollapse} className="text-muted-foreground hover:text-foreground" title="展开教程面板">
           📖
         </button>
       </div>
@@ -33,26 +33,26 @@ export function TutorialPanel({ collapsed, onToggleCollapse, onEnterImmersive }:
   }
 
   return (
-    <div className="w-[420px] flex-shrink-0 overflow-y-auto border-l bg-gray-50/50">
+    <div className="w-[420px] flex-shrink-0 overflow-y-auto border-l bg-muted/20">
       <div className="flex items-center justify-between border-b px-3 py-2">
-        <span className="text-xs font-semibold text-gray-500">📖 教程</span>
+        <span className="text-xs font-semibold text-muted-foreground">📖 教程</span>
         <div className="flex gap-2">
-          <button onClick={onEnterImmersive} className="text-xs text-blue-500 hover:text-blue-700">
+          <button onClick={onEnterImmersive} className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             沉浸模式 →
           </button>
-          <button onClick={onToggleCollapse} className="text-xs text-gray-400 hover:text-gray-600">
+          <button onClick={onToggleCollapse} className="text-xs text-muted-foreground hover:text-foreground">
             收起
           </button>
         </div>
       </div>
-      <div className="prose prose-sm max-w-none p-4">
+      <div className="prose prose-sm max-w-none p-4 dark:prose-invert">
         <MDXProvider components={mdxComponents}>
           {MdxContent ? (
-            <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
+            <Suspense fallback={<div className="text-muted-foreground">加载教程...</div>}>
               <MdxContent />
             </Suspense>
           ) : (
-            <p className="text-gray-400">暂无此模块的教程内容</p>
+            <p className="text-muted-foreground">暂无此模块的教程内容</p>
           )}
         </MDXProvider>
       </div>

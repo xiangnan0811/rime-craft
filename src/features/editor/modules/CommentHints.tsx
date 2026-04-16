@@ -49,7 +49,7 @@ export function CommentHints() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -59,7 +59,7 @@ export function CommentHints() {
           <h3 className="text-lg font-semibold">注释与提示</h3>
           <LearnMoreLink module="comment-hints" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">统一编辑写入 <code>translator</code> 与 <code>super_comment</code> 的注释显示参数。</p>
+        <p className="mt-1 text-sm text-muted-foreground">统一编辑写入 <code>translator</code> 与 <code>super_comment</code> 的注释显示参数。</p>
       </div>
       <div className="space-y-4">
         <div>
@@ -78,7 +78,7 @@ export function CommentHints() {
             value={translator?.spellingHints ?? DEFAULT_TRANSLATOR.spellingHints}
             onChange={(e) => updateTranslator({ spellingHints: Number(e.target.value) })}
           />
-          <p className="mt-1 text-sm text-gray-500">显示拼音提示的候选词最大长度，0 为关闭。</p>
+          <p className="mt-1 text-sm text-muted-foreground">显示拼音提示的候选词最大长度，0 为关闭。</p>
         </div>
 
         <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ export function CommentHints() {
                 <p>关闭后，只在输入辅助码进行筛选时显示注释。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">即使没有辅助码也显示注释信息。</p>
+            <p className="text-sm text-muted-foreground">即使没有辅助码也显示注释信息。</p>
           </div>
           <Switch
             checked={translator?.alwaysShowComments ?? DEFAULT_TRANSLATOR.alwaysShowComments}
@@ -113,7 +113,7 @@ export function CommentHints() {
             value={superComment.candidateLength}
             onChange={(e) => updateSuperComment({ candidateLength: Number(e.target.value) })}
           />
-          <p className="mt-1 text-sm text-gray-500">设为 1 仅单字显示注释，设为 2 则双字词也显示。</p>
+          <p className="mt-1 text-sm text-muted-foreground">设为 1 仅单字显示注释，设为 2 则双字词也显示。</p>
         </div>
 
         <div>
@@ -128,7 +128,7 @@ export function CommentHints() {
             value={superComment.correctorType}
             onChange={(e) => updateSuperComment({ correctorType: e.target.value })}
           />
-          <p className="mt-1 text-sm text-gray-500">可以改成更短的标记，也可以留空。</p>
+          <p className="mt-1 text-sm text-muted-foreground">可以改成更短的标记，也可以留空。</p>
         </div>
       </div>
     </div>

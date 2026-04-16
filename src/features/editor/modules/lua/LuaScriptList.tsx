@@ -71,7 +71,7 @@ export function LuaScriptList({ schemaId }: LuaScriptListProps) {
       </div>
 
       {scripts.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           尚未创建任何 Lua 脚本。点击上方按钮以某个类型的模板开始。
         </p>
       ) : (
@@ -95,7 +95,7 @@ export function LuaScriptList({ schemaId }: LuaScriptListProps) {
                     </Badge>
                   </div>
                   {script.description && (
-                    <div className="mt-0.5 text-xs text-gray-500">{script.description}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{script.description}</div>
                   )}
                 </div>
                 <Button

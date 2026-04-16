@@ -41,12 +41,12 @@ export function SpecialInputTab() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-2 text-sm text-gray-500">
+      <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <p>管理日期、时间、计算器等预设触发器，以及你自定义的 Lua 触发器。</p>
         <SettingHelp>
           <p>预设触发器是万象拼音内置的特殊输入功能，由 Lua 脚本实现。</p>
@@ -73,7 +73,7 @@ export function SpecialInputTab() {
                     />
                     <div className="flex-1">
                       <span className="text-sm font-medium">{def.label}</span>
-                      <span className="ml-2 text-xs text-gray-400">{def.description}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{def.description}</span>
                     </div>
                     <Input
                       className="w-20 text-center text-sm"

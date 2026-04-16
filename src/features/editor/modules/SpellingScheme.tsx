@@ -29,7 +29,7 @@ export function SpellingScheme() {
   const available = schemaInfo?.availableSpellingSchemes ?? ['full_pinyin']
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -39,7 +39,7 @@ export function SpellingScheme() {
           <h3 className="text-lg font-semibold">拼写方案</h3>
           <LearnMoreLink module="spelling-scheme" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           选择当前输入方案使用的拼写规则。当前方案：{primarySchemaId}
         </p>
       </div>
@@ -71,7 +71,7 @@ export function SpellingScheme() {
             ))}
           </SelectContent>
         </Select>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-muted-foreground">
           万象拼音支持在方案内切换全拼和多种双拼，无需安装额外方案文件。
         </p>
       </div>

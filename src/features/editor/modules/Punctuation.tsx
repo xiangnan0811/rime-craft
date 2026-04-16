@@ -38,7 +38,7 @@ export function Punctuation() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   const entries = Object.entries(halfShape)
@@ -51,7 +51,7 @@ export function Punctuation() {
             <h3 className="text-lg font-semibold">标点符号映射</h3>
             <LearnMoreLink module="punctuation" />
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             编辑半角标点到中文标点的映射。多个候选项用英文逗号分隔。当前配置应用于方案：{primarySchemaId}
           </p>
         </div>
@@ -62,15 +62,15 @@ export function Punctuation() {
       <div className="overflow-auto rounded-md border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="w-24 px-4 py-2 text-left font-medium text-gray-600">键（输入）</th>
-              <th className="px-4 py-2 text-left font-medium text-gray-600">输出</th>
+            <tr className="border-b bg-muted/50">
+              <th className="w-24 px-4 py-2 text-left font-medium text-foreground/80">键（输入）</th>
+              <th className="px-4 py-2 text-left font-medium text-foreground/80">输出</th>
             </tr>
           </thead>
           <tbody>
             {entries.map(([key, val]) => (
-              <tr key={key} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-gray-700">{key}</td>
+              <tr key={key} className="border-b last:border-0 hover:bg-muted/30">
+                <td className="px-4 py-2 font-mono text-foreground">{key}</td>
                 <td className="px-4 py-2">
                   <Input
                     value={valueToString(val)}

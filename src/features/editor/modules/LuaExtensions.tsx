@@ -12,7 +12,7 @@ export function LuaExtensions() {
           <h3 className="text-lg font-semibold">Lua 扩展</h3>
           <LearnMoreLink module="lua-extensions" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           管理特殊输入触发器、内置 Lua 功能增强，以及自定义 Lua 脚本。
         </p>
       </div>

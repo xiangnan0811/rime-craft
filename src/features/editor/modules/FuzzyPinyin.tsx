@@ -27,7 +27,7 @@ export function FuzzyPinyin() {
   const finals = FUZZY_RULE_DEFINITIONS.filter((r) => r.category === 'final')
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -37,7 +37,7 @@ export function FuzzyPinyin() {
           <h3 className="text-lg font-semibold">模糊音规则</h3>
           <LearnMoreLink module="fuzzy-pinyin" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           启用模糊音后，发音相近的声母或韵母会被视为相同，可以减少输入错误。当前配置应用于方案：{primarySchemaId}
         </p>
       </div>
@@ -48,7 +48,7 @@ export function FuzzyPinyin() {
             <div key={rule.id} className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{rule.label}</p>
-                <p className="text-sm text-gray-500">{rule.description}</p>
+                <p className="text-sm text-muted-foreground">{rule.description}</p>
               </div>
               <Switch checked={isEnabled(rule.id)} onCheckedChange={(checked) => handleToggle(rule.id, checked)} />
             </div>
@@ -63,7 +63,7 @@ export function FuzzyPinyin() {
             <div key={rule.id} className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{rule.label}</p>
-                <p className="text-sm text-gray-500">{rule.description}</p>
+                <p className="text-sm text-muted-foreground">{rule.description}</p>
               </div>
               <Switch checked={isEnabled(rule.id)} onCheckedChange={(checked) => handleToggle(rule.id, checked)} />
             </div>

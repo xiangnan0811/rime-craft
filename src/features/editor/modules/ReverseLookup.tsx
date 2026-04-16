@@ -37,7 +37,7 @@ export function ReverseLookup() {
   }
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   return (
@@ -47,7 +47,7 @@ export function ReverseLookup() {
           <h3 className="text-lg font-semibold">反查与筛选</h3>
           <LearnMoreLink module="reverse-lookup" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           编辑实际写入 schema 的 <code>reverse_lookup</code> 与 recognizer 配置。当前方案：{primarySchemaId}
         </p>
       </div>
@@ -65,7 +65,7 @@ export function ReverseLookup() {
             value={config.prefix}
             onChange={(e) => update({ prefix: e.target.value })}
           />
-          <p className="mt-1 text-sm text-gray-500">例如 <code>`</code>、<code>z</code> 或 <code>/stroke</code></p>
+          <p className="mt-1 text-sm text-muted-foreground">例如 <code>`</code>、<code>z</code> 或 <code>/stroke</code></p>
         </div>
 
         <div>
@@ -82,7 +82,7 @@ export function ReverseLookup() {
             placeholder={derivedRecognizerPattern}
             onChange={(e) => update({ recognizerPattern: e.target.value || undefined })}
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             留空将使用默认值 <code>{derivedRecognizerPattern}</code>
           </p>
         </div>
@@ -99,7 +99,7 @@ export function ReverseLookup() {
             value={config.dictionary}
             onChange={(e) => update({ dictionary: e.target.value })}
           />
-          <p className="mt-1 text-sm text-gray-500">部署时会按这个字典重建对应的反查索引。</p>
+          <p className="mt-1 text-sm text-muted-foreground">部署时会按这个字典重建对应的反查索引。</p>
         </div>
 
         <div>
@@ -114,7 +114,7 @@ export function ReverseLookup() {
             value={config.tips}
             onChange={(e) => update({ tips: e.target.value })}
           />
-          <p className="mt-1 text-sm text-gray-500">例如 <code>〔笔画〕</code>、<code>〔拆字〕</code></p>
+          <p className="mt-1 text-sm text-muted-foreground">例如 <code>〔笔画〕</code>、<code>〔拆字〕</code></p>
         </div>
 
         <div>
@@ -130,7 +130,7 @@ export function ReverseLookup() {
             placeholder="可选"
             onChange={(e) => update({ prism: e.target.value || undefined })}
           />
-          <p className="mt-1 text-sm text-gray-500">仅在需要把反查索引名与字典名分开时填写。</p>
+          <p className="mt-1 text-sm text-muted-foreground">仅在需要把反查索引名与字典名分开时填写。</p>
         </div>
 
         <div className="flex items-center justify-between">
@@ -141,7 +141,7 @@ export function ReverseLookup() {
                 <p><code>reverse_lookup/enable_completion</code> 控制反查输入过程中是否允许前缀补全候选。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">开启后，输入不完整编码时也能提前看到反查候选。</p>
+            <p className="text-sm text-muted-foreground">开启后，输入不完整编码时也能提前看到反查候选。</p>
           </div>
           <Switch
             checked={config.enableCompletion}
@@ -170,7 +170,7 @@ export function ReverseLookup() {
               })
             }
           />
-          <p className="mt-1 text-sm text-gray-500">一行一条规则，保存时会写入数组形式的 <code>preedit_format</code>。</p>
+          <p className="mt-1 text-sm text-muted-foreground">一行一条规则，保存时会写入数组形式的 <code>preedit_format</code>。</p>
         </div>
       </div>
     </div>

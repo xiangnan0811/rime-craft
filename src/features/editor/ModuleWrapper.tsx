@@ -73,7 +73,7 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
       <TabsContent value="yaml">
         <Suspense
           fallback={
-            <div className="rounded-md border border-dashed p-8 text-center text-gray-400">
+            <div className="rounded-md border border-dashed p-8 text-center text-muted-foreground">
               加载编辑器...
             </div>
           }

@@ -46,7 +46,7 @@ export function Dictionary() {
           <h3 className="text-lg font-semibold">词典管理</h3>
           <LearnMoreLink module="dictionary" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           管理自定义词组（custom_phrase.txt）。每个词条包含文字、编码和权重。
         </p>
       </div>
@@ -66,23 +66,23 @@ export function Dictionary() {
       <div className="overflow-auto rounded-md border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="px-4 py-2 text-left font-medium text-gray-600">词条</th>
-              <th className="px-4 py-2 text-left font-medium text-gray-600">编码</th>
-              <th className="w-24 px-4 py-2 text-left font-medium text-gray-600">权重</th>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-2 text-left font-medium text-foreground/80">词条</th>
+              <th className="px-4 py-2 text-left font-medium text-foreground/80">编码</th>
+              <th className="w-24 px-4 py-2 text-left font-medium text-foreground/80">权重</th>
               <th className="w-16 px-4 py-2" />
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400">
+                <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
                   {filter ? '没有匹配的词条' : '暂无词条，点击「添加词条」开始'}
                 </td>
               </tr>
             ) : (
               filtered.map(({ phrase, index }) => (
-                <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                <tr key={index} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-2">
                     <Input
                       value={phrase.text}
@@ -132,7 +132,7 @@ export function Dictionary() {
 
       <div className="space-y-2 rounded-md border p-4">
         <Label className="text-sm font-medium">批量导入</Label>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           粘贴 TSV 格式内容（词条\t编码\t权重），每行一条，# 开头为注释。
         </p>
         <textarea

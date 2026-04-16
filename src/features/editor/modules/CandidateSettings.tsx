@@ -74,7 +74,7 @@ export function CandidateSettings() {
           <h3 className="text-lg font-semibold">候选词设置</h3>
           <LearnMoreLink module="candidate-settings" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">设置候选词每页显示数量和选词按键。</p>
+        <p className="mt-1 text-sm text-muted-foreground">设置候选词每页显示数量和选词按键。</p>
       </div>
       <div className="space-y-4">
         <div>
@@ -90,7 +90,7 @@ export function CandidateSettings() {
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-sm text-gray-500">建议 5-9 个，数量越多翻页越少，但候选框越大。</p>
+          <p className="mt-1 text-sm text-muted-foreground">建议 5-9 个，数量越多翻页越少，但候选框越大。</p>
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
@@ -125,9 +125,9 @@ export function CandidateSettings() {
       </div>
       <Separator className="my-4" />
       <details className="group">
-        <summary className="cursor-pointer font-medium text-gray-700">
+        <summary className="cursor-pointer font-medium text-foreground">
           高级设置
-          <span className="ml-1 text-xs text-gray-400">（翻译器参数）</span>
+          <span className="ml-1 text-xs text-muted-foreground">（翻译器参数）</span>
         </summary>
         <div className="mt-3 space-y-4">
           {/* 输入补全 */}
@@ -140,7 +140,7 @@ export function CandidateSettings() {
                   <p>建议：大多数用户应保持开启。仅在使用辅助码且希望减少干扰时才考虑关闭。</p>
                 </SettingHelp>
               </div>
-              <p className="text-sm text-gray-500">打部分拼音时是否显示完整词</p>
+              <p className="text-sm text-muted-foreground">打部分拼音时是否显示完整词</p>
             </div>
             <Switch
               checked={translator.enableCompletion}
@@ -162,7 +162,7 @@ export function CandidateSettings() {
                   </ul>
                 </SettingHelp>
               </div>
-              <p className="text-sm text-gray-500">尝试将多个音节组合成完整句子候选</p>
+              <p className="text-sm text-muted-foreground">尝试将多个音节组合成完整句子候选</p>
             </div>
             <Switch
               checked={translator.enableSentence}
@@ -180,7 +180,7 @@ export function CandidateSettings() {
                   <p>关闭后，候选词排序完全由词典决定，不会学习你的使用习惯。适合不希望输入法「记住」自己输入内容的用户。</p>
                 </SettingHelp>
               </div>
-              <p className="text-sm text-gray-500">启用自动调频和用户词典记忆</p>
+              <p className="text-sm text-muted-foreground">启用自动调频和用户词典记忆</p>
             </div>
             <Switch
               checked={translator.enableUserDict}
@@ -207,7 +207,7 @@ export function CandidateSettings() {
               value={translator.coreWordLength}
               onChange={(e) => updateTranslator({ coreWordLength: Number(e.target.value) })}
             />
-            <p className="mt-1 text-sm text-gray-500">参与造句的最长词组长度，默认 4</p>
+            <p className="mt-1 text-sm text-muted-foreground">参与造句的最长词组长度，默认 4</p>
           </div>
 
           {/* 候选词最大长度 */}
@@ -228,7 +228,7 @@ export function CandidateSettings() {
               value={translator.maxWordLength}
               onChange={(e) => updateTranslator({ maxWordLength: Number(e.target.value) })}
             />
-            <p className="mt-1 text-sm text-gray-500">候选列表中词组的最大字数，默认 7</p>
+            <p className="mt-1 text-sm text-muted-foreground">候选列表中词组的最大字数，默认 7</p>
           </div>
 
           {/* 同音词上限 */}
@@ -249,7 +249,7 @@ export function CandidateSettings() {
               value={translator.maxHomophones}
               onChange={(e) => updateTranslator({ maxHomophones: Number(e.target.value) })}
             />
-            <p className="mt-1 text-sm text-gray-500">相同拼音的候选词最多显示几个</p>
+            <p className="mt-1 text-sm text-muted-foreground">相同拼音的候选词最多显示几个</p>
           </div>
 
           {/* 同形词上限 */}
@@ -269,7 +269,7 @@ export function CandidateSettings() {
               value={translator.maxHomographs}
               onChange={(e) => updateTranslator({ maxHomographs: Number(e.target.value) })}
             />
-            <p className="mt-1 text-sm text-gray-500">相同字形不同读音的候选词最多显示几个</p>
+            <p className="mt-1 text-sm text-muted-foreground">相同字形不同读音的候选词最多显示几个</p>
           </div>
 
           {/* 翻译器优先级 (新增) */}
@@ -290,7 +290,7 @@ export function CandidateSettings() {
               value={translator.initialQuality}
               onChange={(e) => updateTranslator({ initialQuality: Number(e.target.value) })}
             />
-            <p className="mt-1 text-sm text-gray-500">候选词的初始排序权重，默认 1.2</p>
+            <p className="mt-1 text-sm text-muted-foreground">候选词的初始排序权重，默认 1.2</p>
           </div>
         </div>
       </details>

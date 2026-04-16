@@ -34,7 +34,7 @@ export function EditorPage() {
     <div className="flex h-[calc(100vh-57px)] flex-col">
       <div className="flex items-center justify-between border-b px-6 py-2">
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">配置编辑器</span>
+          <span className="text-sm text-muted-foreground">配置编辑器</span>
           <Select onValueChange={handlePresetChange}>
             <SelectTrigger className="h-8 w-40 text-sm">
               <SelectValue placeholder="加载预设..." />

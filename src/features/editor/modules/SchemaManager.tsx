@@ -55,7 +55,7 @@ export function SchemaManager() {
           <h3 className="text-lg font-semibold">输入方案管理</h3>
           <LearnMoreLink module="schema-manager" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           管理已启用的输入方案及其优先顺序。列表中排在前面的方案为默认方案。这里写出的只是
           {' '}`schema_list` 与相关补丁；目标设备仍需先安装对应的 `.schema.yaml` / `.dict.yaml`
           {' '}方案文件，Rime 才能真正使用该方案。
@@ -71,22 +71,22 @@ export function SchemaManager() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{info?.name ?? item.schema}</p>
                   {detail && (
-                    <Link to={`/schema/${item.schema}`} className="text-gray-400 hover:text-blue-600" title="查看详情">
+                    <Link to={`/schema/${item.schema}`} className="text-muted-foreground hover:text-blue-600" title="查看详情">
                       <Info className="h-3.5 w-3.5" />
                     </Link>
                   )}
                   {detail?.links.repository && (
-                    <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-gray-600" title="GitHub">
+                    <a href={detail.links.repository} target="_blank" rel="noreferrer" className="text-muted-foreground/60 hover:text-foreground" title="GitHub">
                       <Code className="h-3.5 w-3.5" />
                     </a>
                   )}
                   {detail?.links.official && (
-                    <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-gray-600" title="官网">
+                    <a href={detail.links.official} target="_blank" rel="noreferrer" className="text-muted-foreground/60 hover:text-foreground" title="官网">
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}
                 </div>
-                {info && <p className="text-sm text-gray-500">{info.description}</p>}
+                {info && <p className="text-sm text-muted-foreground">{info.description}</p>}
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={() => handleMoveUp(index)} disabled={index === 0}>↑</Button>
@@ -111,7 +111,7 @@ export function SchemaManager() {
                       <div>
                         <span>{s.name}</span>
                         {detail && (
-                          <span className="ml-2 text-xs text-gray-400">
+                          <span className="ml-2 text-xs text-muted-foreground">
                             {detail.compare.difficulty} · {detail.compare.recommendation}
                           </span>
                         )}

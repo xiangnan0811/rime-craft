@@ -48,7 +48,7 @@ export function CustomTriggerList({ schemaId }: CustomTriggerListProps) {
   return (
     <div className="space-y-2">
       {triggers.length === 0 ? (
-        <p className="text-xs text-gray-400">尚未添加自定义触发器。</p>
+        <p className="text-xs text-muted-foreground">尚未添加自定义触发器。</p>
       ) : (
         <div className="space-y-1">
           {triggers.map((trigger) => {
@@ -65,7 +65,7 @@ export function CustomTriggerList({ schemaId }: CustomTriggerListProps) {
                       {trigger.triggerCode}
                     </code>
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="mt-0.5 text-xs text-muted-foreground">
                     {script ? `→ ${script.fileName}` : '⚠ 未关联脚本'}
                     {trigger.description && ` · ${trigger.description}`}
                   </div>

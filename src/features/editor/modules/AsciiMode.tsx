@@ -54,7 +54,7 @@ export function AsciiMode() {
           <LearnMoreLink module="ascii-mode" />
         </div>
         <div className="mt-1 flex flex-wrap items-start gap-x-1.5">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             为特定应用设置默认输入模式。例如终端和代码编辑器通常默认英文模式。
             {platformHint}
           </p>
@@ -83,11 +83,11 @@ export function AsciiMode() {
               <Card key={identifier} className="flex items-center justify-between p-3">
                 <div>
                   <p className="font-medium">{appName ?? identifier}</p>
-                  {appName && <p className="text-xs text-gray-400">{identifier}</p>}
+                  {appName && <p className="text-xs text-muted-foreground">{identifier}</p>}
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">默认英文</span>
+                    <span className="text-sm text-muted-foreground">默认英文</span>
                     <Switch
                       checked={opt.asciiMode}
                       onCheckedChange={(checked) => setAppOption(identifier, checked)}

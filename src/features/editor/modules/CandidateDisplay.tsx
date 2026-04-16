@@ -15,7 +15,7 @@ export function CandidateDisplay() {
   const horizontal = themeStyle?.horizontal ?? false
 
   if (!primarySchemaId) {
-    return <div className="text-gray-500">请先在「输入方案管理」中添加至少一个方案。</div>
+    return <div className="text-muted-foreground">请先在「输入方案管理」中添加至少一个方案。</div>
   }
 
   function updateHorizontal(nextHorizontal: boolean) {
@@ -36,7 +36,7 @@ export function CandidateDisplay() {
           <h3 className="text-lg font-semibold">候选词显示</h3>
           <LearnMoreLink module="candidate-display" />
         </div>
-        <p className="mt-1 text-sm text-gray-500">控制候选窗口的排列方向。注释与拼音提示已移动到「注释与提示」模块。</p>
+        <p className="mt-1 text-sm text-muted-foreground">控制候选窗口的排列方向。注释与拼音提示已移动到「注释与提示」模块。</p>
       </div>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -49,17 +49,17 @@ export function CandidateDisplay() {
                 <p>横排用户建议将每页候选词数调小到 5-6 个，避免面板过宽。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">候选词横向排列（默认竖排）</p>
+            <p className="text-sm text-muted-foreground">候选词横向排列（默认竖排）</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               {horizontal ? '横排' : '竖排'}
             </span>
             <Switch checked={horizontal}
               onCheckedChange={updateHorizontal} />
           </div>
         </div>
-        <div className="rounded-md border border-dashed p-4 text-sm text-gray-500">
+        <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-1.5">
             <Label>注释与拼音提示</Label>
             <SettingHelp>

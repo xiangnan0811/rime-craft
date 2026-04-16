@@ -79,7 +79,7 @@ export function KeyBindings() {
           <LearnMoreLink module="key-bindings" />
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-1.5">
-          <p className="text-sm text-gray-500">配置修饰键的中英文切换行为。</p>
+          <p className="text-sm text-muted-foreground">配置修饰键的中英文切换行为。</p>
           <SettingHelp>
             <p>每个修饰键可配置五种切换动作：</p>
             <ul>
@@ -107,7 +107,7 @@ export function KeyBindings() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="mt-1 text-sm text-gray-500">{description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </div>
         ))}
         <div className="flex items-center gap-3 pt-2">
@@ -121,26 +121,26 @@ export function KeyBindings() {
                 <p>关闭后，Caps Lock 键按照上方配置的 Caps Lock 行为执行中英切换，而非切换大写锁定。</p>
               </SettingHelp>
             </div>
-            <p className="text-sm text-gray-500">启用后 Caps Lock 切换大写锁定而非中英切换</p>
+            <p className="text-sm text-muted-foreground">启用后 Caps Lock 切换大写锁定而非中英切换</p>
           </div>
         </div>
       </div>
       <Separator className="my-6" />
       <div>
         <h4 className="mb-1 text-lg font-semibold">功能快捷键</h4>
-        <p className="mb-4 text-sm text-gray-500">配置万象拼音等方案的功能快捷键。启用后将添加到按键绑定列表中。</p>
+        <p className="mb-4 text-sm text-muted-foreground">配置万象拼音等方案的功能快捷键。启用后将添加到按键绑定列表中。</p>
         {FUNCTION_KEY_CATEGORIES.map((cat) => {
           const defs = FUNCTION_KEY_DEFINITIONS.filter((d) => d.category === cat.id)
           if (defs.length === 0) return null
           return (
             <div key={cat.id} className="mb-4">
-              <h5 className="mb-2 text-sm font-medium text-gray-600">{cat.label}</h5>
+              <h5 className="mb-2 text-sm font-medium text-foreground/80">{cat.label}</h5>
               <div className="space-y-3">
                 {defs.map((def) => (
                   <div key={def.id} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{def.label}</p>
-                      <p className="text-sm text-gray-500">{def.description}</p>
+                      <p className="text-sm text-muted-foreground">{def.description}</p>
                     </div>
                     <Switch
                       checked={isFunctionKeyEnabled(def.id)}

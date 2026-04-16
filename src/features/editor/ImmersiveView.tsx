@@ -25,17 +25,17 @@ export function ImmersiveView({ onExitImmersive }: ImmersiveViewProps) {
     <EditorContext.Provider value={{ isImmersive: true }}>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl">
-          <button onClick={onExitImmersive} className="mb-4 text-sm text-blue-500 hover:text-blue-700">
+          <button onClick={onExitImmersive} className="mb-4 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             ← 返回面板模式
           </button>
-          <div className="prose prose-sm max-w-none">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
             <MDXProvider components={mdxComponents}>
               {MdxContent ? (
-                <Suspense fallback={<div className="text-gray-400">加载教程...</div>}>
+                <Suspense fallback={<div className="text-muted-foreground">加载教程...</div>}>
                   <MdxContent />
                 </Suspense>
               ) : (
-                <p className="text-gray-400">暂无此模块的教程内容</p>
+                <p className="text-muted-foreground">暂无此模块的教程内容</p>
               )}
             </MDXProvider>
           </div>
