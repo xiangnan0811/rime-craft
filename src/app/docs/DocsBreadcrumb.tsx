@@ -14,15 +14,15 @@ export function DocsBreadcrumb({ slug, pageTitle }: DocsBreadcrumbProps) {
   const firstSlug = section.items[0]?.slug ?? slug
 
   return (
-    <nav className="mb-4 flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400">
+    <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
       <Link
         to={`/docs/${firstSlug}`}
-        className="transition-colors hover:text-gray-900 dark:hover:text-slate-200"
+        className="transition-colors hover:text-foreground"
       >
         {section.title}
       </Link>
       <ChevronRight className="h-3.5 w-3.5" />
-      <span className="text-gray-900 dark:text-slate-200">{pageTitle}</span>
+      <span className="text-foreground">{pageTitle}</span>
     </nav>
   )
 }
