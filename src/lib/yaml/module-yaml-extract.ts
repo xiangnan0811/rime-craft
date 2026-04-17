@@ -404,7 +404,23 @@ export function extractModuleYamlFromWorkspace(
     })
     .filter(Boolean)
 
-  return slices.length > 0 ? joinYamlSlices(slices) : extractModuleYaml(module, project)
+  const extracted = slices.length > 0 ? joinYamlSlices(slices) : extractModuleYaml(module, project)
+  return extracted || synthesizeModuleScaffold(module)
+}
+
+function synthesizeModuleScaffold(module: EditorModule): string {
+  const scaffold: Record<string, unknown> = {}
+  for (const mapping of getModuleMappings(module)) {
+    if (mapping.file === 'custom_phrase') continue
+    for (const key of mapping.keys) {
+      if (!(key in scaffold)) {
+        scaffold[key] = {}
+      }
+    }
+  }
+
+  if (Object.keys(scaffold).length === 0) return ''
+  return stringify(scaffold, { lineWidth: 0 })
 }
 
 /**

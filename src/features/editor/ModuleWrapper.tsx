@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfigStore } from '@/stores/config-store'
 import {
@@ -21,21 +21,20 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
   const sourceFiles = useConfigStore((s) => s.sourceFiles)
   const replaceWorkspace = useConfigStore((s) => s.replaceWorkspace)
   const [parseError, setParseError] = useState<string>()
-  const [yamlValue, setYamlValue] = useState('')
+  const [yamlValue, setYamlValue] = useState(() =>
+    extractModuleYamlFromWorkspace(module, project, sourceFiles),
+  )
   const sourceRef = useRef<'form' | 'yaml'>('form')
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  // When switching to YAML tab, extract current state
-  const handleTabChange = useCallback(
-    (value: string) => {
-      if (value === 'yaml') {
-        sourceRef.current = 'form'
-        setYamlValue(extractModuleYamlFromWorkspace(module, project, sourceFiles))
-        setParseError(undefined)
-      }
-    },
-    [module, project, sourceFiles],
-  )
+  useEffect(() => {
+    if (sourceRef.current === 'yaml') {
+      sourceRef.current = 'form'
+      return
+    }
+    setYamlValue(extractModuleYamlFromWorkspace(module, project, sourceFiles))
+    setParseError(undefined)
+  }, [module, project, sourceFiles])
 
   const handleYamlChange = useCallback(
     (value: string) => {
@@ -64,7 +63,7 @@ export function ModuleWrapper({ module, children }: ModuleWrapperProps) {
   )
 
   return (
-    <Tabs defaultValue="form" onValueChange={handleTabChange}>
+    <Tabs defaultValue="form">
       <TabsList className="mb-4">
         <TabsTrigger value="form">表单模式</TabsTrigger>
         <TabsTrigger value="yaml">YAML 模式</TabsTrigger>

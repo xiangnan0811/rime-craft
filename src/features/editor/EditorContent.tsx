@@ -22,7 +22,7 @@ export function EditorContent() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mx-auto max-w-2xl">
-        <ModuleWrapper module={activeModule}>
+        <ModuleWrapper key={activeModule} module={activeModule}>
           <ModuleErrorBoundary moduleName={activeModule}>
             <Suspense fallback={<div className="text-muted-foreground">加载中...</div>}>
               <Component />
