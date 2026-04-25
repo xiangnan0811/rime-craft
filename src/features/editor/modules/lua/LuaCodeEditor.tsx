@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 
 interface LuaCodeEditorProps {
   value: string
@@ -8,14 +8,29 @@ interface LuaCodeEditorProps {
 }
 
 export function LuaCodeEditor({ value, onChange, readOnly = false, height = '400px' }: LuaCodeEditorProps) {
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  useEffect(() => {
+    const root = document.documentElement
+    const observer = new MutationObserver(() => {
+      setIsDark(root.classList.contains('dark'))
+    })
+
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
   const LazyEditor = useMemo(
     () =>
       lazy(async () => {
-        const [{ default: CM }, { StreamLanguage }, { lua }, { oneDark }] = await Promise.all([
+        const [{ default: CM }, { StreamLanguage }, { lua }] = await Promise.all([
           import('@uiw/react-codemirror'),
           import('@codemirror/language'),
           import('@codemirror/legacy-modes/mode/lua'),
-          import('@codemirror/theme-one-dark'),
         ])
         const luaSupport = StreamLanguage.define(lua)
         return {
@@ -24,12 +39,13 @@ export function LuaCodeEditor({ value, onChange, readOnly = false, height = '400
             onChange: (v: string) => void
             readOnly?: boolean
             height?: string
+            isDark: boolean
           }) => (
             <CM
               value={innerProps.value}
               height={innerProps.height}
               extensions={[luaSupport]}
-              theme={oneDark}
+              theme={innerProps.isDark ? 'dark' : 'light'}
               editable={!innerProps.readOnly}
               onChange={(v) => innerProps.onChange(v)}
             />
@@ -41,7 +57,7 @@ export function LuaCodeEditor({ value, onChange, readOnly = false, height = '400
 
   return (
     <Suspense fallback={<EditorFallback height={height} />}>
-      <LazyEditor value={value} onChange={onChange} readOnly={readOnly} height={height} />
+      <LazyEditor value={value} onChange={onChange} readOnly={readOnly} height={height} isDark={isDark} />
     </Suspense>
   )
 }
@@ -49,7 +65,7 @@ export function LuaCodeEditor({ value, onChange, readOnly = false, height = '400
 function EditorFallback({ height }: { height: string }) {
   return (
     <div
-      className="flex items-center justify-center rounded border border-slate-700 bg-slate-900 text-sm text-slate-400"
+      className="flex items-center justify-center rounded-xl border border-border bg-card/80 text-sm text-muted-foreground shadow-sm"
       style={{ height }}
     >
       加载代码编辑器...

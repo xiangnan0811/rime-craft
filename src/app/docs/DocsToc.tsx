@@ -15,9 +15,9 @@ export function DocsToc({ slug }: DocsTocProps) {
   return (
     <nav className="sticky top-20">
       <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        On this page
+        本页目录
       </h4>
-      <ul className="space-y-1 border-l-2 border-border">
+      <ul className="space-y-1 border-l-2 border-border/80">
         {headings.map((heading) => (
           <li key={heading.id}>
             <a
@@ -30,7 +30,7 @@ export function DocsToc({ slug }: DocsTocProps) {
                 'block border-l-2 -ml-[2px] py-1 text-sm transition-colors',
                 heading.level === 3 ? 'pl-6' : 'pl-4',
                 activeId === heading.id
-                  ? 'border-blue-500 font-medium text-blue-600 dark:text-blue-400'
+                  ? 'border-foreground font-medium text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground',
               )}
             >

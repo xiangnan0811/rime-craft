@@ -16,11 +16,11 @@ export function DocsPagination({ slug }: DocsPaginationProps) {
       {prev ? (
         <Link
           to={`/docs/${prev.slug}`}
-          className="group flex items-center gap-2 rounded-lg border border-border px-4 py-3 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
+          className="group flex items-center gap-3 rounded-xl border border-border/80 bg-card/70 px-4 py-3 transition-colors hover:bg-accent/50"
         >
-          <ChevronLeft className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-blue-500" />
+          <ChevronLeft className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
           <div>
-            <div className="text-xs text-muted-foreground">Previous</div>
+            <div className="text-xs text-muted-foreground">上一篇</div>
             <div className="text-sm font-medium text-foreground">{prev.title}</div>
           </div>
         </Link>
@@ -30,13 +30,13 @@ export function DocsPagination({ slug }: DocsPaginationProps) {
       {next ? (
         <Link
           to={`/docs/${next.slug}`}
-          className="group flex items-center gap-2 rounded-lg border border-border px-4 py-3 text-right transition-colors hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
+          className="group flex items-center gap-3 rounded-xl border border-border/80 bg-card/70 px-4 py-3 text-right transition-colors hover:bg-accent/50"
         >
           <div>
-            <div className="text-xs text-muted-foreground">Next</div>
+            <div className="text-xs text-muted-foreground">下一篇</div>
             <div className="text-sm font-medium text-foreground">{next.title}</div>
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-blue-500" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
         </Link>
       ) : (
         <div />

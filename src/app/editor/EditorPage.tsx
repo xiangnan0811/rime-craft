@@ -13,6 +13,7 @@ import { GistDialog } from '@/features/share/GistDialog'
 import { PRESETS } from '@/data/presets'
 import { useConfigStore } from '@/stores/config-store'
 import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -36,58 +37,77 @@ export function EditorPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-57px)] flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-y-2 border-b px-4 py-2 md:px-6">
-        <div className="flex items-center gap-2 md:gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 md:hidden"
-            onClick={() => setMobileSidebarOpen(true)}
-            aria-label="打开模块导航"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-          <span className="hidden text-sm text-muted-foreground sm:inline">配置编辑器</span>
-          <Select onValueChange={handlePresetChange}>
-            <SelectTrigger className="h-8 w-40 text-sm">
-              <SelectValue placeholder="加载预设..." />
-            </SelectTrigger>
-            <SelectContent>
-              {PRESETS.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <MobileTutorialDialog />
-          <ShareDialog />
-          <ImportDialog />
-          <ExportButton />
-          <GistDialog />
-        </div>
+    <div className="flex min-h-[calc(100vh-57px)] flex-col bg-muted/20">
+      <div className="border-b border-border/80 bg-background/70 px-4 py-3 backdrop-blur md:px-6">
+        <PageHeader
+          eyebrow="Workbench"
+          title="配置编辑器"
+          description="在模块表单、教程说明和导入导出动作之间保持统一层级。"
+          actions={(
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 md:hidden"
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label="打开模块导航"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+              <Select onValueChange={handlePresetChange}>
+                <SelectTrigger className="h-9 w-44 text-sm">
+                  <SelectValue placeholder="加载预设..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESETS.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <MobileTutorialDialog />
+              <ShareDialog />
+              <ImportDialog />
+              <ExportButton />
+              <GistDialog />
+            </>
+          )}
+        />
       </div>
-      <div className="flex flex-1 overflow-hidden">
+
+      {mobileSidebarOpen ? (
         <EditorSidebar
-          mobileOpen={mobileSidebarOpen}
+          mobileOpen
           onMobileClose={() => setMobileSidebarOpen(false)}
         />
-        {editorUI.viewMode === 'immersive' ? (
-          <ImmersiveView onExitImmersive={() => setViewMode('panel')} />
-        ) : (
-          <EditorContext.Provider value={{ isImmersive: false }}>
-            <EditorContent />
-            <div className="hidden md:contents">
+      ) : null}
+
+      {editorUI.viewMode === 'immersive' ? (
+        <div className="flex flex-1 overflow-hidden p-3 md:p-4">
+          <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/80 shadow-sm">
+            <ImmersiveView onExitImmersive={() => setViewMode('panel')} />
+          </div>
+        </div>
+      ) : (
+        <EditorContext.Provider value={{ isImmersive: false }}>
+          <div className="flex flex-1 gap-3 overflow-hidden p-3 md:p-4">
+            <div className="hidden md:block md:w-64 md:flex-shrink-0">
+              <EditorSidebar />
+            </div>
+
+            <div className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/80 shadow-sm">
+              <EditorContent />
+            </div>
+
+            <div className="hidden md:block md:w-[380px] md:flex-shrink-0">
               <TutorialPanel
                 collapsed={editorUI.tutorialCollapsed}
                 onToggleCollapse={() => setTutorialCollapsed(!editorUI.tutorialCollapsed)}
                 onEnterImmersive={() => setViewMode('immersive')}
               />
             </div>
-          </EditorContext.Provider>
-        )}
-      </div>
+          </div>
+        </EditorContext.Provider>
+      )}
     </div>
   )
 }
