@@ -1,5 +1,6 @@
 import { useState, useRef, type ComponentPropsWithoutRef } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
   const [copied, setCopied] = useState(false)
@@ -18,6 +19,8 @@ export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
     })
   }
 
+  const { className, ...restProps } = props
+
   return (
     <div className="group relative my-4 overflow-hidden rounded-lg border border-border bg-card">
       {title && (
@@ -26,12 +29,12 @@ export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
           <button
             onClick={handleCopy}
             className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Copy code"
+            aria-label="复制代码"
           >
             {copied ? (
-              <><Check className="h-3.5 w-3.5" /><span>Copied!</span></>
+              <><Check className="h-3.5 w-3.5" /><span>已复制</span></>
             ) : (
-              <><Copy className="h-3.5 w-3.5" /><span>Copy</span></>
+              <><Copy className="h-3.5 w-3.5" /><span>复制</span></>
             )}
           </button>
         </div>
@@ -40,12 +43,16 @@ export function Pre({ children, ...props }: ComponentPropsWithoutRef<'pre'>) {
         <button
           onClick={handleCopy}
           className="absolute right-3 top-3 flex items-center gap-1 rounded bg-background/70 px-2 py-1 text-xs text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-foreground group-hover:opacity-100"
-          aria-label="Copy code"
+          aria-label="复制代码"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
         </button>
       )}
-      <pre ref={preRef} className="overflow-x-auto p-4 text-sm leading-relaxed" {...props}>
+      <pre
+        ref={preRef}
+        className={cn('overflow-x-auto bg-transparent p-4 text-sm leading-relaxed', className)}
+        {...restProps}
+      >
         {children}
       </pre>
     </div>

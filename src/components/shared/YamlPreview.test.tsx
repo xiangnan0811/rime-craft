@@ -40,4 +40,17 @@ describe('<YamlPreview>', () => {
     expect(el).not.toBeNull()
     expect(el?.getAttribute('data-highlight-lines')).toBe('1,3')
   })
+
+  it('forces embedded pre blocks to stay transparent so syntax theme drives contrast', () => {
+    const { container } = render(
+      <YamlPreview>
+        <pre><code>schema: luna_pinyin</code></pre>
+      </YamlPreview>
+    )
+
+    const wrapper = Array.from(container.querySelectorAll('div')).find((element) =>
+      element.className.includes('[&_pre]:bg-transparent'),
+    )
+    expect(wrapper).not.toBeNull()
+  })
 })
