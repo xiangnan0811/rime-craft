@@ -9,31 +9,34 @@ export function DocsLayout() {
   const { slug } = useParams()
 
   return (
-    <div className="flex h-[calc(100vh-57px)]">
-      {/* Mobile sidebar trigger */}
-      <div className="fixed left-0 right-0 top-[57px] z-30 flex items-center border-b bg-background px-4 py-2 lg:hidden">
+    <div className="flex min-h-[calc(100vh-57px)] bg-muted/20">
+      <div className="fixed left-0 right-0 top-[57px] z-30 flex items-center gap-3 border-b border-border/80 bg-background/80 px-4 py-3 backdrop-blur lg:hidden">
         <DocsMobileSidebar />
-        <span className="ml-2 text-sm font-medium text-foreground/90">Tutorial</span>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Knowledge
+          </p>
+          <p className="text-sm font-semibold text-foreground">教程导航</p>
+        </div>
       </div>
 
-      {/* Desktop/Tablet sidebar */}
-      <ScrollArea className="hidden w-[220px] flex-shrink-0 border-r border-border bg-muted/30 lg:block">
-        <nav className="p-4">
+      <ScrollArea className="hidden w-[240px] flex-shrink-0 border-r border-border/80 bg-card/60 lg:block">
+        <nav aria-label="教程导航" className="p-4">
           {TUTORIAL_NAV.map((section) => (
             <div key={section.title} className="mb-6">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {section.title}
               </h3>
-              <ul className="space-y-0.5">
+              <ul className="space-y-1">
                 {section.items.map((item) => (
                   <li key={item.slug}>
                     <Link
                       to={`/docs/${item.slug}`}
                       className={cn(
-                        'block rounded-md px-3 py-1.5 text-sm transition-colors',
+                        'block rounded-xl px-3 py-2 text-sm transition-colors',
                         slug === item.slug
-                          ? 'border-l-2 border-blue-500 bg-background font-medium text-foreground shadow-sm'
-                          : 'text-foreground/80 hover:bg-accent',
+                          ? 'bg-background font-medium text-foreground shadow-sm ring-1 ring-border'
+                          : 'text-foreground/80 hover:bg-accent hover:text-foreground',
                       )}
                     >
                       {item.title}
@@ -46,16 +49,14 @@ export function DocsLayout() {
         </nav>
       </ScrollArea>
 
-      {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto pt-12 lg:pt-0">
-          <div className="mx-auto max-w-3xl px-6 py-8 lg:px-8 lg:py-10">
+        <main className="flex-1 overflow-y-auto pt-[72px] lg:pt-0">
+          <div className="mx-auto max-w-4xl px-6 py-8 lg:px-10 lg:py-10">
             <Outlet />
           </div>
         </main>
 
-        {/* Right-side TOC — desktop only */}
-        <aside className="hidden w-[180px] flex-shrink-0 overflow-y-auto border-l border-border px-4 py-8 xl:block">
+        <aside className="hidden w-[220px] flex-shrink-0 overflow-y-auto border-l border-border/80 bg-card/40 px-4 py-8 xl:block">
           <DocsToc slug={slug} />
         </aside>
       </div>

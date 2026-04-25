@@ -63,10 +63,12 @@ export function DocsPage() {
   return (
     <>
       <DocsBreadcrumb slug={resolvedSlug} pageTitle={item.title} />
-      <div data-docs-content className="prose prose-sm max-w-none">
-        <MDXProvider components={mdxComponents}>
-          <Content />
-        </MDXProvider>
+      <div data-docs-content className="prose max-w-none text-[15px] leading-7">
+        <article className="space-y-6">
+          <MDXProvider components={mdxComponents}>
+            <Content />
+          </MDXProvider>
+        </article>
       </div>
       <DocsPagination slug={resolvedSlug} />
     </>
