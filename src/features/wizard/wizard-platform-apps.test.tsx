@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { getDefaultWizardAsciiModeApps } from './ascii-mode-apps'
-import { wizardReducer, type WizardState } from './WizardPage'
+import { wizardReducer, type WizardState } from './wizard-state'
 import { BasicConfigStep } from './steps/BasicConfigStep'
 
 describe('wizard platform-specific ASCII-mode apps', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { wizardReducer, type WizardState } from './WizardPage'
+import { wizardReducer, type WizardState } from './wizard-state'
 
 function createBaseState(overrides?: Partial<WizardState>): WizardState {
   return {
