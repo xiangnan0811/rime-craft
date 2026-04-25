@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Search, FileText } from 'lucide-react'
 import { searchDocs, type SearchDoc } from '@/lib/docs/search-index'
 import { TUTORIAL_NAV } from '@/data/tutorial-nav'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function DocsSearch() {
   const [open, setOpen] = useState(false)
@@ -83,13 +85,14 @@ export function DocsSearch() {
         onClick={() => setOpen(false)}
       />
       <div className="fixed inset-x-0 top-[15%] z-50 mx-auto w-full max-w-lg px-4">
-        <div className="overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+        <div className="overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xl">
           <div className="flex items-center border-b border-border px-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search tutorials..."
+              placeholder="搜索教程..."
+              aria-label="搜索教程"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -101,18 +104,18 @@ export function DocsSearch() {
           </div>
           <div className="max-h-80 overflow-y-auto p-2">
             {results.length === 0 && query.trim() !== '' && (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                No results found.
-              </p>
+              <div className="rounded-xl border border-dashed border-border/80 bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
+                未找到相关教程。
+              </div>
             )}
             {results.map((result, i) => (
               <button
                 key={result.slug}
                 onClick={() => goTo(result.slug)}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors duration-200 transition-[background-color,box-shadow,color] ${
                   i === selected
-                    ? 'bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100'
-                    : 'text-foreground/90 hover:bg-accent'
+                    ? 'bg-accent text-foreground shadow-sm'
+                    : 'text-foreground/90 hover:bg-accent/70'
                 }`}
               >
                 <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
@@ -131,15 +134,30 @@ export function DocsSearch() {
   )
 }
 
-export function SearchTrigger() {
+interface SearchTriggerProps {
+  compact?: boolean
+  className?: string
+}
+
+export function SearchTrigger({ compact = false, className }: SearchTriggerProps) {
   return (
-    <button
+    <Button
+      type="button"
+      variant="outline"
+      size={compact ? 'icon' : 'sm'}
+      aria-label="搜索教程"
       onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-      className="hidden items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent md:flex"
+      className={cn(
+        'border-border/80 bg-card/80 text-muted-foreground shadow-sm transition-colors duration-200 transition-[border-color,background-color,box-shadow,color]',
+        compact
+          ? 'h-9 w-9 rounded-full hover:shadow-sm'
+          : 'gap-2 rounded-xl hover:shadow-md',
+        className,
+      )}
     >
-      <Search className="h-3.5 w-3.5" />
-      <span>Search...</span>
-      <kbd className="rounded bg-muted px-1 text-xs">&#8984;K</kbd>
-    </button>
+      <Search className="h-4 w-4" />
+      {!compact && <span>搜索教程</span>}
+      {!compact && <kbd className="rounded bg-muted px-1 text-xs">&#8984;K</kbd>}
+    </Button>
   )
 }
