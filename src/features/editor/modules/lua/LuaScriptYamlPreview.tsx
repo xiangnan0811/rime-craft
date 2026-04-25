@@ -22,11 +22,11 @@ export function LuaScriptYamlPreview({ script }: LuaScriptYamlPreviewProps) {
     - ${modulePrefix}@${identifier}`
 
   return (
-    <div className="mt-3 rounded border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-900">
-      <div className="mb-1 text-xs font-medium text-gray-600 dark:text-slate-400">
+    <div className="mt-3 rounded-xl border border-border bg-card/80 p-3 shadow-sm">
+      <div className="mb-1 text-xs font-medium text-muted-foreground">
         自动生成的 YAML patch（保存时合并到 schema）
       </div>
-      <pre className="overflow-x-auto text-xs leading-relaxed text-gray-700 dark:text-slate-300">
+      <pre className="overflow-x-auto rounded-lg bg-muted/40 p-3 text-xs leading-relaxed text-foreground/90">
         <code>{yaml}</code>
       </pre>
     </div>

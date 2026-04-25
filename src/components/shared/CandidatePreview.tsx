@@ -23,16 +23,24 @@ export function CandidatePreview({
   // When no theme, use Tailwind classes (backward compatible for HomePage)
   if (!theme) {
     return (
-      <div className={cn('inline-block rounded-lg border bg-card p-3 text-card-foreground shadow-lg', className)}>
-        <div className="mb-2 text-sm text-blue-600 dark:text-blue-400">{input}</div>
+      <div
+        className={cn(
+          'inline-block rounded-2xl border border-border bg-card/80 p-4 text-card-foreground shadow-sm',
+          className,
+        )}
+      >
+        <div className="mb-3 text-sm font-medium text-muted-foreground">{input}</div>
         <div className="flex gap-3">
           {candidates.map((text, i) => (
-            <span key={i} className={cn(
-              'whitespace-nowrap text-sm',
-              i === 0
-                ? 'rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
-                : 'text-foreground/90',
-            )}>
+            <span
+              key={i}
+              className={cn(
+                'whitespace-nowrap rounded-md px-1.5 py-0.5 text-sm',
+                i === 0
+                  ? 'bg-accent font-medium text-accent-foreground'
+                  : 'text-foreground/90',
+              )}
+            >
               <span className="mr-1 text-xs text-muted-foreground">{labels[i]}</span>
               {text}
             </span>
@@ -47,7 +55,13 @@ export function CandidatePreview({
   const outerBg = darkMode ? '#1a1a2e' : '#f0f0f0'
 
   return (
-    <div className={cn('inline-flex items-center justify-center rounded-xl p-8', className)} style={{ backgroundColor: outerBg }}>
+    <div
+      className={cn(
+        'inline-flex items-center justify-center rounded-3xl border border-border/70 bg-card/50 p-8 shadow-sm',
+        className,
+      )}
+      style={{ backgroundColor: outerBg }}
+    >
       <div
         style={{
           backgroundColor: colors.backgroundColor,
