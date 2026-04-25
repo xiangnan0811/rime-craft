@@ -56,4 +56,12 @@ describe('<ThemePresetSelector>', () => {
     await user.click(screen.getByText(other.name))
     expect(useConfigStore.getState().project.platformConfig.style?.name).toBe(other.name)
   })
+
+  it('keeps preset cards on restrained border/background transition classes', () => {
+    render(<ThemePresetSelector />)
+
+    const firstPreset = screen.getByRole('button', { name: PRESET_THEMES[0]!.name })
+    expect(firstPreset.className).toContain('transition-[border-color,background-color,box-shadow]')
+    expect(firstPreset.className).toContain('duration-200')
+  })
 })

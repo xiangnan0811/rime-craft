@@ -8,9 +8,13 @@ export function ThemeEditor() {
     <div className="space-y-6">
       <ThemePresetSelector />
       <Separator />
-      <ThemeColorSection />
+      <div className="space-y-4">
+        <ThemeColorSection />
+      </div>
       <Separator />
-      <ThemeLayoutSection />
+      <div className="space-y-4">
+        <ThemeLayoutSection />
+      </div>
     </div>
   )
 }
