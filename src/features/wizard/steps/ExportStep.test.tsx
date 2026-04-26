@@ -4,7 +4,7 @@ import { ExportStep } from './ExportStep'
 import { useConfigStore } from '@/stores/config-store'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
-import type { WizardState } from '../WizardPage'
+import type { WizardState } from '../wizard-state'
 
 // Mock react-router-dom
 vi.mock('react-router-dom', () => ({

@@ -9,7 +9,7 @@ import { createSourceFilesFromProject } from '@/lib/workspace/source-files'
 import { PRESET_THEMES } from '@/data/preset-themes'
 import { SCHEMA_REGISTRY } from '@/data/schema-registry'
 import type { RimeProject } from '@/types/config'
-import type { WizardState } from '../WizardPage'
+import type { WizardState } from '../wizard-state'
 
 function buildProject(state: WizardState): RimeProject {
   const project = createEmptyProject()

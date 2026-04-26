@@ -8,7 +8,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import type { SwitchKeyAction } from '@/types/config'
-import type { WizardState, WizardAction } from '../WizardPage'
+import type { WizardState, WizardAction } from '../wizard-state'
 import { getAppIdentifier } from '@/data/app-database'
 import { getWizardAsciiModeAppOptions } from '../ascii-mode-apps'
 
